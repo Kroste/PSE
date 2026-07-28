@@ -15,7 +15,7 @@ import { clearStorage } from '../game/state/save';
 import { elements, freeSupplyIds, getEntity } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
-import type { Entity, ElementEntity } from '../game/content/types';
+import type { Entity, ElementEntity, Recipe } from '../game/content/types';
 
 let feedbackTimer: number | undefined;
 
@@ -320,20 +320,50 @@ function feedbackBox(): HTMLElement {
 function hintsBox(): HTMLElement {
   const box = document.createElement('div');
   box.className = 'pse-hints';
-  box.appendChild(sectionHeader('Reaktoren-Katalog'));
 
-  for (const recipe of availableRecipesForActiveReactor()) {
+  const discovered = new Set<string>(getState().discovered);
+  const open: Recipe[] = [];
+  const done: Recipe[] = [];
+  for (const r of availableRecipesForActiveReactor()) {
+    const outputs = Object.keys(r.outputs);
+    (outputs.every((id) => discovered.has(id)) ? done : open).push(r);
+  }
+
+  box.appendChild(sectionHeader(`Offene Reaktionen (${open.length})`));
+  if (open.length === 0) {
+    const hint = document.createElement('p');
+    hint.className = 'pse-hint';
+    hint.textContent = 'Alle Reaktionen dieses Reaktors sind entdeckt.';
+    box.appendChild(hint);
+  } else {
+    for (const recipe of open) {
+      const line = document.createElement('div');
+      line.className = 'pse-hint-row';
+      const left = Object.entries(recipe.inputs)
+        .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+        .join(' + ');
+      const right = Object.entries(recipe.outputs)
+        .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+        .join(' + ');
+      line.textContent = `${left}  →  ${right}`;
+      box.appendChild(line);
+    }
+  }
+
+  if (done.length > 0) {
+    box.appendChild(sectionHeader(`Entdeckt (${done.length})`));
     const line = document.createElement('div');
-    line.className = 'pse-hint-row';
-    const left = Object.entries(recipe.inputs)
-      .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
-      .join(' + ');
-    const right = Object.entries(recipe.outputs)
-      .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
-      .join(' + ');
-    line.textContent = `${left}  →  ${right}`;
+    line.className = 'pse-hint-done';
+    line.textContent = done
+      .map((r) =>
+        Object.keys(r.outputs)
+          .map((id) => getEntity(id)?.symbol ?? id)
+          .join('+'),
+      )
+      .join('  ·  ');
     box.appendChild(line);
   }
+
   return box;
 }
 

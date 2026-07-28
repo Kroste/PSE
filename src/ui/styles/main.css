@@ -303,6 +303,14 @@ body {
   color: var(--text-dim);
   padding: 2px 0;
 }
+.pse-hint-done {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-dim);
+  padding: 4px 0;
+  line-height: 1.6;
+  opacity: 0.75;
+}
 
 .pse-detail-title {
   display: flex;
