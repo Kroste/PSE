@@ -129,5 +129,65 @@
     "energyMeV": 6.16,
     "scienceNoteDE": "Zweifacher β⁺-Zerfall (vereinfacht): ⁵⁶Ni → ⁵⁶Co (T½ ~6 d) → ⁵⁶Fe (T½ ~77 d), jeweils mit Positron und Neutrino. Treibt die Lichtkurve von Typ-Ia-Supernovae über Monate. Endprodukt ist das stabilste Eisenisotop.",
     "source": "NUBASE2020 & Nadyozhin, Astrophys. Space Sci. 112 (1994)"
+  },
+  {
+    "id": "cno-1-c12-p",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "c12": 1, "proton": 1 },
+    "outputs": { "n13": 1, "gamma": 1 },
+    "energyMeV": 1.944,
+    "scienceNoteDE": "CNO-Schritt 1: ¹²C fängt ein Proton ein und wird zu ¹³N. Der CNO-Zyklus ist die dominante H-Brennform in Sternen mit >1,3 M☉ und braucht bereits vorhandenen Kohlenstoff als Katalysator.",
+    "source": "Bethe 1939, Phys. Rev. 55, 434; von Weizsäcker 1938"
+  },
+  {
+    "id": "cno-2-n13-decay",
+    "kind": "decay",
+    "reactor": "stellar-core",
+    "inputs": { "n13": 1 },
+    "outputs": { "c13": 1, "e+": 1 },
+    "energyMeV": 1.199,
+    "scienceNoteDE": "CNO-Schritt 2: ¹³N zerfällt via β⁺ zu ¹³C, Halbwertszeit ~10 min. Emittiert ein Positron und ein (nicht modelliertes) Elektron-Neutrino.",
+    "source": "NUBASE2020"
+  },
+  {
+    "id": "cno-3-c13-p",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "c13": 1, "proton": 1 },
+    "outputs": { "n14": 1, "gamma": 1 },
+    "energyMeV": 7.551,
+    "scienceNoteDE": "CNO-Schritt 3: ¹³C fängt ein Proton ein und wird zu ¹⁴N — dem am längsten lebenden Zwischenkern des Zyklus.",
+    "source": "Adelberger et al., Rev. Mod. Phys. 83 (2011)"
+  },
+  {
+    "id": "cno-4-n14-p",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "n14": 1, "proton": 1 },
+    "outputs": { "o15": 1, "gamma": 1 },
+    "energyMeV": 7.297,
+    "scienceNoteDE": "CNO-Schritt 4: ¹⁴N + p → ¹⁵O. Der langsamste Schritt im Zyklus — bestimmt die Gesamtrate der CNO-basierten Energieproduktion.",
+    "source": "LUNA Collaboration, Formicola et al., Phys. Lett. B 591 (2004)"
+  },
+  {
+    "id": "cno-5-o15-decay",
+    "kind": "decay",
+    "reactor": "stellar-core",
+    "inputs": { "o15": 1 },
+    "outputs": { "n15": 1, "e+": 1 },
+    "energyMeV": 1.732,
+    "scienceNoteDE": "CNO-Schritt 5: ¹⁵O zerfällt via β⁺ zu ¹⁵N, Halbwertszeit ~2 min.",
+    "source": "NUBASE2020"
+  },
+  {
+    "id": "cno-6-n15-p",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "n15": 1, "proton": 1 },
+    "outputs": { "c12": 1, "alpha": 1 },
+    "energyMeV": 4.966,
+    "scienceNoteDE": "CNO-Schritt 6 (schließend): ¹⁵N + p → ¹²C + ⁴He. Regeneriert den Katalysator ¹²C und produziert das Netto-Endprodukt ⁴He. Netto-Bilanz des CNO-Zyklus: 4p → ⁴He + 2e⁺ + 2νₑ + ~26,7 MeV.",
+    "source": "Bethe 1939, Phys. Rev. 55, 434"
   }
 ]

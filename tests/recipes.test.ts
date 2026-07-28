@@ -141,4 +141,36 @@ describe('recipe engine', () => {
       expect(r?.outputs).toEqual({ fe56: 1, 'e+': 2 });
     });
   });
+
+  describe('CNO-Zyklus', () => {
+    const steps: Array<{ inputs: Record<string, number>; id: string; outputs: Record<string, number> }> = [
+      { inputs: { c12: 1, proton: 1 }, id: 'cno-1-c12-p', outputs: { n13: 1, gamma: 1 } },
+      { inputs: { n13: 1 }, id: 'cno-2-n13-decay', outputs: { c13: 1, 'e+': 1 } },
+      { inputs: { c13: 1, proton: 1 }, id: 'cno-3-c13-p', outputs: { n14: 1, gamma: 1 } },
+      { inputs: { n14: 1, proton: 1 }, id: 'cno-4-n14-p', outputs: { o15: 1, gamma: 1 } },
+      { inputs: { o15: 1 }, id: 'cno-5-o15-decay', outputs: { n15: 1, 'e+': 1 } },
+      { inputs: { n15: 1, proton: 1 }, id: 'cno-6-n15-p', outputs: { c12: 1, alpha: 1 } },
+    ];
+
+    it.each(steps)('matcht $id im Sternkern', ({ inputs, id, outputs }) => {
+      const r = matchRecipe(inputs, 'stellar-core');
+      expect(r?.id).toBe(id);
+      expect(r?.outputs).toEqual(outputs);
+    });
+
+    it('Netto-Bilanz: 4p → ⁴He + 2e⁺, ¹²C regeneriert', () => {
+      let protonsIn = 0;
+      let alphasOut = 0;
+      let positronsOut = 0;
+      for (const step of steps) {
+        protonsIn += step.inputs.proton ?? 0;
+        alphasOut += step.outputs.alpha ?? 0;
+        positronsOut += step.outputs['e+'] ?? 0;
+      }
+      expect(protonsIn).toBe(4);
+      expect(alphasOut).toBe(1);
+      expect(positronsOut).toBe(2);
+      expect(steps[steps.length - 1]!.outputs.c12).toBe(1);
+    });
+  });
 });
