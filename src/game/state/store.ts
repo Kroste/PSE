@@ -60,7 +60,34 @@ export function getState(): GameState {
 }
 
 export function loadState(persisted: PersistedState): void {
-  state = { ...persisted, reactionZone: {} };
+  state = { ...reconcileUnlockedReactors(persisted), reactionZone: {} };
+  emit();
+}
+
+/**
+ * Ableitung: wenn eine bereits entdeckte Entity als Output eines Rezepts mit
+ * `unlocksReactors` vorkommt, muss dieses Rezept irgendwann gecraftet worden
+ * sein — also gehören die Reaktoren zwingend zu `unlockedReactors`. Fängt
+ * Saves ab, die vor Einführung einer Freischaltungs-Regel entstanden sind.
+ */
+export function reconcileUnlockedReactors(persisted: PersistedState): PersistedState {
+  const discovered = new Set<EntityId>(persisted.discovered);
+  const unlocked = new Set<ReactorId>(persisted.unlockedReactors);
+  const before = unlocked.size;
+
+  for (const recipe of allRecipes) {
+    if (!recipe.unlocksReactors || recipe.unlocksReactors.length === 0) continue;
+    const outputWasDiscovered = Object.keys(recipe.outputs).some((id) => discovered.has(id));
+    if (!outputWasDiscovered) continue;
+    for (const r of recipe.unlocksReactors) unlocked.add(r);
+  }
+
+  if (unlocked.size === before) return persisted;
+  return { ...persisted, unlockedReactors: [...unlocked] };
+}
+
+export function resetState(): void {
+  state = initialState;
   emit();
 }
 

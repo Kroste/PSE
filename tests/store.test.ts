@@ -8,13 +8,17 @@ import {
   craft,
   discover,
   getState,
+  loadState,
   onCraft,
+  reconcileUnlockedReactors,
   removeFromInventory,
   removeFromZone,
+  resetState,
   setActiveReactor,
   subscribe,
   unlockReactor,
 } from '../src/game/state/store';
+import type { PersistedState } from '../src/game/state/store';
 
 describe('game state store', () => {
   beforeEach(() => {
@@ -196,6 +200,58 @@ describe('game state store', () => {
       expect(getState().inventory['e+']).toBe(1);
       expect(getState().discovered).toContain('deuteron');
       expect(getState().discovered).toContain('e+');
+    });
+  });
+
+  describe('reconcileUnlockedReactors', () => {
+    it('schaltet stellar-core rückwirkend frei, wenn H bereits entdeckt ist', () => {
+      const oldSave: PersistedState = {
+        discovered: ['proton', 'e-', 'H'],
+        unlockedReactors: ['workbench'],
+        activeReactor: 'workbench',
+        inventory: {},
+      };
+      const reconciled = reconcileUnlockedReactors(oldSave);
+      expect(reconciled.unlockedReactors).toContain('stellar-core');
+      expect(reconciled.unlockedReactors).toContain('workbench');
+    });
+
+    it('gibt denselben Persisted-State zurück, wenn keine Freischaltung nötig ist', () => {
+      const empty: PersistedState = {
+        discovered: [],
+        unlockedReactors: ['workbench'],
+        activeReactor: 'workbench',
+        inventory: {},
+      };
+      expect(reconcileUnlockedReactors(empty)).toBe(empty);
+    });
+
+    it('loadState wendet reconcile automatisch an', () => {
+      loadState({
+        discovered: ['proton', 'e-', 'H'],
+        unlockedReactors: ['workbench'],
+        activeReactor: 'workbench',
+        inventory: { H: 1 },
+      });
+      expect(getState().unlockedReactors).toContain('stellar-core');
+    });
+  });
+
+  describe('resetState', () => {
+    it('setzt state auf den initialen Zustand zurück', () => {
+      addToInventory('proton', 3);
+      discover('deuteron');
+      unlockReactor('stellar-core');
+      setActiveReactor('stellar-core');
+
+      resetState();
+
+      const s = getState();
+      expect(s.discovered).toEqual([]);
+      expect(s.inventory).toEqual({});
+      expect(s.unlockedReactors).toEqual(['workbench']);
+      expect(s.activeReactor).toBe('workbench');
+      expect(s.reactionZone).toEqual({});
     });
   });
 });

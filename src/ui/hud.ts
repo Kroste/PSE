@@ -7,9 +7,11 @@ import {
   getState,
   onCraft,
   removeFromZone,
+  resetState,
   setActiveReactor,
   subscribe,
 } from '../game/state/store';
+import { clearStorage } from '../game/state/save';
 import { elements, freeSupplyIds, getEntity } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
@@ -23,7 +25,8 @@ export function mountHud(): void {
   const reactorsEl = document.getElementById('pse-reactors');
   const tableEl = document.getElementById('pse-table');
   const toggleBtn = document.getElementById('pse-toggle-table');
-  if (!inventoryEl || !detailEl || !reactorsEl || !tableEl || !toggleBtn) {
+  const resetBtn = document.getElementById('pse-reset');
+  if (!inventoryEl || !detailEl || !reactorsEl || !tableEl || !toggleBtn || !resetBtn) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
 
@@ -51,6 +54,21 @@ export function mountHud(): void {
     tableEl.hidden = !tableEl.hidden;
     toggleBtn.classList.toggle('pse-btn-primary', !tableEl.hidden);
     rerenderTable();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    const confirmed = window.confirm(
+      'Kompletten Fortschritt löschen und neu starten? Diese Aktion lässt sich nicht rückgängig machen.',
+    );
+    if (!confirmed) return;
+    clearStorage();
+    resetState();
+    if (!tableEl.hidden) {
+      tableEl.hidden = true;
+      toggleBtn.classList.remove('pse-btn-primary');
+    }
+    selectedEntityId = null;
+    rerenderDetail();
   });
 
   subscribe(() => {
