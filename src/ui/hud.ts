@@ -110,12 +110,14 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
     el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
   }
 
-  const nonFree = Object.entries(state.inventory).filter(([id]) => !freeSupplyIds.includes(id));
+  const freeSet = new Set<string>(freeSupplyIds);
+  const nonFreeIds = state.discovered.filter((id) => !freeSet.has(id));
   const byKind: Record<string, Array<[string, number]>> = {};
-  for (const entry of nonFree) {
-    const entity = getEntity(entry[0]);
+  for (const id of nonFreeIds) {
+    const entity = getEntity(id);
     if (!entity) continue;
-    (byKind[entity.kind] ??= []).push(entry);
+    const count = state.inventory[id] ?? 0;
+    (byKind[entity.kind] ??= []).push([id, count]);
   }
 
   const kindOrder: Array<[string, string]> = [
