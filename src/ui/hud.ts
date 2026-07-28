@@ -188,15 +188,6 @@ function inventoryRow(
   label.addEventListener('click', () => opts.onSelect(entity.id));
   row.appendChild(label);
 
-  const addBtn = document.createElement('button');
-  addBtn.className = 'pse-btn pse-btn-add';
-  addBtn.type = 'button';
-  addBtn.textContent = '+';
-  addBtn.title = 'In Reaktionszone';
-  addBtn.disabled = !canAddMore;
-  addBtn.addEventListener('click', () => addToZone(entity.id, 1));
-  row.appendChild(addBtn);
-
   if (inZone > 0) {
     const rmBtn = document.createElement('button');
     rmBtn.className = 'pse-btn pse-btn-rm';
@@ -206,6 +197,15 @@ function inventoryRow(
     rmBtn.addEventListener('click', () => removeFromZone(entity.id, 1));
     row.appendChild(rmBtn);
   }
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'pse-btn pse-btn-add';
+  addBtn.type = 'button';
+  addBtn.textContent = '+';
+  addBtn.title = 'In Reaktionszone';
+  addBtn.disabled = !canAddMore;
+  addBtn.addEventListener('click', () => addToZone(entity.id, 1));
+  row.appendChild(addBtn);
 
   return row;
 }
