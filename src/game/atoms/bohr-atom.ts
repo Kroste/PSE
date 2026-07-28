@@ -7,6 +7,7 @@ import {
   RingGeometry,
   SphereGeometry,
   DoubleSide,
+  Vector3,
 } from 'three';
 import type { ElementEntity } from '../content/types';
 import { bohrShells, nucleusFor } from './nucleus-composition';
@@ -67,11 +68,9 @@ export function buildBohrAtom(element: ElementEntity): AtomRig {
   };
 }
 
-function buildNucleusCluster(protons: number, neutrons: number, a: number): Group {
+function buildNucleusCluster(protons: number, neutrons: number, _a: number): Group {
   const g = new Group();
   const nucleonR = 0.09;
-  // Kern-Radius wächst mit A^(1/3) — physikalisch korrekt (~1.2 fm × A^1/3)
-  const clusterR = 0.05 + 0.14 * Math.cbrt(a);
   const pMat = makeNucleonMaterial(PROTON_COLOR);
   const nMat = makeNucleonMaterial(NEUTRON_COLOR);
   const geo = new SphereGeometry(nucleonR, 20, 16);
@@ -83,25 +82,54 @@ function buildNucleusCluster(protons: number, neutrons: number, a: number): Grou
     return g;
   }
 
-  // Fibonacci-Kugelverteilung: gleichmäßig auf einer Sphäre.
-  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-  // Nukleonen zufällig, aber deterministisch mischen (Protonen zuerst)
+  // Nukleonen zufällig, aber deterministisch mischen (Protonen und Neutronen
+  // gleichmäßig verteilt, sonst würden alle Protonen im Kern-Zentrum liegen).
   const kinds: number[] = [];
   for (let i = 0; i < protons; i++) kinds.push(0);
   for (let i = 0; i < neutrons; i++) kinds.push(1);
   shuffleDeterministic(kinds, protons * 7 + neutrons * 13);
 
+  const positions = packedPositions(total, nucleonR * 1.85, protons * 3 + neutrons * 5);
   for (let i = 0; i < total; i++) {
-    const y = 1 - (i / (total - 1)) * 2;
-    const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const theta = goldenAngle * i;
-    const x = Math.cos(theta) * r;
-    const z = Math.sin(theta) * r;
+    const p = positions[i]!;
     const mesh = new Mesh(geo, kinds[i] === 0 ? pMat : nMat);
-    mesh.position.set(x * clusterR, y * clusterR, z * clusterR);
+    mesh.position.copy(p);
     g.add(mesh);
   }
   return g;
+}
+
+/**
+ * Erzeugt `count` Positionen für Nukleonen in einer möglichst kompakten
+ * Kugel-Anordnung. Ansatz: kubisches Gitter mit `spacing`, sortiert nach
+ * Distanz zum Ursprung, die N nächsten übernommen — plus leichter Jitter,
+ * damit das Ergebnis weniger nach Gitter aussieht.
+ */
+function packedPositions(count: number, spacing: number, jitterSeed: number): Vector3[] {
+  const candidates: Vector3[] = [];
+  const range = Math.ceil(Math.cbrt(count));
+  for (let i = -range; i <= range; i++) {
+    for (let j = -range; j <= range; j++) {
+      for (let k = -range; k <= range; k++) {
+        candidates.push(new Vector3(i * spacing, j * spacing, k * spacing));
+      }
+    }
+  }
+  candidates.sort((a, b) => a.lengthSq() - b.lengthSq());
+
+  const chosen = candidates.slice(0, count);
+  const jitter = spacing * 0.12;
+  let s = jitterSeed;
+  const nextRand = (): number => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280 - 0.5;
+  };
+  for (const p of chosen) {
+    p.x += nextRand() * jitter;
+    p.y += nextRand() * jitter;
+    p.z += nextRand() * jitter;
+  }
+  return chosen;
 }
 
 function buildShell(n: number, electronCount: number, radius: number): Group {
