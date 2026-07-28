@@ -59,6 +59,8 @@ type FusionState = {
   elapsed: number;
   totalDuration: number;
   targetElementId: string;
+  flashMesh: Mesh;
+  flashMat: MeshBasicMaterial;
 };
 
 export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
@@ -179,6 +181,18 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     const fusionGroup = new Group();
     scene.add(fusionGroup);
 
+    // Impact-Flash am Atom-Zentrum: eine Emissive-Sphere, die synchron
+    // zur Fusion aufleuchtet und pulsiert — visuelles Hauptsignal, dass
+    // etwas passiert.
+    const flashMat = new MeshBasicMaterial({
+      color: new Color(entity.cpkColor),
+      transparent: true,
+      opacity: 0.0,
+    });
+    const flashMesh = new Mesh(new SphereGeometry(0.35, 24, 20), flashMat);
+    flashMesh.position.copy(ATOM_CENTER);
+    fusionGroup.add(flashMesh);
+
     // Zutaten in Nukleonen und Elektronen splitten (nach userData.entityId).
     const nucleonMeshes: Mesh[] = [];
     const electronMeshes: Mesh[] = [];
@@ -192,54 +206,59 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
 
     const movers: FusionMover[] = [];
 
-    // Nukleonen: Phase 1 (0 → 0.7 s) — implodieren zum Kern.
-    const nucleonScaleFactor = scale * 0.6; // Kern kleiner als Zone-Mesh
+    // WICHTIG: attach() statt add() erhält die WELT-Position beim Transfer.
+    // add() würde die Meshes von ihrer (rotierten) zoneGroup-Weltposition auf
+    // die (unrotierte) fusionGroup-Position teleportieren — die Animation
+    // wäre dann nicht sichtbar, weil der Teleport den größten Teil der
+    // Distanz auffrisst.
+
+    // Nukleonen: Phase 1 (0 → 1.4 s) — implodieren zum Kern.
+    const nucleonScaleFactor = scale * 0.6;
     nucleonMeshes.forEach((mesh, i) => {
       const target = targets.nucleonPositions[i % targets.nucleonPositions.length]!
         .clone()
         .multiplyScalar(scale)
         .add(ATOM_CENTER);
-      fusionGroup.add(mesh);
+      fusionGroup.attach(mesh);
       movers.push({
         mesh,
         from: mesh.position.clone(),
         to: target,
         startT: 0,
-        duration: 0.7,
+        duration: 1.4,
         scaleFrom: 1,
         scaleTo: nucleonScaleFactor,
       });
     });
 
-    // Elektronen: Phase 2 (0.5 → 1.4 s) — nach Nukleon-Kollaps eingefangen.
+    // Elektronen: Phase 2 (1.0 → 2.4 s) — nach Kollaps eingefangen.
     const electronScaleFactor = scale * 0.55;
     electronMeshes.forEach((mesh, i) => {
       const target = targets.electronPositions[i % Math.max(1, targets.electronPositions.length)]!
         .clone()
         .multiplyScalar(scale)
         .add(ATOM_CENTER);
-      fusionGroup.add(mesh);
+      fusionGroup.attach(mesh);
       movers.push({
         mesh,
         from: mesh.position.clone(),
         to: target,
-        startT: 0.5,
-        duration: 0.9,
+        startT: 1.0,
+        duration: 1.4,
         scaleFrom: 1,
         scaleTo: electronScaleFactor,
       });
     });
 
-    // Andere Zutaten (γ, Kerne im Expert-Modus, …): einfach zum Zentrum
-    // schrumpfen — sie werden vom Atom "absorbiert".
+    // Andere Zutaten (γ, Kerne im Expert-Modus, …): zum Zentrum schrumpfen.
     otherMeshes.forEach((mesh) => {
-      fusionGroup.add(mesh);
+      fusionGroup.attach(mesh);
       movers.push({
         mesh,
         from: mesh.position.clone(),
         to: ATOM_CENTER.clone(),
         startT: 0,
-        duration: 0.7,
+        duration: 1.4,
         scaleFrom: 1,
         scaleTo: 0.01,
       });
@@ -249,8 +268,10 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       group: fusionGroup,
       movers,
       elapsed: 0,
-      totalDuration: 1.6, // etwas Puffer vor Atom-Show
+      totalDuration: 2.8,
       targetElementId: elementId,
+      flashMesh,
+      flashMat,
     };
     return true;
   }
@@ -279,6 +300,13 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
           const s = m.scaleFrom + (m.scaleTo - m.scaleFrom) * eased;
           m.mesh.scale.setScalar(s);
         }
+        // Flash-Pulse: baut langsam auf, peakt bei ~1.4 s (Ende Nukleon-Phase),
+        // verblasst wieder und wächst in Größe für Impact-Feel.
+        const tNorm = fusion.elapsed / fusion.totalDuration;
+        const pulse = Math.sin(Math.min(1, tNorm * 1.2) * Math.PI); // 0 → 1 → 0
+        fusion.flashMat.opacity = pulse * 0.55;
+        fusion.flashMesh.scale.setScalar(0.5 + tNorm * 1.4);
+
         if (fusion.elapsed >= fusion.totalDuration) {
           const target = fusion.targetElementId;
           disposeGroup(fusion.group);
@@ -286,7 +314,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
           fusion = null;
           replaceAtom(target, true);
           atomGroup.visible = true;
-          // Zone-Snapshot ist ohnehin leer nach Craft — safety-check
           rebuildZone(zoneGroup, lastZoneSnapshot);
         }
       }
