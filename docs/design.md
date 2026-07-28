@@ -1,0 +1,173 @@
+# PSE — Design
+
+Kanonisches Design-Dokument. Änderungen am Konzept landen zuerst hier, dann im Code.
+
+## Leitidee
+
+> Materie **von unten nach oben** bauen. Vom Quark bis zum Molekül. Wissenschaftlich
+> korrekt, aber vereinfacht. Jedes Rezept mit Quelle.
+
+Zwei Phasen:
+
+- **Phase 1 — Der PSE-Aufstieg**: Elementarteilchen → Nukleonen → Wasserstoff → alle
+  118 Elemente.
+- **Phase 2 — Darüber hinaus**: Chemische Verbindungen (Wasser, Alkohole, Polymere,
+  Astrochemie).
+
+## Gestaltungsprinzipien
+
+1. **Realismus vor Bequemlichkeit** — wenn es nicht real passiert, kommt es nicht ins
+   Spiel. Alle Rezepte haben eine Quelle (`Recipe.source`) und einen deutschen
+   Erklärungstext (`Recipe.scienceNoteDE`).
+2. **Physik wird nicht simuliert, sondern vorausgesetzt.** Statt Druck und Temperatur
+   zu modellieren, wählt der Spieler den **Reaktor-Kontext**, in dem die Reaktion
+   passieren _kann_. Die Auswahl des Kontexts _ist_ die Physik.
+3. **KI ist additiv, nie im kritischen Pfad.** Das Spiel funktioniert komplett ohne KI.
+4. **Additive Freischaltung** — nichts wird weggenommen. Neue Reaktoren erweitern die
+   Möglichkeiten, alte bleiben nutzbar.
+5. **Daten vor Code.** Neue Rezepte/Entitäten kommen ausschließlich in
+   `src/game/content/*.json`. Die Engine kennt keine hartkodierten IDs.
+
+## Reaktoren
+
+Der Reaktor ist der **Kontext**, in dem eine Reaktion möglich ist. Er bestimmt, welche
+Rezepte überhaupt sichtbar/anwendbar sind.
+
+| ID              | Name           | Wofür                                                | Freischaltung           |
+| --------------- | -------------- | ---------------------------------------------------- | ----------------------- |
+| `workbench`     | Werkbank       | Symbolische Grundmontage: Quarks → Hadronen, p+e⁻→H  | Start                   |
+| `stellar-core`  | Sternkern      | pp-Kette, CNO-Zyklus, Alpha-Prozess bis Eisen        | H entdeckt              |
+| `agb-star`      | AGB-Stern      | s-Prozess (langsamer Neutroneneinfang) bis Blei      | Sternkern-Rezept genutzt |
+| `supernova`     | Supernova      | r-Prozess (schneller Neutroneneinfang) bis Uran      | AGB-Rezept genutzt      |
+| `cyclotron`     | Zyklotron      | Superschwere Elemente (Z > 92) durch Beschuss        | Uran entdeckt           |
+| `chem-lab`      | Chemielabor    | Phase 2: chemische Bindungen, Moleküle, Polymere     | Erstes stabiles Element |
+
+Die Werkbank ist eine Vereinfachung — Quarks kann man in Realität nicht zusammenlegen
+(Confinement). Sie dient dem Onboarding und macht den Bauplan sichtbar. Der Text im
+Spiel (`scienceNoteDE`) benennt das explizit.
+
+## Datenmodell
+
+Vollständig typisiert in `src/game/content/types.ts`. Zusammenfassung:
+
+- **Entity** — `particle | hadron | element` (später auch `molecule`). Jede Entity hat
+  `id`, `nameDE`, `scienceNoteDE`, `source`, `color`.
+- **Recipe** — `{ id, kind, reactor, inputs, outputs, energyMeV?, scienceNoteDE, source, unlocksReactors? }`.
+  `inputs`/`outputs` sind **Multisets** (`Record<EntityId, number>`).
+- **Multiset-Match**: ein Rezept passt, wenn die vom Spieler zusammengestellten
+  Zutaten **exakt** den `inputs` entsprechen. Keine Übermengen, keine Untermengen.
+- **freeSupply** — Teilchen mit `freeSupply: true` (Quarks, e⁻, γ, Gluon) sind
+  unbegrenzt aus dem Umgebungsvakuum verfügbar. Sie werden **nicht** aus dem Inventar
+  abgezogen, brauchen aber trotzdem Slots in der Craft-Zone. Alles andere ist
+  Inventar-basiert.
+
+Der Katalog wird beim App-Start via `assertContentConsistency()` geprüft: keine
+doppelten IDs, keine Rezepte auf unbekannte Entities, Hadron-Quarks existieren als
+Quark-Entities. Bricht früh — kaputter Content ist ein Build-Fehler, kein Laufzeit-Bug.
+
+## Craft-Loop
+
+1. Spieler wählt Reaktor (Start = Werkbank).
+2. Spieler füllt die **Craft-Zone** mit Zutaten aus:
+   - **Palette** (freie Zutaten und bereits entdeckte Non-freeSupply-Entities), oder
+   - direkt aus dem **Inventar**.
+3. Klick auf **„Verschmelzen"**:
+   - Engine sucht das eindeutige Rezept mit `reactor === activeReactor` und
+     `inputs == craftZone` (Multiset-Gleichheit).
+   - Kein Match → Hinweis, Craft-Zone bleibt bestehen.
+   - Match:
+     - Non-freeSupply-Inputs werden aus dem Inventar entfernt (Voraussetzung: alle da).
+     - Outputs kommen ins Inventar.
+     - Alle neuen Output-IDs landen in `discovered`.
+     - Falls `unlocksReactors`: neue Reaktoren werden freigeschaltet.
+     - Craft-Zone wird geleert.
+
+**Determinismus**: mehrere Rezepte mit identischem `inputs + reactor` sind ein
+Content-Fehler und werden vom Konsistenzcheck geblockt.
+
+## Progression
+
+Progress ist implizit — kein XP-System, kein Skill-Tree. Freischaltung entsteht
+ausschließlich durch:
+
+- **Entity-Entdeckung** (`discovered`) schaltet neue Palette-Einträge frei.
+- **Rezept-Nutzung** kann via `unlocksReactors` neue Reaktoren öffnen.
+
+Damit ist die Baumstruktur des Spiels **aus den Daten ableitbar** — der Content
+definiert den Fortschritt, nicht die Engine.
+
+## UI-Grundriss (M1)
+
+Hybrid: **3D-Bühne** (Three.js) für die live an den State gekoppelte Reaktionszone
+und den Craft-Ergebnis-Flash, **DOM-Overlay** (HTML/CSS) für Inventar, Detail-Panel,
+Buttons und Rezept-Katalog. Grund für den Split: DOM ist deutlich besser für Text,
+Buttons und Barrierefreiheit; die Reaktion selbst wird trotzdem als 3D-Objekt sichtbar
+(rotierender Ring aus Zutaten-Sphären auf einer Plattform, Ergebnis flasht mittig).
+
+```
++---------------------------------------------------------------+
+|  PSE   [Werkbank]                              v0.x · N entd. |
++-----------------+---------------------------+-----------------+
+|  Inventar       |                           |  Detail         |
+|  Elementar-     |                           |  □ u · Up-Quark |
+|  teilchen       |    ┌─────────────────┐    |  Typ: particle  |
+|  ○ u  ∞  [+]    |    │   Reaktions-    │    |  Ladung: +2/3 e |
+|  ○ d  ∞  [+]    |    │   plattform     │    |  Spin: 0.5      |
+|  ○ e⁻ ∞  [+]    |    │  (3D-Ring der   │    |  Masse: 2.16 MeV|
+|  ○ γ  ∞  [+]    |    │   Zutaten)      │    |  Notiz: …       |
+|  ○ g  ∞  [+]    |    │                 │    |  Quelle: PDG    |
+|  Gebaut         |    └─────────────────┘    |                 |
+|  ○ p  ×2 [+]    |                           |                 |
+|  Zone: 2u+1d+3g |    (Flash bei Craft-      |                 |
+|  [⚛ Reaktion]   |     Ergebnis)             |                 |
+|  Rezepte:       |                           |                 |
+|  2u+1d+3g → p   |                           |                 |
++-----------------+---------------------------+-----------------+
+```
+
+- **Inventar-Panel (links):** freie und nicht-freie Zutaten, jeweils mit `[+]`/`[−]`
+  zum Verschieben in die Reaktionszone. `[+]` ist disabled, wenn kein Vorrat da wäre
+  (Non-freeSupply-Entities). Klick auf die Zeile öffnet die Entity im Detail-Panel.
+- **Reaktionszone (3D, Mitte):** Zutaten als leuchtende Sphären kreisförmig auf einer
+  Metallplattform, live an den State gebunden (`subscribe`) und sanft rotierend.
+- **Craft-Flash (3D, Mitte):** bei erfolgreicher Reaktion (`onCraft`) erscheint das
+  Ergebnis mittig und fadet über ~1.4 s aus.
+- **Detail-Panel (rechts):** zeigt die zuletzt gewählte oder neu entdeckte Entity
+  mit Attributen, Wissenschaftsnotiz und Quelle.
+- **Craft-Controls:** „Reaktion ausführen" (`craft()`) und „Zone leeren".
+- **Rezept-Katalog:** listet die für den aktiven Reaktor definierten Rezepte —
+  reine Zutaten-/Produkt-Notation als Onboarding-Hilfe.
+
+**M1 macht Klick, nicht Drag.** Drag&Drop und in-scene-Picking auf die 3D-Sphären
+sind ein Refinement für M2.
+
+## Persistenz
+
+- Save-Envelope in LocalStorage, versionsiert, mit Migrations-Slot (`save.ts`).
+- Gespeichert wird `PersistedState` (`discovered`, `unlockedReactors`, `activeReactor`,
+  `inventory`). **Nicht** die `reactionZone` — die ist ephemer und Teil von `GameState`,
+  aber nicht von `PersistedState`.
+- Zukünftige Save-Versionen sind rückwärtskompatibel via `migrations[v]`.
+
+## Quellen-Politik
+
+Jedes Rezept **muss** `source` haben. Bevorzugte Quellen in dieser Reihenfolge:
+
+1. Peer-reviewed Publikationen / Standard-Referenzen (PDG, NIST, IUPAC, CODATA).
+2. Etablierte Lehrbücher (Kernphysik, physikalische Chemie).
+3. Wikipedia — nur als Einstieg, nicht als Endquelle.
+
+`scienceNoteDE` bleibt für Spieler lesbar (2–3 Sätze). Wenn Realismus und Spielbarkeit
+kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
+
+## Roadmap
+
+- **M0** ✅ — Fundament (Vite/TS/Three.js, State-Store, Save, Vitest, CI, Pages).
+- **M1** ✅ — Design-Doc, Content-Grundpaket (5 Teilchen, 2 Hadronen, H), Craft-Engine
+  im Store, 3D-Reaktionszone mit Live-Binding, DOM-HUD mit Detail-Panel und
+  Rezept-Katalog, erste 3 Rezepte (Proton, Neutron, H). Reaktor-Wechsel-UI kommt in M3.
+- **M2** — Drag&Drop, alle Nukleonen-Isotope, pp-Kette am Sternkern, erste Helium-Kette.
+- **M3** — Alpha-Prozess bis Eisen (Z=26), Reaktor-Wechsel-UI, PSE-Übersicht.
+- **M4** — s/r-Prozess (AGB, Supernova), alle 118 Elemente.
+- **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
+- **M6+** — Polymere, Astrochemie, Endgame.
