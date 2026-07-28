@@ -62,10 +62,20 @@ describe('recipe engine', () => {
       expect(ids).toEqual(['assemble-hydrogen', 'assemble-neutron', 'assemble-proton']);
     });
 
-    it('liefert die pp-Kette am Sternkern', () => {
+    it('Sternkern-Rezepte enthalten pp-Kette und Alpha-Prozess', () => {
       const stellar = recipesForReactor('stellar-core');
-      const ids = stellar.map((r) => r.id).sort();
-      expect(ids).toEqual(['pp-deuteron-capture', 'pp-fusion', 'pp-i-closing']);
+      const ids = stellar.map((r) => r.id);
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          'pp-fusion',
+          'pp-deuteron-capture',
+          'pp-i-closing',
+          'triple-alpha',
+          'c12-alpha-capture',
+          'silicon-burning',
+          'ni56-double-beta-plus',
+        ]),
+      );
     });
 
     it('leer für noch nicht bespielte Reaktoren', () => {
@@ -95,6 +105,40 @@ describe('recipe engine', () => {
     it('pp-Kette-Rezepte laufen NICHT an der Werkbank', () => {
       expect(matchRecipe({ proton: 2 }, 'workbench')).toBeNull();
       expect(matchRecipe({ helion: 2 }, 'workbench')).toBeNull();
+    });
+  });
+
+  describe('Alpha-Prozess bis Eisen', () => {
+    it('Triple-Alpha: 3α → ¹²C + γ', () => {
+      const r = matchRecipe({ alpha: 3 }, 'stellar-core');
+      expect(r?.id).toBe('triple-alpha');
+      expect(r?.outputs).toEqual({ c12: 1, gamma: 1 });
+    });
+
+    it('α-Kette C→O→Ne→Mg→Si findet jeweils genau ein Rezept', () => {
+      const steps: Array<[string, string]> = [
+        ['c12', 'o16'],
+        ['o16', 'ne20'],
+        ['ne20', 'mg24'],
+        ['mg24', 'si28'],
+      ];
+      for (const [from, to] of steps) {
+        const r = matchRecipe({ [from]: 1, alpha: 1 }, 'stellar-core');
+        expect(r, `${from}+α`).not.toBeNull();
+        expect(r!.outputs).toEqual({ [to]: 1, gamma: 1 });
+      }
+    });
+
+    it('Silizium-Verbrennung: 2·²⁸Si → ⁵⁶Ni + γ', () => {
+      const r = matchRecipe({ si28: 2 }, 'stellar-core');
+      expect(r?.id).toBe('silicon-burning');
+      expect(r?.outputs).toEqual({ ni56: 1, gamma: 1 });
+    });
+
+    it('β⁺-Zerfall ⁵⁶Ni → ⁵⁶Fe + 2e⁺', () => {
+      const r = matchRecipe({ ni56: 1 }, 'stellar-core');
+      expect(r?.id).toBe('ni56-double-beta-plus');
+      expect(r?.outputs).toEqual({ fe56: 1, 'e+': 2 });
     });
   });
 });

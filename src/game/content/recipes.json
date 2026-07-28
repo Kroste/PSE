@@ -59,5 +59,75 @@
     "energyMeV": 12.86,
     "scienceNoteDE": "Zwei ³He-Kerne fusionieren zu ⁴He unter Freisetzung von zwei Protonen. Schließt die pp-I-Kette; netto: 4p → ⁴He + 2e⁺ + 2νₑ + ~26,7 MeV — der dominante Energiequellprozess der Sonne.",
     "source": "Adelberger et al., Rev. Mod. Phys. 83 (2011) — Solar Fusion II"
+  },
+  {
+    "id": "triple-alpha",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "alpha": 3 },
+    "outputs": { "c12": 1, "gamma": 1 },
+    "energyMeV": 7.275,
+    "scienceNoteDE": "Drei α-Teilchen fusionieren über den kurzlebigen ⁸Be-Zwischenzustand und die Hoyle-Resonanz zu ¹²C. Zündet bei ~10⁸ K in Rot-Riesen — die Voraussetzung dafür, dass es überhaupt Kohlenstoff und schwerere Elemente gibt.",
+    "source": "Hoyle 1954, ApJS 1, 121; Salpeter 1952, ApJ 115, 326"
+  },
+  {
+    "id": "c12-alpha-capture",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "c12": 1, "alpha": 1 },
+    "outputs": { "o16": 1, "gamma": 1 },
+    "energyMeV": 7.162,
+    "scienceNoteDE": "¹²C fängt ein α-Teilchen ein und wird zu ¹⁶O. Konkurriert mit dem Triple-Alpha-Prozess und bestimmt maßgeblich das C/O-Verhältnis am Ende des Heliumbrennens — eine der wichtigsten Reaktionsraten der stellaren Astrophysik.",
+    "source": "deBoer et al., Rev. Mod. Phys. 89 (2017) — ¹²C(α,γ)¹⁶O rate"
+  },
+  {
+    "id": "o16-alpha-capture",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "o16": 1, "alpha": 1 },
+    "outputs": { "ne20": 1, "gamma": 1 },
+    "energyMeV": 4.73,
+    "scienceNoteDE": "α-Anlagerung an ¹⁶O erzeugt ²⁰Ne. Läuft am Ende des Heliumbrennens und im späten Kohlenstoffbrennen — trägt zur Neon-Häufigkeit im interstellaren Medium bei.",
+    "source": "Iliadis, Nuclear Physics of Stars, 2nd Ed. (2015), Tab. 5.2"
+  },
+  {
+    "id": "ne20-alpha-capture",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "ne20": 1, "alpha": 1 },
+    "outputs": { "mg24": 1, "gamma": 1 },
+    "energyMeV": 9.316,
+    "scienceNoteDE": "α-Einfang an ²⁰Ne bildet ²⁴Mg. Bestandteil des Neon- und Kohlenstoffbrennens in massereichen Sternen (>8 M☉).",
+    "source": "Iliadis, Nuclear Physics of Stars, 2nd Ed. (2015)"
+  },
+  {
+    "id": "mg24-alpha-capture",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "mg24": 1, "alpha": 1 },
+    "outputs": { "si28": 1, "gamma": 1 },
+    "energyMeV": 9.984,
+    "scienceNoteDE": "α-Einfang an ²⁴Mg liefert ²⁸Si — der Startpunkt des Siliziumbrennens. Dominante Reaktion im Sauerstoff- und Neonbrennen.",
+    "source": "Iliadis, Nuclear Physics of Stars, 2nd Ed. (2015)"
+  },
+  {
+    "id": "silicon-burning",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "si28": 2 },
+    "outputs": { "ni56": 1, "gamma": 1 },
+    "energyMeV": 10.9,
+    "scienceNoteDE": "Vereinfachte Silizium-Verbrennung: zwei ²⁸Si-Kerne führen netto zu ⁵⁶Ni. In Wirklichkeit läuft dies über Photodisintegration und schrittweisen α-Einfang (Quasi-Gleichgewicht) im Kern massereicher Sterne bei ~3 · 10⁹ K, unmittelbar vor dem Supernova-Kollaps.",
+    "source": "Woosley, Heger & Weaver, Rev. Mod. Phys. 74 (2002) — Nucleosynthesis in Massive Stars"
+  },
+  {
+    "id": "ni56-double-beta-plus",
+    "kind": "decay",
+    "reactor": "stellar-core",
+    "inputs": { "ni56": 1 },
+    "outputs": { "fe56": 1, "e+": 2 },
+    "energyMeV": 6.16,
+    "scienceNoteDE": "Zweifacher β⁺-Zerfall (vereinfacht): ⁵⁶Ni → ⁵⁶Co (T½ ~6 d) → ⁵⁶Fe (T½ ~77 d), jeweils mit Positron und Neutrino. Treibt die Lichtkurve von Typ-Ia-Supernovae über Monate. Endprodukt ist das stabilste Eisenisotop.",
+    "source": "NUBASE2020 & Nadyozhin, Astrophys. Space Sci. 112 (1994)"
   }
 ]

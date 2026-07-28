@@ -69,6 +69,26 @@ describe('content catalog', () => {
     expect(ids).toEqual(expect.arrayContaining(['deuteron', 'triton', 'helion', 'alpha']));
   });
 
+  it('enthält Atomkerne für den Alpha-Prozess bis Eisen', () => {
+    const ids = nuclei.map((n) => n.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['c12', 'o16', 'ne20', 'mg24', 'si28', 'ni56', 'fe56']),
+    );
+  });
+
+  it('Fe-56 hat die höchste Bindungsenergie pro Nukleon im Katalog', () => {
+    const perNucleon = nuclei.map((n) => ({ id: n.id, bpN: n.bindingEnergyMeV / n.a }));
+    const winner = perNucleon.reduce((a, b) => (b.bpN > a.bpN ? b : a));
+    expect(winner.id).toBe('fe56');
+  });
+
+  it('Ni-56 hat Halbwertszeit (~6 Tage)', () => {
+    const ni56 = nuclei.find((n) => n.id === 'ni56');
+    expect(ni56?.halfLifeS).toBeDefined();
+    expect(ni56!.halfLifeS!).toBeGreaterThan(400000);
+    expect(ni56!.halfLifeS!).toBeLessThan(700000);
+  });
+
   it('bei jedem Kern gilt Z = protons und A = protons + neutrons', () => {
     for (const n of nuclei) {
       expect(n.z, `${n.id}.z`).toBe(n.protons);
@@ -76,16 +96,11 @@ describe('content catalog', () => {
     }
   });
 
-  it('Alpha-Teilchen hat höchste Bindungsenergie pro Nukleon in M2-Kernen', () => {
-    const perNucleon = nuclei.map((n) => ({
-      id: n.id,
-      bpN: n.bindingEnergyMeV / n.a,
-    }));
-    const alpha = perNucleon.find((x) => x.id === 'alpha');
-    expect(alpha).toBeDefined();
-    for (const { id, bpN } of perNucleon) {
-      if (id === 'alpha') continue;
-      expect(alpha!.bpN, `alpha > ${id}`).toBeGreaterThan(bpN);
+  it('Alpha-Teilchen ist stabiler als alle Wasserstoff-Isotope pro Nukleon', () => {
+    const perNucleon = new Map(nuclei.map((n) => [n.id, n.bindingEnergyMeV / n.a]));
+    const alpha = perNucleon.get('alpha')!;
+    for (const light of ['deuteron', 'triton', 'helion']) {
+      expect(alpha, `alpha > ${light}`).toBeGreaterThan(perNucleon.get(light)!);
     }
   });
 });
