@@ -16,6 +16,7 @@ import { elements, freeSupplyIds, getEntity } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
 import type { Entity, ElementEntity, Recipe } from '../game/content/types';
+import { createOrbitalPreview, type OrbitalPreview } from '../game/atoms/orbital-preview';
 
 let feedbackTimer: number | undefined;
 
@@ -35,6 +36,27 @@ export function mountHud(opts: HudOptions = {}): void {
     throw new Error('HUD-Container fehlen im DOM.');
   }
 
+  // Detail-Panel-Skelett: Header, Preview-Slot (persistent), Content (re-rendered)
+  detailEl.innerHTML = '';
+  const detailHeader = document.createElement('h2');
+  detailHeader.textContent = 'Detail';
+  detailEl.appendChild(detailHeader);
+
+  const previewWrap = document.createElement('div');
+  previewWrap.className = 'pse-preview-wrap';
+  previewWrap.hidden = true;
+  const previewLabel = document.createElement('div');
+  previewLabel.className = 'pse-preview-label';
+  previewLabel.textContent = 'Quanten-Orbitale';
+  previewWrap.appendChild(previewLabel);
+  const preview: OrbitalPreview = createOrbitalPreview(220);
+  previewWrap.appendChild(preview.canvas);
+  detailEl.appendChild(previewWrap);
+
+  const detailContent = document.createElement('div');
+  detailContent.className = 'pse-detail-content';
+  detailEl.appendChild(detailContent);
+
   let selectedEntityId: string | null = null;
 
   const selectEntity = (id: string): void => {
@@ -44,7 +66,17 @@ export function mountHud(opts: HudOptions = {}): void {
     if (entity?.kind === 'element' && opts.showAtom) opts.showAtom(id);
   };
 
-  const rerenderDetail = (): void => renderDetail(detailEl, selectedEntityId);
+  const rerenderDetail = (): void => {
+    renderDetail(detailContent, selectedEntityId);
+    const entity = selectedEntityId ? getEntity(selectedEntityId) : null;
+    if (entity?.kind === 'element') {
+      previewWrap.hidden = false;
+      preview.show(entity as ElementEntity);
+    } else {
+      previewWrap.hidden = true;
+      preview.show(null);
+    }
+  };
 
   const rerenderInventory = (): void => {
     renderInventory(inventoryEl, { onSelect: selectEntity });
@@ -160,10 +192,6 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
 
 function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
   el.innerHTML = '';
-
-  const header = document.createElement('h2');
-  header.textContent = 'Detail';
-  el.appendChild(header);
 
   if (!selectedEntityId) {
     const hint = document.createElement('p');

@@ -20,7 +20,7 @@ import {
 import { subscribe, onCraft } from '../game/state/store';
 import { getEntity, requireEntity } from '../game/content';
 import type { ElementEntity, Multiset } from '../game/content/types';
-import { buildAtom, type AtomRig } from '../game/atoms/atom';
+import { buildBohrAtom, type AtomRig } from '../game/atoms/bohr-atom';
 
 export type SceneBundle = {
   renderer: WebGLRenderer;
@@ -79,7 +79,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     if (!elementId) return;
     const entity = getEntity(elementId);
     if (!entity || entity.kind !== 'element') return;
-    const rig = buildAtom(entity as ElementEntity);
+    const rig = buildBohrAtom(entity as ElementEntity);
     rig.root.position.set(0, 0.9, 0);
     atomGroup.add(rig.root);
     currentAtom = rig;

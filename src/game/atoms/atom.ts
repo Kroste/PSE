@@ -13,7 +13,7 @@ export type AtomRig = {
  * besetzten Quantenorbitale nach der spektroskopischen Konfiguration. Jede
  * Subshell rotiert leicht anders, damit die Wolken sich sanft mischen.
  */
-export function buildAtom(element: ElementEntity): AtomRig {
+export function buildOrbitalAtom(element: ElementEntity): AtomRig {
   const root = new Group();
   const color = new Color(element.cpkColor);
 

@@ -312,6 +312,25 @@ body {
   opacity: 0.75;
 }
 
+.pse-preview-wrap {
+  margin: 8px 0 12px;
+  padding: 8px 8px 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  background: rgba(0, 255, 176, 0.03);
+}
+.pse-preview-wrap[hidden] {
+  display: none;
+}
+.pse-preview-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding-bottom: 4px;
+}
+
 .pse-detail-title {
   display: flex;
   align-items: center;
