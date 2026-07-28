@@ -234,9 +234,28 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       if (p.id === 'proton') protons++;
       else if (p.id === 'neutron') neutrons++;
     }
-    // Nur eine Nukleon-Sorte, mit mindestens 2 Stück, keine Elektronen-Stabilisierung
-    if (protons >= 2 && neutrons === 0) return true;
-    if (neutrons >= 2 && protons === 0) return true;
+    const total = protons + neutrons;
+    if (total < 2) return false; // ein einzelnes Nukleon ist ok
+
+    // Nur eine Sorte
+    if (protons === 0 && neutrons >= 2) return true;
+    if (neutrons === 0 && protons >= 2) return true;
+
+    // Grobe Valley-of-Stability-Approximation:
+    //  Z ≤ 4  : N in [Z-1, Z+1]  (Deuteron/Triton/He-3/He-4 alle ok)
+    //  Z ≥ 5  : N in [0.85·Z, 1.6·Z + Z²/60]  (schwere Kerne brauchen
+    //           Neutronenüberschuss, U-238 mit 92p/146n passt rein)
+    let minN: number;
+    let maxN: number;
+    if (protons <= 4) {
+      minN = Math.max(0, protons - 1);
+      maxN = protons + 1;
+    } else {
+      minN = Math.ceil(protons * 0.85);
+      maxN = Math.floor(protons * 1.6 + (protons * protons) / 60);
+    }
+    if (neutrons < minN || neutrons > maxN) return true;
+
     return false;
   }
 
