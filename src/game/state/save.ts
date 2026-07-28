@@ -1,4 +1,4 @@
-import type { GameState } from './store';
+import type { PersistedState } from './store';
 
 const STORAGE_KEY = 'pse.save.v1';
 const CURRENT_VERSION = 1 as const;
@@ -6,7 +6,7 @@ const CURRENT_VERSION = 1 as const;
 type SaveEnvelope = {
   version: number;
   savedAt: string;
-  state: GameState;
+  state: PersistedState;
 };
 
 type Migration = (data: unknown) => unknown;
@@ -16,7 +16,7 @@ const migrations: Record<number, Migration> = {
   // 1: (data) => ({ ...(data as object), state: { ...(data as SaveEnvelope).state, foo: [] } }),
 };
 
-export function saveToStorage(state: GameState): void {
+export function saveToStorage(state: PersistedState): void {
   try {
     const envelope: SaveEnvelope = {
       version: CURRENT_VERSION,
@@ -29,7 +29,7 @@ export function saveToStorage(state: GameState): void {
   }
 }
 
-export function loadFromStorage(): GameState | null {
+export function loadFromStorage(): PersistedState | null {
   const raw = tryReadRaw();
   if (raw === null) return null;
 
@@ -59,7 +59,7 @@ function tryReadRaw(): string | null {
   }
 }
 
-export function migrateAndValidate(input: unknown): GameState | null {
+export function migrateAndValidate(input: unknown): PersistedState | null {
   if (typeof input !== 'object' || input === null) return null;
   const envelope = input as Partial<SaveEnvelope>;
   if (typeof envelope.version !== 'number') return null;
@@ -73,13 +73,13 @@ export function migrateAndValidate(input: unknown): GameState | null {
   }
 
   const state = (migrated as SaveEnvelope).state;
-  if (!isGameState(state)) return null;
+  if (!isPersistedState(state)) return null;
   return state;
 }
 
-function isGameState(value: unknown): value is GameState {
+function isPersistedState(value: unknown): value is PersistedState {
   if (typeof value !== 'object' || value === null) return false;
-  const s = value as Partial<GameState>;
+  const s = value as Partial<PersistedState>;
   return (
     Array.isArray(s.discovered) &&
     Array.isArray(s.unlockedReactors) &&

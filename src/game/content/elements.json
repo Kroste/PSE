@@ -1,0 +1,19 @@
+[
+  {
+    "id": "H",
+    "kind": "element",
+    "nameDE": "Wasserstoff",
+    "symbol": "H",
+    "z": 1,
+    "atomicMassU": 1.008,
+    "electronConfig": "1s1",
+    "period": 1,
+    "group": 1,
+    "block": "s",
+    "elementCategory": "reactive-nonmetal",
+    "color": "#ffffff",
+    "cpkColor": "#ffffff",
+    "scienceNoteDE": "Einfachstes Atom: ein Proton, ein Elektron im 1s-Orbital. Häufigstes Element im Universum (~75 % der baryonischen Masse); Grundlage aller Sternfusion.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  }
+]

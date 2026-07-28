@@ -1,0 +1,28 @@
+[
+  {
+    "id": "proton",
+    "kind": "hadron",
+    "category": "baryon",
+    "nameDE": "Proton",
+    "symbol": "p",
+    "quarks": ["u", "u", "d"],
+    "charge": 1,
+    "massMeV": 938.272,
+    "color": "#ff88aa",
+    "scienceNoteDE": "Baryon aus uud, zusammengehalten von Gluonen. Stabil (Lebensdauer > 10³⁴ Jahre). Definiert mit seiner Anzahl die Kernladungszahl Z eines Elements.",
+    "source": "PDG 2024 (Baryon Summary)"
+  },
+  {
+    "id": "neutron",
+    "kind": "hadron",
+    "category": "baryon",
+    "nameDE": "Neutron",
+    "symbol": "n",
+    "quarks": ["u", "d", "d"],
+    "charge": 0,
+    "massMeV": 939.565,
+    "color": "#aaaaaa",
+    "scienceNoteDE": "Baryon aus udd. Freies Neutron zerfällt über β⁻ mit Halbwertszeit ≈ 611 s zu Proton + Elektron + Antineutrino; im Kern gebunden meist stabil.",
+    "source": "PDG 2024 (Baryon Summary)"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "u",
+    "kind": "particle",
+    "category": "quark",
+    "nameDE": "Up-Quark",
+    "symbol": "u",
+    "charge": 0.6666666666666666,
+    "spin": 0.5,
+    "massMeV": 2.16,
+    "freeSupply": true,
+    "color": "#ff5555",
+    "scienceNoteDE": "Up-Quark, Ladung +2/3 e. Zusammen mit dem Down-Quark Baustein der Protonen und Neutronen — trägt eine Farbladung der starken Wechselwirkung.",
+    "source": "PDG 2024 (Quark Summary)"
+  },
+  {
+    "id": "d",
+    "kind": "particle",
+    "category": "quark",
+    "nameDE": "Down-Quark",
+    "symbol": "d",
+    "charge": -0.3333333333333333,
+    "spin": 0.5,
+    "massMeV": 4.67,
+    "freeSupply": true,
+    "color": "#5566ff",
+    "scienceNoteDE": "Down-Quark, Ladung −1/3 e. Etwas schwerer als das Up-Quark; freies Neutron zerfällt via β⁻ genau deshalb (ein d wird zu einem u).",
+    "source": "PDG 2024 (Quark Summary)"
+  },
+  {
+    "id": "e-",
+    "kind": "particle",
+    "category": "lepton",
+    "nameDE": "Elektron",
+    "symbol": "e⁻",
+    "charge": -1,
+    "spin": 0.5,
+    "massMeV": 0.511,
+    "freeSupply": true,
+    "color": "#66ffff",
+    "scienceNoteDE": "Leichtestes geladenes Lepton. Bindet an den Atomkern über die elektromagnetische Wechselwirkung und definiert die Chemie eines Elements.",
+    "source": "PDG 2024 (Lepton Summary)"
+  },
+  {
+    "id": "gamma",
+    "kind": "particle",
+    "category": "boson",
+    "nameDE": "Photon",
+    "symbol": "γ",
+    "charge": 0,
+    "spin": 1,
+    "massMeV": 0,
+    "freeSupply": true,
+    "color": "#ffdd44",
+    "scienceNoteDE": "Eichboson der elektromagnetischen Wechselwirkung. Masselos, bewegt sich mit c, trägt keine Ladung. Wird bei Bindungsprozessen abgestrahlt.",
+    "source": "PDG 2024 (Gauge and Higgs Bosons)"
+  },
+  {
+    "id": "g",
+    "kind": "particle",
+    "category": "boson",
+    "nameDE": "Gluon",
+    "symbol": "g",
+    "charge": 0,
+    "spin": 1,
+    "massMeV": 0,
+    "freeSupply": true,
+    "color": "#66ff88",
+    "scienceNoteDE": "Eichboson der starken Wechselwirkung. Bindet Quarks zu Hadronen; trägt selbst Farbladung — daher Farb-Confinement (Quarks kommen nie frei vor).",
+    "source": "PDG 2024 (Gauge and Higgs Bosons)"
+  }
+]

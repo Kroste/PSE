@@ -5,13 +5,13 @@ import {
   migrateAndValidate,
   saveToStorage,
 } from '../src/game/state/save';
-import type { GameState } from '../src/game/state/store';
+import type { PersistedState } from '../src/game/state/store';
 
-const sample: GameState = {
-  discovered: ['u', 'd', 'e-'],
+const sample: PersistedState = {
+  discovered: ['u', 'd', 'e-', 'proton', 'H'],
   unlockedReactors: ['workbench', 'stellar-core'],
   activeReactor: 'stellar-core',
-  inventory: { u: 4, d: 2 },
+  inventory: { proton: 3, H: 2 },
 };
 
 describe('save layer', () => {

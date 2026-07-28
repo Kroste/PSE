@@ -1,0 +1,32 @@
+[
+  {
+    "id": "assemble-proton",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "u": 2, "d": 1, "g": 3 },
+    "outputs": { "proton": 1 },
+    "energyMeV": 938.272,
+    "scienceNoteDE": "Baryonen entstehen aus drei Valenzquarks im Farb-Singulett-Zustand. Die Gluonen tragen die starke Wechselwirkung und sorgen für Confinement.",
+    "source": "PDG 2024 (Baryon Multiplets)"
+  },
+  {
+    "id": "assemble-neutron",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "u": 1, "d": 2, "g": 3 },
+    "outputs": { "neutron": 1 },
+    "energyMeV": 939.565,
+    "scienceNoteDE": "Analog zum Proton: udd im Farb-Singulett. Etwas schwerer als das Proton, weil das d-Quark schwerer ist als das u.",
+    "source": "PDG 2024 (Baryon Multiplets)"
+  },
+  {
+    "id": "assemble-hydrogen",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "proton": 1, "e-": 1 },
+    "outputs": { "H": 1 },
+    "energyMeV": -13.6,
+    "scienceNoteDE": "Ein Proton fängt ein Elektron im 1s-Orbital ein — Bindungsenergie 13,6 eV. Damit ist das leichteste Atom komplett.",
+    "source": "NIST Physical Constants (Rydberg energy)"
+  }
+]

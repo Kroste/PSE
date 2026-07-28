@@ -4,8 +4,10 @@ Browser-Puzzle-Spiel: baue Materie **von unten nach oben** — von Quarks und El
 über Nukleonen und Atome bis zum vollständigen Periodensystem, danach chemische
 Verbindungen bis „darüber hinaus".
 
-**Status:** Meilenstein **M0** — Fundament (Vite + TypeScript + Three.js, drehender
-Test-Würfel, State-Store + LocalStorage-Save, Vitest, CI, GitHub-Pages-Deploy).
+**Status:** Meilenstein **M1** — Design-Doc, Content-Grundpaket (5 Elementarteilchen,
+Proton, Neutron, Wasserstoff), Craft-Engine im Store, 3D-Reaktionszone mit Live-Binding
+und Ergebnis-Flash, DOM-HUD (Inventar / Reaktions-Controls / Detail-Panel /
+Rezept-Katalog), erste 3 Rezepte an der Werkbank (2u+1d+3g → p, 1u+2d+3g → n, p+e⁻ → H).
 
 ## Konzept
 
@@ -16,7 +18,7 @@ Test-Würfel, State-Store + LocalStorage-Save, Vitest, CI, GitHub-Pages-Deploy).
   Physik wird nicht simuliert — Druck/Temperatur werden per **Reaktor-Kontext**
   vorausgesetzt (Werkbank / Stern-Kern / AGB / Supernova / Zyklotron / Chemielabor).
 
-Der Ursprungs-Design-Plan liegt in `docs/design.md` (kommt mit M1).
+Der Design-Plan liegt in [`docs/design.md`](./docs/design.md).
 
 ## Entwicklung
 

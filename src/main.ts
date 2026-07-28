@@ -2,6 +2,10 @@ import { createRenderer } from './engine/renderer';
 import { startLoop } from './engine/loop';
 import { loadState, subscribe } from './game/state/store';
 import { loadFromStorage } from './game/state/save';
+import { assertContentConsistency } from './game/content';
+import { mountHud } from './ui/hud';
+
+assertContentConsistency();
 
 const canvas = document.getElementById('pse-canvas');
 if (!(canvas instanceof HTMLCanvasElement)) {
@@ -15,6 +19,8 @@ if (persisted) {
 
 const scene = createRenderer(canvas);
 startLoop(scene);
+
+mountHud();
 
 const versionEl = document.getElementById('pse-version');
 if (versionEl) {
