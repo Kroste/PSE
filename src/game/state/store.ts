@@ -243,6 +243,13 @@ export function craft(): CraftEvent {
     if (!nextUnlocked.includes(reactor)) nextUnlocked.push(reactor);
   }
 
+  // WICHTIG: onCraft muss VOR emit feuern, damit der Renderer die noch
+  // gefüllte Reaktionszone beim Start der Fusion-Animation sieht. Sonst
+  // hätte subscribe die Zone-Meshes bereits geleert, bevor der Fusion-Handler
+  // an sie kommt.
+  const event: CraftEvent = { ok: true, recipe, discoveredIds };
+  notify(event);
+
   state = {
     ...state,
     reactionZone: {},
@@ -252,7 +259,7 @@ export function craft(): CraftEvent {
   };
   emit();
 
-  return notify({ ok: true, recipe, discoveredIds });
+  return event;
 }
 
 /** Hint für die UI: welche Rezepte sind im aktiven Reaktor grundsätzlich vorgesehen? */

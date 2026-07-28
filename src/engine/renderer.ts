@@ -150,10 +150,11 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
 
     // Nur Element-Craft mit Nukleonen/Elektronen als Input bekommt Fusion.
     if (elementOutput && canFuseFromInputs(event.recipe.inputs)) {
-      const started = startFusion(elementOutput, zoneGroup.children as Mesh[]);
+      // Snapshot vor Iteration — fusionGroup.add() entfernt die Meshes
+      // sonst live aus zoneGroup.children und würde die Schleife brechen.
+      const zoneSnapshot = [...zoneGroup.children] as Mesh[];
+      const started = startFusion(elementOutput, zoneSnapshot);
       if (started) {
-        // Zone-Group wird von der Fusion übernommen: leere sie ohne dispose.
-        while (zoneGroup.children.length > 0) zoneGroup.remove(zoneGroup.children[0]!);
         atomGroup.visible = false;
         return;
       }
