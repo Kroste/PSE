@@ -36,6 +36,24 @@ describe('content catalog', () => {
     expect(h?.electronConfig).toBe('1s1');
   });
 
+  it('enthält alle Alpha-/CNO-Elemente H..Fe', () => {
+    const ids = elements.map((e) => e.id);
+    expect(ids).toEqual(expect.arrayContaining(['H', 'He', 'C', 'N', 'O', 'Ne', 'Mg', 'Si', 'Fe']));
+  });
+
+  it('Elemente haben Z=Ordnungszahl und passende Periode/Gruppe', () => {
+    const check = (id: string, z: number, period: number, group: number | null) => {
+      const e = elements.find((x) => x.id === id);
+      expect(e, id).toBeDefined();
+      expect(e!.z, `${id}.z`).toBe(z);
+      expect(e!.period, `${id}.period`).toBe(period);
+      expect(e!.group, `${id}.group`).toBe(group);
+    };
+    check('He', 2, 1, 18);
+    check('C', 6, 2, 14);
+    check('Fe', 26, 4, 8);
+  });
+
   it('alle IDs sind global eindeutig', () => {
     const ids = allEntities.map((e) => e.id);
     const set = new Set(ids);

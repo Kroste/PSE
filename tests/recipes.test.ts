@@ -56,10 +56,18 @@ describe('recipe engine', () => {
   });
 
   describe('recipesForReactor', () => {
-    it('liefert genau die Werkbank-Rezepte', () => {
+    it('Werkbank-Rezepte enthalten Grundmontage und Element-Assembly', () => {
       const workbench = recipesForReactor('workbench');
-      const ids = workbench.map((r) => r.id).sort();
-      expect(ids).toEqual(['assemble-hydrogen', 'assemble-neutron', 'assemble-proton']);
+      const ids = workbench.map((r) => r.id);
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          'assemble-proton',
+          'assemble-neutron',
+          'assemble-hydrogen',
+          'assemble-helium-4',
+          'assemble-iron-56',
+        ]),
+      );
     });
 
     it('Sternkern-Rezepte enthalten pp-Kette und Alpha-Prozess', () => {
@@ -171,6 +179,25 @@ describe('recipe engine', () => {
       expect(alphasOut).toBe(1);
       expect(positronsOut).toBe(2);
       expect(steps[steps.length - 1]!.outputs.c12).toBe(1);
+    });
+  });
+
+  describe('Element-Assembly an der Werkbank', () => {
+    const elements: Array<[Record<string, number>, string, string]> = [
+      [{ alpha: 1, 'e-': 2 }, 'assemble-helium-4', 'He'],
+      [{ c12: 1, 'e-': 6 }, 'assemble-carbon-12', 'C'],
+      [{ n14: 1, 'e-': 7 }, 'assemble-nitrogen-14', 'N'],
+      [{ o16: 1, 'e-': 8 }, 'assemble-oxygen-16', 'O'],
+      [{ ne20: 1, 'e-': 10 }, 'assemble-neon-20', 'Ne'],
+      [{ mg24: 1, 'e-': 12 }, 'assemble-magnesium-24', 'Mg'],
+      [{ si28: 1, 'e-': 14 }, 'assemble-silicon-28', 'Si'],
+      [{ fe56: 1, 'e-': 26 }, 'assemble-iron-56', 'Fe'],
+    ];
+
+    it.each(elements)('%o → %s produziert %s', (inputs, id, output) => {
+      const r = matchRecipe(inputs, 'workbench');
+      expect(r?.id).toBe(id);
+      expect(r?.outputs).toEqual({ [output]: 1 });
     });
   });
 });

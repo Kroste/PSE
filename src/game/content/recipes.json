@@ -31,6 +31,78 @@
     "unlocksReactors": ["stellar-core"]
   },
   {
+    "id": "assemble-helium-4",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "alpha": 1, "e-": 2 },
+    "outputs": { "He": 1 },
+    "scienceNoteDE": "Der α-Kern bindet zwei Elektronen zum neutralen Helium-Atom. Beide Elektronen sitzen im 1s-Orbital; die Konfiguration 1s² ist voll — daher chemisch inert.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-carbon-12",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "c12": 1, "e-": 6 },
+    "outputs": { "C": 1 },
+    "scienceNoteDE": "¹²C-Kern nimmt sechs Elektronen auf und wird zu neutralem Kohlenstoff. Die Konfiguration [He] 2s² 2p² ermöglicht vier Bindungen und damit die komplette organische Chemie.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-nitrogen-14",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "n14": 1, "e-": 7 },
+    "outputs": { "N": 1 },
+    "scienceNoteDE": "¹⁴N-Kern (häufigstes Stickstoff-Isotop) bindet sieben Elektronen. Halb gefülltes 2p³-Orbital — Grundlage für die stabile N₂-Dreifachbindung und alle Stickstoff-Chemie.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-oxygen-16",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "o16": 1, "e-": 8 },
+    "outputs": { "O": 1 },
+    "scienceNoteDE": "¹⁶O-Kern bindet acht Elektronen. Zwei ungepaarte 2p-Elektronen machen Sauerstoff paramagnetisch und sehr reaktiv — die O₂-Doppelbindung ist metastabil.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-neon-20",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "ne20": 1, "e-": 10 },
+    "outputs": { "Ne": 1 },
+    "scienceNoteDE": "²⁰Ne-Kern und zehn Elektronen ergeben neutrales Neon: voll besetzte L-Schale (2s² 2p⁶), chemisch inert.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-magnesium-24",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "mg24": 1, "e-": 12 },
+    "outputs": { "Mg": 1 },
+    "scienceNoteDE": "²⁴Mg-Kern bindet zwölf Elektronen; zwei Valenz-Elektronen im 3s-Orbital machen Magnesium zum typischen Erdalkalimetall (2+ Ionen bevorzugt).",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-silicon-28",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "si28": 1, "e-": 14 },
+    "outputs": { "Si": 1 },
+    "scienceNoteDE": "²⁸Si-Kern und vierzehn Elektronen — [Ne] 3s² 3p². Halbmetall mit tetraedrischer Bindungsgeometrie wie Kohlenstoff, aber deutlich anderer Elektronegativität.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-iron-56",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "inputs": { "fe56": 1, "e-": 26 },
+    "outputs": { "Fe": 1 },
+    "scienceNoteDE": "⁵⁶Fe-Kern (stabiler Fusions-Endpunkt) bindet 26 Elektronen. Ungepaarte 3d-Elektronen machen Eisen ferromagnetisch und zum Zentralatom des Hämoglobins.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
     "id": "pp-fusion",
     "kind": "fusion",
     "reactor": "stellar-core",
