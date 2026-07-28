@@ -139,11 +139,13 @@ export function unlockReactor(reactor: ReactorId): void {
 
 export function isAvailable(id: EntityId): boolean {
   if (freeSupplyIds.includes(id)) return true;
+  if (state.discovered.includes(id)) return true;
   return (state.inventory[id] ?? 0) > 0;
 }
 
 export function availableCount(id: EntityId): number {
   if (freeSupplyIds.includes(id)) return Number.POSITIVE_INFINITY;
+  if (state.discovered.includes(id)) return Number.POSITIVE_INFINITY;
   return state.inventory[id] ?? 0;
 }
 
@@ -184,9 +186,11 @@ export function craft(): CraftEvent {
   if (!recipe) return notify({ ok: false, reason: 'no-match' });
 
   const nextInventory: Record<EntityId, number> = { ...state.inventory };
+  const discoveredSet = new Set<EntityId>(state.discovered);
 
   for (const [id, count] of Object.entries(recipe.inputs)) {
     if (freeSupplyIds.includes(id)) continue;
+    if (discoveredSet.has(id)) continue; // Einmal entdeckt = unbegrenzt.
     const remaining = (nextInventory[id] ?? 0) - count;
     if (remaining <= 0) delete nextInventory[id];
     else nextInventory[id] = remaining;

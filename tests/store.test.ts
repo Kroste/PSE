@@ -237,6 +237,38 @@ describe('game state store', () => {
     });
   });
 
+  describe('discovered = dauerhaft verfügbar', () => {
+    it('availableCount ist Infinity für discovered non-freeSupply', () => {
+      expect(availableCount('proton')).toBe(0);
+      discover('proton');
+      expect(availableCount('proton')).toBe(Number.POSITIVE_INFINITY);
+    });
+
+    it('craft verbraucht Non-freeSupply-Zutaten NICHT, wenn sie discovered sind', () => {
+      // Erst mal Proton craften → wird dabei discovered
+      addToZone('u', 2);
+      addToZone('d', 1);
+      addToZone('g', 3);
+      craft();
+      expect(getState().discovered).toContain('proton');
+      const protonBefore = getState().inventory.proton ?? 0;
+
+      // Jetzt H craften: Proton ist discovered, Bestand darf nicht sinken
+      addToZone('proton', 1);
+      addToZone('e-', 1);
+      const result = craft();
+      expect(result.ok).toBe(true);
+      expect(getState().inventory.proton ?? 0).toBe(protonBefore);
+      expect(getState().discovered).toContain('H');
+    });
+
+    it('addToZone lässt beliebige Mengen zu, wenn Entity discovered ist', () => {
+      discover('proton');
+      expect(addToZone('proton', 99)).toBe(true);
+      expect(getState().reactionZone.proton).toBe(99);
+    });
+  });
+
   describe('resetState', () => {
     it('setzt state auf den initialen Zustand zurück', () => {
       addToInventory('proton', 3);

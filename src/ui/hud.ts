@@ -116,8 +116,8 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
   for (const id of nonFreeIds) {
     const entity = getEntity(id);
     if (!entity) continue;
-    const count = state.inventory[id] ?? 0;
-    (byKind[entity.kind] ??= []).push([id, count]);
+    // Discovered non-freeSupply = dauerhaft verfügbar (∞).
+    (byKind[entity.kind] ??= []).push([id, Infinity]);
   }
 
   const kindOrder: Array<[string, string]> = [

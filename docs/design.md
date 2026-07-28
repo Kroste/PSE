@@ -60,9 +60,13 @@ Vollständig typisiert in `src/game/content/types.ts`. Zusammenfassung:
 - **Multiset-Match**: ein Rezept passt, wenn die vom Spieler zusammengestellten
   Zutaten **exakt** den `inputs` entsprechen. Keine Übermengen, keine Untermengen.
 - **freeSupply** — Teilchen mit `freeSupply: true` (Quarks, e⁻, γ, Gluon) sind
-  unbegrenzt aus dem Umgebungsvakuum verfügbar. Sie werden **nicht** aus dem Inventar
-  abgezogen, brauchen aber trotzdem Slots in der Craft-Zone. Alles andere ist
-  Inventar-basiert.
+  ab Spielstart unbegrenzt aus dem Umgebungsvakuum verfügbar. Sie werden **nicht**
+  aus dem Inventar abgezogen, brauchen aber trotzdem Slots in der Craft-Zone.
+- **Discovered = dauerhaft verfügbar.** Sobald eine Non-freeSupply-Entity einmal
+  erfolgreich gecraftet wurde, gilt sie ab da als unbegrenzt verfügbar (analog zu
+  freeSupply). `availableCount(id)` liefert dann `Infinity`, `craft()` verbraucht
+  sie nicht mehr aus dem Inventar. Die Discovery selbst ist der Fortschritts-Marker
+  — ein einmal freigespieltes Rezept fungiert danach wie ein „Blueprint".
 
 Der Katalog wird beim App-Start via `assertContentConsistency()` geprüft: keine
 doppelten IDs, keine Rezepte auf unbekannte Entities, Hadron-Quarks existieren als
@@ -80,9 +84,11 @@ Bricht früh — kaputter Content ist ein Build-Fehler, kein Laufzeit-Bug.
      `inputs == craftZone` (Multiset-Gleichheit).
    - Kein Match → Hinweis, Craft-Zone bleibt bestehen.
    - Match:
-     - Non-freeSupply-Inputs werden aus dem Inventar entfernt (Voraussetzung: alle da).
-     - Outputs kommen ins Inventar.
-     - Alle neuen Output-IDs landen in `discovered`.
+     - Nur noch nicht discovered und nicht-freeSupply Inputs werden aus dem
+       Inventar entfernt (Voraussetzung: Bestand reicht). Discovered und
+       freeSupply Inputs sind unbegrenzt.
+     - Outputs kommen ins Inventar (Zähler wächst monoton) und werden in
+       `discovered` aufgenommen — damit sind sie ab jetzt ebenfalls unbegrenzt.
      - Falls `unlocksReactors`: neue Reaktoren werden freigeschaltet.
      - Craft-Zone wird geleert.
 
