@@ -1,14 +1,20 @@
 import {
+  CanvasTexture,
   Color,
-  CylinderGeometry,
   DirectionalLight,
+  DoubleSide,
   Group,
   HemisphereLight,
+  LinearFilter,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
+  RingGeometry,
   Scene,
   SphereGeometry,
+  Sprite,
+  SpriteMaterial,
   WebGLRenderer,
 } from 'three';
 import { subscribe, onCraft } from '../game/state/store';
@@ -22,7 +28,9 @@ export type SceneBundle = {
   update: (dt: number) => void;
 };
 
-const PLATFORM_RADIUS = 1.6;
+const RING_OUTER = 1.62;
+const RING_INNER_MARKER = 0.98;
+const RING_CENTER_MARKER = 0.42;
 const PARTICLE_RADIUS = 0.28;
 const RESULT_FLASH_SECONDS = 1.4;
 
@@ -43,18 +51,11 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   key.position.set(4, 6, 5);
   scene.add(key);
 
-  const platform = new Mesh(
-    new CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, 0.06, 64),
-    new MeshStandardMaterial({
-      color: 0x0a1418,
-      roughness: 0.35,
-      metalness: 0.7,
-      emissive: 0x00ffb0,
-      emissiveIntensity: 0.05,
-    }),
-  );
-  platform.position.y = -0.03;
-  scene.add(platform);
+  const platformGroup = new Group();
+  scene.add(platformGroup);
+  platformGroup.add(makeRing(RING_OUTER - 0.05, RING_OUTER, 0x00ffb0, 0.65));
+  platformGroup.add(makeRing(RING_INNER_MARKER - 0.02, RING_INNER_MARKER, 0x00ffb0, 0.35));
+  platformGroup.add(makeRing(RING_CENTER_MARKER - 0.015, RING_CENTER_MARKER, 0x00ffb0, 0.5));
 
   const zoneGroup = new Group();
   scene.add(zoneGroup);
@@ -63,17 +64,27 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   scene.add(resultGroup);
   let resultTimer = 0;
 
+  const idleHint = makeTextSprite('Ziehe Zutaten in die Reaktionszone');
+  idleHint.position.set(0, 0.9, 0);
+  idleHint.scale.set(3.2, 0.4, 1);
+  scene.add(idleHint);
+
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight, false);
   });
 
-  subscribe((state) => rebuildZone(zoneGroup, state.reactionZone));
+  subscribe((state) => {
+    rebuildZone(zoneGroup, state.reactionZone);
+    const isEmpty = Object.keys(state.reactionZone).length === 0;
+    idleHint.visible = isEmpty && resultTimer <= 0;
+  });
 
   onCraft((event) => {
     if (!event.ok) return;
     resultTimer = RESULT_FLASH_SECONDS;
+    idleHint.visible = false;
     rebuildResult(resultGroup, event.recipe.outputs);
   });
 
@@ -83,6 +94,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     camera,
     update(dt) {
       zoneGroup.rotation.y += dt * 0.35;
+      platformGroup.rotation.y += dt * 0.08;
 
       if (resultTimer > 0) {
         resultTimer = Math.max(0, resultTimer - dt);
@@ -90,12 +102,35 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         resultGroup.scale.setScalar(0.7 + t * 0.3);
         resultGroup.visible = true;
         setGroupOpacity(resultGroup, t);
-        if (resultTimer === 0) resultGroup.visible = false;
+        if (resultTimer === 0) {
+          resultGroup.visible = false;
+          // idleHint sichtbar machen, falls Zone weiterhin leer ist.
+          const anyChildInZone = zoneGroup.children.length > 0;
+          if (!anyChildInZone) idleHint.visible = true;
+        }
       } else {
         resultGroup.visible = false;
       }
+
+      if (idleHint.visible) {
+        const pulse = 0.75 + Math.sin(performance.now() * 0.001) * 0.15;
+        (idleHint.material as SpriteMaterial).opacity = pulse;
+      }
     },
   };
+}
+
+function makeRing(innerRadius: number, outerRadius: number, color: number, opacity: number): Mesh {
+  const geo = new RingGeometry(innerRadius, outerRadius, 128);
+  const mat = new MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    side: DoubleSide,
+  });
+  const mesh = new Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  return mesh;
 }
 
 function rebuildZone(group: Group, zone: Multiset): void {
@@ -142,6 +177,26 @@ function createParticleMesh(id: string, sizeScale = 1): Mesh {
     opacity: 1,
   });
   return new Mesh(new SphereGeometry(PARTICLE_RADIUS * sizeScale, 24, 20), material);
+}
+
+function makeTextSprite(text: string): Sprite {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas-2D-Kontext fehlt.');
+  ctx.font = "500 56px 'JetBrains Mono', 'Fira Code', ui-monospace, monospace";
+  ctx.fillStyle = 'rgba(139, 160, 168, 0.85)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  ctx.shadowBlur = 8;
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  const tex = new CanvasTexture(canvas);
+  tex.minFilter = LinearFilter;
+  tex.magFilter = LinearFilter;
+  const mat = new SpriteMaterial({ map: tex, transparent: true, depthTest: false, opacity: 0.85 });
+  return new Sprite(mat);
 }
 
 function setGroupOpacity(group: Group, opacity: number): void {
