@@ -15,12 +15,17 @@ import {
   SphereGeometry,
   Sprite,
   SpriteMaterial,
+  Vector3,
   WebGLRenderer,
 } from 'three';
 import { subscribe, onCraft } from '../game/state/store';
 import { getEntity, requireEntity } from '../game/content';
 import type { ElementEntity, Multiset } from '../game/content/types';
-import { buildBohrAtom, type AtomRig } from '../game/atoms/bohr-atom';
+import {
+  buildBohrAtom,
+  computeAtomTargets,
+  type AtomRig,
+} from '../game/atoms/bohr-atom';
 
 export type SceneBundle = {
   renderer: WebGLRenderer;
@@ -36,6 +41,25 @@ const RING_INNER_MARKER = 0.98;
 const RING_CENTER_MARKER = 0.42;
 const PARTICLE_RADIUS = 0.28;
 const RESULT_FLASH_SECONDS = 1.4;
+const ATOM_CENTER = new Vector3(0, 0.9, 0);
+
+type FusionMover = {
+  mesh: Mesh;
+  from: Vector3;
+  to: Vector3;
+  startT: number;
+  duration: number;
+  scaleFrom: number;
+  scaleTo: number;
+};
+
+type FusionState = {
+  group: Group;
+  movers: FusionMover[];
+  elapsed: number;
+  totalDuration: number;
+  targetElementId: string;
+};
 
 export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   const renderer = new WebGLRenderer({ canvas, antialias: true });
@@ -71,7 +95,9 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   scene.add(atomGroup);
   let currentAtom: AtomRig | null = null;
   let atomFlashTimer = 0;
-  const ATOM_FLASH_SECONDS = 1.8;
+  const ATOM_FLASH_SECONDS = 0.6;
+
+  let fusion: FusionState | null = null;
 
   function replaceAtom(elementId: string | null, isFlash: boolean): void {
     while (atomGroup.children.length > 0) atomGroup.remove(atomGroup.children[0]!);
@@ -80,7 +106,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     const entity = getEntity(elementId);
     if (!entity || entity.kind !== 'element') return;
     const rig = buildBohrAtom(entity as ElementEntity);
-    rig.root.position.set(0, 0.9, 0);
+    rig.root.position.copy(ATOM_CENTER);
     atomGroup.add(rig.root);
     currentAtom = rig;
     if (isFlash) atomFlashTimer = ATOM_FLASH_SECONDS;
@@ -97,10 +123,18 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     renderer.setSize(window.innerWidth, window.innerHeight, false);
   });
 
+  let lastZoneSnapshot: Multiset = {};
+
   subscribe((state) => {
+    if (fusion) {
+      // Während der Fusion wird die Zone-Group nicht neu aufgebaut — die Meshes
+      // leben in der fusion-Group und wandern zum Atom.
+      lastZoneSnapshot = state.reactionZone;
+      return;
+    }
     rebuildZone(zoneGroup, state.reactionZone);
+    lastZoneSnapshot = state.reactionZone;
     const isEmpty = Object.keys(state.reactionZone).length === 0;
-    // Atom hat Vorrang, verschwindet aber, sobald die Reaktionszone gefüllt ist.
     atomGroup.visible = isEmpty && currentAtom !== null;
     idleHint.visible = isEmpty && resultTimer <= 0 && currentAtom === null;
   });
@@ -109,14 +143,25 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     if (!event.ok) return;
     idleHint.visible = false;
 
-    // Wenn ein Element gecraftet wurde: statt Flash-Kugeln direkt Atom rendern.
     const elementOutput = Object.keys(event.recipe.outputs).find((id) => {
       const e = getEntity(id);
       return e && e.kind === 'element';
     });
+
+    // Nur Element-Craft mit Nukleonen/Elektronen als Input bekommt Fusion.
+    if (elementOutput && canFuseFromInputs(event.recipe.inputs)) {
+      const started = startFusion(elementOutput, zoneGroup.children as Mesh[]);
+      if (started) {
+        // Zone-Group wird von der Fusion übernommen: leere sie ohne dispose.
+        while (zoneGroup.children.length > 0) zoneGroup.remove(zoneGroup.children[0]!);
+        atomGroup.visible = false;
+        return;
+      }
+    }
+
     if (elementOutput) {
       replaceAtom(elementOutput, true);
-      atomGroup.visible = true; // Zone ist nach craft() geleert.
+      atomGroup.visible = true;
       return;
     }
 
@@ -124,20 +169,133 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     rebuildResult(resultGroup, event.recipe.outputs);
   });
 
+  function startFusion(elementId: string, zoneMeshes: Mesh[]): boolean {
+    const entity = getEntity(elementId);
+    if (!entity || entity.kind !== 'element') return false;
+    const targets = computeAtomTargets(entity as ElementEntity);
+    const scale = targets.scale;
+
+    const fusionGroup = new Group();
+    scene.add(fusionGroup);
+
+    // Zutaten in Nukleonen und Elektronen splitten (nach userData.entityId).
+    const nucleonMeshes: Mesh[] = [];
+    const electronMeshes: Mesh[] = [];
+    const otherMeshes: Mesh[] = [];
+    for (const mesh of zoneMeshes) {
+      const id = mesh.userData.entityId as string | undefined;
+      if (id === 'proton' || id === 'neutron') nucleonMeshes.push(mesh);
+      else if (id === 'e-') electronMeshes.push(mesh);
+      else otherMeshes.push(mesh);
+    }
+
+    const movers: FusionMover[] = [];
+
+    // Nukleonen: Phase 1 (0 → 0.7 s) — implodieren zum Kern.
+    const nucleonScaleFactor = scale * 0.6; // Kern kleiner als Zone-Mesh
+    nucleonMeshes.forEach((mesh, i) => {
+      const target = targets.nucleonPositions[i % targets.nucleonPositions.length]!
+        .clone()
+        .multiplyScalar(scale)
+        .add(ATOM_CENTER);
+      fusionGroup.add(mesh);
+      movers.push({
+        mesh,
+        from: mesh.position.clone(),
+        to: target,
+        startT: 0,
+        duration: 0.7,
+        scaleFrom: 1,
+        scaleTo: nucleonScaleFactor,
+      });
+    });
+
+    // Elektronen: Phase 2 (0.5 → 1.4 s) — nach Nukleon-Kollaps eingefangen.
+    const electronScaleFactor = scale * 0.55;
+    electronMeshes.forEach((mesh, i) => {
+      const target = targets.electronPositions[i % Math.max(1, targets.electronPositions.length)]!
+        .clone()
+        .multiplyScalar(scale)
+        .add(ATOM_CENTER);
+      fusionGroup.add(mesh);
+      movers.push({
+        mesh,
+        from: mesh.position.clone(),
+        to: target,
+        startT: 0.5,
+        duration: 0.9,
+        scaleFrom: 1,
+        scaleTo: electronScaleFactor,
+      });
+    });
+
+    // Andere Zutaten (γ, Kerne im Expert-Modus, …): einfach zum Zentrum
+    // schrumpfen — sie werden vom Atom "absorbiert".
+    otherMeshes.forEach((mesh) => {
+      fusionGroup.add(mesh);
+      movers.push({
+        mesh,
+        from: mesh.position.clone(),
+        to: ATOM_CENTER.clone(),
+        startT: 0,
+        duration: 0.7,
+        scaleFrom: 1,
+        scaleTo: 0.01,
+      });
+    });
+
+    fusion = {
+      group: fusionGroup,
+      movers,
+      elapsed: 0,
+      totalDuration: 1.6, // etwas Puffer vor Atom-Show
+      targetElementId: elementId,
+    };
+    return true;
+  }
+
   return {
     renderer,
     scene,
     camera,
     update(dt) {
-      zoneGroup.rotation.y += dt * 0.35;
       platformGroup.rotation.y += dt * 0.08;
+
+      // Zone rotiert nur, wenn keine Fusion läuft — sonst sollen die Zutaten
+      // ihre "letzte Position" beim Übernehmen ins Atom behalten.
+      if (!fusion) {
+        zoneGroup.rotation.y += dt * 0.35;
+      }
+
+      if (fusion) {
+        fusion.elapsed += dt;
+        const totalT = fusion.elapsed;
+        for (const m of fusion.movers) {
+          if (totalT < m.startT) continue;
+          const local = Math.min(1, (totalT - m.startT) / m.duration);
+          const eased = easeInOut(local);
+          m.mesh.position.lerpVectors(m.from, m.to, eased);
+          const s = m.scaleFrom + (m.scaleTo - m.scaleFrom) * eased;
+          m.mesh.scale.setScalar(s);
+        }
+        if (fusion.elapsed >= fusion.totalDuration) {
+          const target = fusion.targetElementId;
+          disposeGroup(fusion.group);
+          scene.remove(fusion.group);
+          fusion = null;
+          replaceAtom(target, true);
+          atomGroup.visible = true;
+          // Zone-Snapshot ist ohnehin leer nach Craft — safety-check
+          rebuildZone(zoneGroup, lastZoneSnapshot);
+        }
+      }
 
       if (currentAtom) {
         currentAtom.update(dt);
         if (atomFlashTimer > 0) {
           atomFlashTimer = Math.max(0, atomFlashTimer - dt);
           const t = 1 - atomFlashTimer / ATOM_FLASH_SECONDS;
-          currentAtom.root.scale.setScalar(0.3 + t * 0.7);
+          currentAtom.root.scale.setScalar(0.6 + t * 0.4);
         } else {
           currentAtom.root.scale.setScalar(1);
         }
@@ -164,6 +322,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       }
     },
     showAtom(elementId) {
+      if (fusion) return; // laufende Fusion nicht unterbrechen
       replaceAtom(elementId, false);
       const zoneEmpty = zoneGroup.children.length === 0;
       atomGroup.visible = elementId !== null && zoneEmpty;
@@ -171,6 +330,23 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       else if (zoneEmpty && resultTimer <= 0) idleHint.visible = true;
     },
   };
+}
+
+function canFuseFromInputs(inputs: Multiset): boolean {
+  // Nur wenn die Inputs sich sinnvoll den Bohr-Rollen zuordnen lassen:
+  // Nukleonen, Elektronen, Nuklide oder Photonen.
+  const ok = new Set(['proton', 'neutron', 'e-', 'gamma']);
+  for (const id of Object.keys(inputs)) {
+    if (ok.has(id)) continue;
+    const e = getEntity(id);
+    if (e && e.kind === 'nucleus') continue;
+    return false;
+  }
+  return true;
+}
+
+function easeInOut(t: number): number {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
 function makeRing(innerRadius: number, outerRadius: number, color: number, opacity: number): Mesh {
@@ -229,7 +405,9 @@ function createParticleMesh(id: string, sizeScale = 1): Mesh {
     transparent: true,
     opacity: 1,
   });
-  return new Mesh(new SphereGeometry(PARTICLE_RADIUS * sizeScale, 24, 20), material);
+  const mesh = new Mesh(new SphereGeometry(PARTICLE_RADIUS * sizeScale, 24, 20), material);
+  mesh.userData.entityId = id;
+  return mesh;
 }
 
 function makeTextSprite(text: string): Sprite {
@@ -270,4 +448,8 @@ function disposeChildren(group: Group): void {
       (child.material as MeshStandardMaterial).dispose();
     }
   }
+}
+
+function disposeGroup(group: Group): void {
+  disposeChildren(group);
 }

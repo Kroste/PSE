@@ -1,5 +1,6 @@
 import {
   Color,
+  Euler,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -16,6 +17,50 @@ export type AtomRig = {
   root: Group;
   update: (dt: number) => void;
 };
+
+/**
+ * Vorausberechnete Ziel-Positionen für eine Fusion-Animation.
+ * Positionen sind in Atom-lokalen Koordinaten (Scale = 1). Der Aufrufer
+ * translated + skaliert entsprechend seiner Bühne.
+ */
+export type AtomTargets = {
+  nucleonPositions: Vector3[]; // Reihenfolge egal — Zuordnung passiert im Renderer
+  electronPositions: Vector3[]; // In Schalen-Reihenfolge (K, L, M, …)
+  /** Rig-Scale, die auf die Positionen anzuwenden ist. */
+  scale: number;
+};
+
+export function computeAtomTargets(element: ElementEntity): AtomTargets {
+  const { protons, neutrons } = nucleusFor(element);
+  const shells = bohrShells(element);
+  const total = protons + neutrons;
+
+  const nucleonPositions =
+    total <= 1
+      ? [new Vector3(0, 0, 0)]
+      : packedPositions(total, 0.09 * 1.85, protons * 3 + neutrons * 5);
+
+  const electronPositions: Vector3[] = [];
+  shells.forEach((count, idx) => {
+    if (count <= 0) return;
+    const n = idx + 1;
+    const radius = 0.55 + n * 0.32;
+    const tiltX = (n * 0.35) % Math.PI;
+    const tiltZ = (n * 0.45) % Math.PI;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const p = new Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+      // Neigung anwenden (analog zu buildShell: rotation.x = tiltX, rotation.z = tiltZ)
+      p.applyEuler(new Euler(tiltX, 0, tiltZ, 'XYZ'));
+      electronPositions.push(p);
+    }
+  });
+
+  const maxR = shells.length > 0 ? 0.55 + shells.length * 0.32 : 0.4;
+  const scale = 1.5 / (maxR + 0.15);
+
+  return { nucleonPositions, electronPositions, scale };
+}
 
 const PROTON_COLOR = 0xe94f4f;
 const NEUTRON_COLOR = 0x4a70c8;
@@ -105,7 +150,7 @@ function buildNucleusCluster(protons: number, neutrons: number, _a: number): Gro
  * Distanz zum Ursprung, die N nächsten übernommen — plus leichter Jitter,
  * damit das Ergebnis weniger nach Gitter aussieht.
  */
-function packedPositions(count: number, spacing: number, jitterSeed: number): Vector3[] {
+export function packedPositions(count: number, spacing: number, jitterSeed: number): Vector3[] {
   const candidates: Vector3[] = [];
   const range = Math.ceil(Math.cbrt(count));
   for (let i = -range; i <= range; i++) {
