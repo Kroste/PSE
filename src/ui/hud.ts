@@ -5,10 +5,12 @@ import {
   clearZone,
   craft,
   getState,
+  hasRecipesInReactor,
   onCraft,
   removeFromZone,
   resetState,
   setActiveReactor,
+  setExpertMode,
   subscribe,
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
@@ -32,7 +34,16 @@ export function mountHud(opts: HudOptions = {}): void {
   const tableEl = document.getElementById('pse-table');
   const toggleBtn = document.getElementById('pse-toggle-table');
   const resetBtn = document.getElementById('pse-reset');
-  if (!inventoryEl || !detailEl || !reactorsEl || !tableEl || !toggleBtn || !resetBtn) {
+  const expertBtn = document.getElementById('pse-toggle-expert');
+  if (
+    !inventoryEl ||
+    !detailEl ||
+    !reactorsEl ||
+    !tableEl ||
+    !toggleBtn ||
+    !resetBtn ||
+    !expertBtn
+  ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
 
@@ -95,6 +106,16 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderTable();
   });
 
+  const syncExpertBtn = (): void => {
+    const active = getState().expertMode;
+    expertBtn.classList.toggle('pse-btn-primary', active);
+    expertBtn.textContent = active ? 'Experten-Modus  ✓' : 'Experten-Modus';
+  };
+  expertBtn.addEventListener('click', () => {
+    setExpertMode(!getState().expertMode);
+  });
+  syncExpertBtn();
+
   resetBtn.addEventListener('click', () => {
     const confirmed = window.confirm(
       'Kompletten Fortschritt löschen und neu starten? Diese Aktion lässt sich nicht rückgängig machen.',
@@ -115,6 +136,7 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderDetail();
     rerenderReactors();
     rerenderTable();
+    syncExpertBtn();
   });
 
   onCraft((event) => {
@@ -485,6 +507,7 @@ function renderReactors(el: HTMLElement): void {
   const state = getState();
   el.innerHTML = '';
   for (const id of state.unlockedReactors) {
+    if (!hasRecipesInReactor(id)) continue;
     const meta = reactorMeta[id];
     const btn = document.createElement('button');
     btn.type = 'button';

@@ -67,6 +67,8 @@ export type Multiset = Readonly<Record<EntityId, number>>;
 
 export type RecipeKind = 'assembly' | 'fusion' | 'decay' | 'chemical' | 'bond';
 
+export type RecipeMode = 'expert' | 'simple' | 'both';
+
 export type Recipe = {
   id: string;
   kind: RecipeKind;
@@ -77,4 +79,10 @@ export type Recipe = {
   scienceNoteDE: string;
   source: string;
   unlocksReactors?: ReactorId[];
+  /**
+   * `expert` = nur im Experten-Modus verfügbar (Kern-Zwischenschritte,
+   * Sternfusion). `simple` = nur im Normal-Modus (direkter Nukleonen-Weg).
+   * `both` = in beiden. Fehlt = `both`.
+   */
+  mode?: RecipeMode;
 };

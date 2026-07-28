@@ -56,8 +56,24 @@ describe('recipe engine', () => {
   });
 
   describe('recipesForReactor', () => {
-    it('Werkbank-Rezepte enthalten Grundmontage und Element-Assembly', () => {
-      const workbench = recipesForReactor('workbench');
+    it('Werkbank im Normalmodus: Grundmontage + simple-Rezepte', () => {
+      const workbench = recipesForReactor('workbench', false);
+      const ids = workbench.map((r) => r.id);
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          'assemble-proton',
+          'assemble-neutron',
+          'assemble-hydrogen',
+          'simple-helium',
+          'simple-iron',
+        ]),
+      );
+      expect(ids).not.toContain('assemble-helium-4');
+      expect(ids).not.toContain('assemble-iron-56');
+    });
+
+    it('Werkbank im Expertenmodus: Grundmontage + Kern-basierte Rezepte, keine simple-*', () => {
+      const workbench = recipesForReactor('workbench', true);
       const ids = workbench.map((r) => r.id);
       expect(ids).toEqual(
         expect.arrayContaining([
@@ -68,10 +84,11 @@ describe('recipe engine', () => {
           'assemble-iron-56',
         ]),
       );
+      expect(ids).not.toContain('simple-helium');
     });
 
-    it('Sternkern-Rezepte enthalten pp-Kette und Alpha-Prozess', () => {
-      const stellar = recipesForReactor('stellar-core');
+    it('Sternkern im Expertenmodus: pp-Kette und Alpha-Prozess', () => {
+      const stellar = recipesForReactor('stellar-core', true);
       const ids = stellar.map((r) => r.id);
       expect(ids).toEqual(
         expect.arrayContaining([
@@ -86,6 +103,10 @@ describe('recipe engine', () => {
       );
     });
 
+    it('Sternkern im Normalmodus: leer (alle Sternkern-Rezepte sind expert)', () => {
+      expect(recipesForReactor('stellar-core', false)).toEqual([]);
+    });
+
     it('leer für noch nicht bespielte Reaktoren', () => {
       expect(recipesForReactor('supernova')).toEqual([]);
     });
@@ -93,19 +114,19 @@ describe('recipe engine', () => {
 
   describe('pp-Kette am Sternkern', () => {
     it('pp-fusion: 2 Protonen → Deuteron + Positron', () => {
-      const r = matchRecipe({ proton: 2 }, 'stellar-core');
+      const r = matchRecipe({ proton: 2 }, 'stellar-core', true);
       expect(r?.id).toBe('pp-fusion');
       expect(r?.outputs).toEqual({ deuteron: 1, 'e+': 1 });
     });
 
     it('pp-deuteron-capture: Deuteron + Proton → Helion + γ', () => {
-      const r = matchRecipe({ deuteron: 1, proton: 1 }, 'stellar-core');
+      const r = matchRecipe({ deuteron: 1, proton: 1 }, 'stellar-core', true);
       expect(r?.id).toBe('pp-deuteron-capture');
       expect(r?.outputs).toEqual({ helion: 1, gamma: 1 });
     });
 
     it('pp-i-closing: 2 Helion → Alpha + 2 Protonen', () => {
-      const r = matchRecipe({ helion: 2 }, 'stellar-core');
+      const r = matchRecipe({ helion: 2 }, 'stellar-core', true);
       expect(r?.id).toBe('pp-i-closing');
       expect(r?.outputs).toEqual({ alpha: 1, proton: 2 });
     });
@@ -118,7 +139,7 @@ describe('recipe engine', () => {
 
   describe('Alpha-Prozess bis Eisen', () => {
     it('Triple-Alpha: 3α → ¹²C + γ', () => {
-      const r = matchRecipe({ alpha: 3 }, 'stellar-core');
+      const r = matchRecipe({ alpha: 3 }, 'stellar-core', true);
       expect(r?.id).toBe('triple-alpha');
       expect(r?.outputs).toEqual({ c12: 1, gamma: 1 });
     });
@@ -131,20 +152,20 @@ describe('recipe engine', () => {
         ['mg24', 'si28'],
       ];
       for (const [from, to] of steps) {
-        const r = matchRecipe({ [from]: 1, alpha: 1 }, 'stellar-core');
+        const r = matchRecipe({ [from]: 1, alpha: 1 }, 'stellar-core', true);
         expect(r, `${from}+α`).not.toBeNull();
         expect(r!.outputs).toEqual({ [to]: 1, gamma: 1 });
       }
     });
 
     it('Silizium-Verbrennung: 2·²⁸Si → ⁵⁶Ni + γ', () => {
-      const r = matchRecipe({ si28: 2 }, 'stellar-core');
+      const r = matchRecipe({ si28: 2 }, 'stellar-core', true);
       expect(r?.id).toBe('silicon-burning');
       expect(r?.outputs).toEqual({ ni56: 1, gamma: 1 });
     });
 
     it('β⁺-Zerfall ⁵⁶Ni → ⁵⁶Fe + 2e⁺', () => {
-      const r = matchRecipe({ ni56: 1 }, 'stellar-core');
+      const r = matchRecipe({ ni56: 1 }, 'stellar-core', true);
       expect(r?.id).toBe('ni56-double-beta-plus');
       expect(r?.outputs).toEqual({ fe56: 1, 'e+': 2 });
     });
@@ -160,8 +181,8 @@ describe('recipe engine', () => {
       { inputs: { n15: 1, proton: 1 }, id: 'cno-6-n15-p', outputs: { c12: 1, alpha: 1 } },
     ];
 
-    it.each(steps)('matcht $id im Sternkern', ({ inputs, id, outputs }) => {
-      const r = matchRecipe(inputs, 'stellar-core');
+    it.each(steps)('matcht $id im Sternkern (Expertenmodus)', ({ inputs, id, outputs }) => {
+      const r = matchRecipe(inputs, 'stellar-core', true);
       expect(r?.id).toBe(id);
       expect(r?.outputs).toEqual(outputs);
     });
@@ -194,8 +215,8 @@ describe('recipe engine', () => {
       [{ fe56: 1, 'e-': 26 }, 'assemble-iron-56', 'Fe'],
     ];
 
-    it.each(elements)('%o → %s produziert %s', (inputs, id, output) => {
-      const r = matchRecipe(inputs, 'workbench');
+    it.each(elements)('%o → %s produziert %s (Expertenmodus)', (inputs, id, output) => {
+      const r = matchRecipe(inputs, 'workbench', true);
       expect(r?.id).toBe(id);
       expect(r?.outputs).toEqual({ [output]: 1 });
     });

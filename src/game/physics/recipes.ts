@@ -10,17 +10,29 @@ export function multisetEquals(a: Multiset, b: Multiset): boolean {
   return true;
 }
 
-export function matchRecipe(zone: Multiset, reactor: ReactorId): Recipe | null {
+export function isRecipeAvailableInMode(recipe: Recipe, expertMode: boolean): boolean {
+  const m = recipe.mode ?? 'both';
+  if (m === 'both') return true;
+  if (m === 'expert') return expertMode;
+  return !expertMode;
+}
+
+export function matchRecipe(
+  zone: Multiset,
+  reactor: ReactorId,
+  expertMode = false,
+): Recipe | null {
   const compact = compact_(zone);
   for (const recipe of recipes) {
     if (recipe.reactor !== reactor) continue;
+    if (!isRecipeAvailableInMode(recipe, expertMode)) continue;
     if (multisetEquals(compact, recipe.inputs)) return recipe;
   }
   return null;
 }
 
-export function recipesForReactor(reactor: ReactorId): readonly Recipe[] {
-  return recipes.filter((r) => r.reactor === reactor);
+export function recipesForReactor(reactor: ReactorId, expertMode = false): readonly Recipe[] {
+  return recipes.filter((r) => r.reactor === reactor && isRecipeAvailableInMode(r, expertMode));
 }
 
 function compact_(m: Multiset): Multiset {

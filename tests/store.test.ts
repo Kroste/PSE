@@ -15,6 +15,7 @@ import {
   removeFromZone,
   resetState,
   setActiveReactor,
+  setExpertMode,
   subscribe,
   unlockReactor,
 } from '../src/game/state/store';
@@ -185,11 +186,11 @@ describe('game state store', () => {
       expect(unlocked.filter((r) => r === 'stellar-core')).toHaveLength(1);
     });
 
-    it('pp-Kette am Sternkern: 2p → Deuteron + Positron', () => {
+    it('pp-Kette am Sternkern: 2p → Deuteron + Positron (Expertenmodus)', () => {
       addToInventory('proton', 2);
-      // In der Realität wechselt der Spieler den Reaktor manuell — im Test setzen wir direkt.
       unlockReactor('stellar-core');
       setActiveReactor('stellar-core');
+      setExpertMode(true);
 
       addToZone('proton', 2);
       const result = craft();
@@ -266,6 +267,55 @@ describe('game state store', () => {
       discover('proton');
       expect(addToZone('proton', 99)).toBe(true);
       expect(getState().reactionZone.proton).toBe(99);
+    });
+  });
+
+  describe('expertMode', () => {
+    it('startet mit expertMode = false', () => {
+      expect(getState().expertMode).toBe(false);
+    });
+
+    it('setExpertMode toggled und triggert emit', () => {
+      let seen = 0;
+      subscribe(() => seen++);
+      setExpertMode(true);
+      expect(getState().expertMode).toBe(true);
+      expect(seen).toBeGreaterThan(1);
+    });
+
+    it('Normalmodus craftet simple-helium (2p+2n+2e- → He) an der Werkbank', () => {
+      addToInventory('proton', 2);
+      addToInventory('neutron', 2);
+      addToZone('proton', 2);
+      addToZone('neutron', 2);
+      addToZone('e-', 2);
+      const result = craft();
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.recipe.id).toBe('simple-helium');
+      expect(getState().inventory.He).toBe(1);
+    });
+
+    it('Expertenmodus verweigert simple-helium', () => {
+      setExpertMode(true);
+      addToInventory('proton', 2);
+      addToInventory('neutron', 2);
+      addToZone('proton', 2);
+      addToZone('neutron', 2);
+      addToZone('e-', 2);
+      const result = craft();
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.reason).toBe('no-match');
+    });
+
+    it('setExpertMode(false) fällt auf Werkbank zurück, wenn aktiver Reaktor leer wird', () => {
+      unlockReactor('stellar-core');
+      setExpertMode(true);
+      setActiveReactor('stellar-core');
+      expect(getState().activeReactor).toBe('stellar-core');
+      setExpertMode(false);
+      expect(getState().activeReactor).toBe('workbench');
     });
   });
 

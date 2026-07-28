@@ -73,6 +73,30 @@ doppelten IDs, keine Rezepte auf unbekannte Entities, Hadron-Quarks existieren a
 Quark-Entities, für jeden Kern gilt `Z = protons` und `A = protons + neutrons`.
 Bricht früh — kaputter Content ist ein Build-Fehler, kein Laufzeit-Bug.
 
+## Spielmodus: Normal vs. Experten
+
+Zwei parallele Rezept-Sets, umschaltbar per Toolbar-Toggle:
+
+- **Normal-Modus** (Default): vereinfachte Rezepte für den kompletten Aufstieg.
+  - Grundmontage: Quarks → Proton/Neutron, dann `p + e⁻ → H`.
+  - Elemente ab He werden direkt aus **N·p + N·n + Z·e⁻ → Element** an der
+    Werkbank gebaut. Keine Kern-Zwischenprodukte, kein Sternkern nötig.
+- **Experten-Modus**: die reale Physik.
+  - Kerne (`nucleus`) als eigene Entities: Deuteron, Triton, Helion, Alpha,
+    ¹²C, ¹⁶O, ²⁰Ne, ²⁴Mg, ²⁸Si, ⁵⁶Ni, ⁵⁶Fe (plus CNO-Zwischenkerne).
+  - pp-Kette am Sternkern, α-Kette bis Eisen, Silizium-Verbrennung, CNO-Zyklus.
+  - Element-Assembly an der Werkbank aus Kern + Elektronen (`⁴He + 2e⁻ → He`,
+    `⁵⁶Fe + 26e⁻ → Fe`, …).
+
+Recipe-Feld `mode: 'expert' | 'simple' | 'both'`. Fehlt = `both`. `matchRecipe`
+und `availableRecipesForActiveReactor` filtern nach aktuellem Modus. Ein Reaktor
+ohne Rezepte im aktuellen Modus wird in der Toolbar ausgeblendet; ein Modus-
+Wechsel, der den aktiven Reaktor „leer" machen würde, springt automatisch auf
+Werkbank zurück.
+
+`expertMode` wird im `PersistedState` gespeichert; alte Saves ohne das Feld
+starten im Normal-Modus.
+
 ## Craft-Loop
 
 1. Spieler wählt Reaktor (Start = Werkbank).

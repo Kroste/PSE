@@ -1,7 +1,7 @@
 import { saveToStorage } from './save';
 import { freeSupplyIds, recipes as allRecipes } from '../content';
 import type { EntityId, Multiset, Recipe } from '../content/types';
-import { matchRecipe } from '../physics/recipes';
+import { isRecipeAvailableInMode, matchRecipe } from '../physics/recipes';
 
 export type ReactorId =
   | 'workbench'
@@ -17,11 +17,18 @@ export type PersistedState = {
   readonly unlockedReactors: readonly ReactorId[];
   readonly activeReactor: ReactorId;
   readonly inventory: Readonly<Record<EntityId, number>>;
+  /**
+   * true = alle Rezepte inkl. Kern-Zwischenschritte / Sternfusion sichtbar,
+   * false = nur vereinfachte Rezepte (Nukleonen direkt zu Elementen).
+   * Alte Saves ohne dieses Feld werden beim Load auf `false` gesetzt.
+   */
+  readonly expertMode?: boolean;
 };
 
 /** Voller Runtime-State (inkl. Session-Anteile wie reactionZone). */
 export type GameState = PersistedState & {
   readonly reactionZone: Multiset;
+  readonly expertMode: boolean;
 };
 
 const initialState: GameState = {
@@ -30,6 +37,7 @@ const initialState: GameState = {
   activeReactor: 'workbench',
   inventory: {},
   reactionZone: {},
+  expertMode: false,
 };
 
 type Listener = (state: GameState) => void;
@@ -60,7 +68,28 @@ export function getState(): GameState {
 }
 
 export function loadState(persisted: PersistedState): void {
-  state = { ...reconcileUnlockedReactors(persisted), reactionZone: {} };
+  const reconciled = reconcileUnlockedReactors(persisted);
+  state = {
+    ...reconciled,
+    reactionZone: {},
+    expertMode: reconciled.expertMode ?? false,
+  };
+  emit();
+}
+
+export function setExpertMode(expertMode: boolean): void {
+  if (state.expertMode === expertMode) return;
+  // Falls der aktuelle Reaktor im neuen Modus keine Rezepte mehr hat,
+  // auf Werkbank zurückfallen — sonst hängt der Spieler in einem leeren Reaktor.
+  const activeHasRecipes = allRecipes.some(
+    (r) => r.reactor === state.activeReactor && isRecipeAvailableInMode(r, expertMode),
+  );
+  state = {
+    ...state,
+    expertMode,
+    activeReactor: activeHasRecipes ? state.activeReactor : 'workbench',
+    reactionZone: {},
+  };
   emit();
 }
 
@@ -182,7 +211,7 @@ export function craft(): CraftEvent {
   if (Object.keys(state.reactionZone).length === 0) {
     return notify({ ok: false, reason: 'empty-zone' });
   }
-  const recipe = matchRecipe(state.reactionZone, state.activeReactor);
+  const recipe = matchRecipe(state.reactionZone, state.activeReactor, state.expertMode);
   if (!recipe) return notify({ ok: false, reason: 'no-match' });
 
   const nextInventory: Record<EntityId, number> = { ...state.inventory };
@@ -228,7 +257,15 @@ export function craft(): CraftEvent {
 
 /** Hint für die UI: welche Rezepte sind im aktiven Reaktor grundsätzlich vorgesehen? */
 export function availableRecipesForActiveReactor(): readonly Recipe[] {
-  return allRecipes.filter((r) => r.reactor === state.activeReactor);
+  return allRecipes.filter(
+    (r) => r.reactor === state.activeReactor && isRecipeAvailableInMode(r, state.expertMode),
+  );
+}
+
+export function hasRecipesInReactor(reactor: ReactorId): boolean {
+  return allRecipes.some(
+    (r) => r.reactor === reactor && isRecipeAvailableInMode(r, state.expertMode),
+  );
 }
 
 export function __resetForTests(disablePersist = true): void {
