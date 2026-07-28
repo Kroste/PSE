@@ -19,7 +19,12 @@ import type { Entity, ElementEntity, Recipe } from '../game/content/types';
 
 let feedbackTimer: number | undefined;
 
-export function mountHud(): void {
+export type HudOptions = {
+  /** Wird bei Element-Auswahl aufgerufen. `null` = kein Atom zeigen. */
+  showAtom?: (elementId: string | null) => void;
+};
+
+export function mountHud(opts: HudOptions = {}): void {
   const inventoryEl = document.getElementById('pse-inventory');
   const detailEl = document.getElementById('pse-detail');
   const reactorsEl = document.getElementById('pse-reactors');
@@ -35,6 +40,8 @@ export function mountHud(): void {
   const selectEntity = (id: string): void => {
     selectedEntityId = id;
     rerenderDetail();
+    const entity = getEntity(id);
+    if (entity?.kind === 'element' && opts.showAtom) opts.showAtom(id);
   };
 
   const rerenderDetail = (): void => renderDetail(detailEl, selectedEntityId);

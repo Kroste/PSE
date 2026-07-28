@@ -18,14 +18,17 @@ import {
   WebGLRenderer,
 } from 'three';
 import { subscribe, onCraft } from '../game/state/store';
-import { requireEntity } from '../game/content';
-import type { Multiset } from '../game/content/types';
+import { getEntity, requireEntity } from '../game/content';
+import type { ElementEntity, Multiset } from '../game/content/types';
+import { buildAtom, type AtomRig } from '../game/atoms/atom';
 
 export type SceneBundle = {
   renderer: WebGLRenderer;
   scene: Scene;
   camera: PerspectiveCamera;
   update: (dt: number) => void;
+  /** Zeigt das Atom eines Elements dauerhaft an. `null` blendet aus. */
+  showAtom: (elementId: string | null) => void;
 };
 
 const RING_OUTER = 1.62;
@@ -64,6 +67,25 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   scene.add(resultGroup);
   let resultTimer = 0;
 
+  const atomGroup = new Group();
+  scene.add(atomGroup);
+  let currentAtom: AtomRig | null = null;
+  let atomFlashTimer = 0;
+  const ATOM_FLASH_SECONDS = 1.8;
+
+  function replaceAtom(elementId: string | null, isFlash: boolean): void {
+    while (atomGroup.children.length > 0) atomGroup.remove(atomGroup.children[0]!);
+    currentAtom = null;
+    if (!elementId) return;
+    const entity = getEntity(elementId);
+    if (!entity || entity.kind !== 'element') return;
+    const rig = buildAtom(entity as ElementEntity);
+    rig.root.position.set(0, 0.9, 0);
+    atomGroup.add(rig.root);
+    currentAtom = rig;
+    if (isFlash) atomFlashTimer = ATOM_FLASH_SECONDS;
+  }
+
   const idleHint = makeTextSprite('Ziehe Zutaten in die Reaktionszone');
   idleHint.position.set(0, 0.9, 0);
   idleHint.scale.set(3.2, 0.4, 1);
@@ -78,13 +100,24 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   subscribe((state) => {
     rebuildZone(zoneGroup, state.reactionZone);
     const isEmpty = Object.keys(state.reactionZone).length === 0;
-    idleHint.visible = isEmpty && resultTimer <= 0;
+    idleHint.visible = isEmpty && resultTimer <= 0 && currentAtom === null;
   });
 
   onCraft((event) => {
     if (!event.ok) return;
-    resultTimer = RESULT_FLASH_SECONDS;
     idleHint.visible = false;
+
+    // Wenn ein Element gecraftet wurde: statt Flash-Kugeln direkt Atom rendern.
+    const elementOutput = Object.keys(event.recipe.outputs).find((id) => {
+      const e = getEntity(id);
+      return e && e.kind === 'element';
+    });
+    if (elementOutput) {
+      replaceAtom(elementOutput, true);
+      return;
+    }
+
+    resultTimer = RESULT_FLASH_SECONDS;
     rebuildResult(resultGroup, event.recipe.outputs);
   });
 
@@ -96,6 +129,17 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       zoneGroup.rotation.y += dt * 0.35;
       platformGroup.rotation.y += dt * 0.08;
 
+      if (currentAtom) {
+        currentAtom.update(dt);
+        if (atomFlashTimer > 0) {
+          atomFlashTimer = Math.max(0, atomFlashTimer - dt);
+          const t = 1 - atomFlashTimer / ATOM_FLASH_SECONDS;
+          currentAtom.root.scale.setScalar(0.3 + t * 0.7);
+        } else {
+          currentAtom.root.scale.setScalar(1);
+        }
+      }
+
       if (resultTimer > 0) {
         resultTimer = Math.max(0, resultTimer - dt);
         const t = resultTimer / RESULT_FLASH_SECONDS;
@@ -104,9 +148,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         setGroupOpacity(resultGroup, t);
         if (resultTimer === 0) {
           resultGroup.visible = false;
-          // idleHint sichtbar machen, falls Zone weiterhin leer ist.
           const anyChildInZone = zoneGroup.children.length > 0;
-          if (!anyChildInZone) idleHint.visible = true;
+          if (!anyChildInZone && currentAtom === null) idleHint.visible = true;
         }
       } else {
         resultGroup.visible = false;
@@ -115,6 +158,14 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       if (idleHint.visible) {
         const pulse = 0.75 + Math.sin(performance.now() * 0.001) * 0.15;
         (idleHint.material as SpriteMaterial).opacity = pulse;
+      }
+    },
+    showAtom(elementId) {
+      replaceAtom(elementId, false);
+      if (elementId !== null) idleHint.visible = false;
+      else {
+        const anyChildInZone = zoneGroup.children.length > 0;
+        if (!anyChildInZone && resultTimer <= 0) idleHint.visible = true;
       }
     },
   };

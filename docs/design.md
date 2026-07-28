@@ -184,7 +184,9 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   ⁵⁶Ni→⁵⁶Fe-β⁺-Zerfall), CNO-Zyklus (6 Schritte, ¹²C als Katalysator),
   Elemente He, C, N, O, Ne, Mg, Si, Fe mit Assembly-Rezepten an der Werkbank,
   PSE-Übersicht-Panel (Layout aller 118 Elemente, entdeckte hervorgehoben,
-  Klick öffnet Detail).
+  Klick öffnet Detail). Zusätzlich: Quanten-Orbitalmodell-Visualisierung
+  (s/p/d/f-Wolken aus der spektroskopischen Konfiguration abgeleitet), erscheint
+  bei Element-Craft als Flash und bleibt danach in der 3D-Bühne angepinnt.
 - **M4** — s/r-Prozess (AGB, Supernova), restliche Elemente Li..Og (Zwischenschritte
   auffüllen; Content-Datenbank auf alle 118 mit Kern-Isotop-Auswahl).
 - **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
