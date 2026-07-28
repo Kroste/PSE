@@ -18,7 +18,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
-import { subscribe, onCraft } from '../game/state/store';
+import { clearZone, onCraft, subscribe } from '../game/state/store';
 import { getEntity, requireEntity } from '../game/content';
 import type { ElementEntity, Multiset } from '../game/content/types';
 import {
@@ -75,6 +75,13 @@ type FusionState = {
   flashMat: MeshBasicMaterial;
 };
 
+type DecayState = {
+  particles: ChamberParticle[];
+  velocities: Vector3[];
+  elapsed: number;
+  duration: number;
+};
+
 export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   const renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -94,7 +101,11 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
 
   const platformGroup = new Group();
   scene.add(platformGroup);
-  platformGroup.add(makeRing(RING_OUTER - 0.05, RING_OUTER, 0x00ffb0, 0.65));
+  const outerRing = makeRing(RING_OUTER - 0.05, RING_OUTER, 0x00ffb0, 0.65);
+  const outerRingMat = outerRing.material as MeshBasicMaterial;
+  const outerRingColorStable = new Color(0x00ffb0);
+  const outerRingColorUnstable = new Color(0xff4466);
+  platformGroup.add(outerRing);
   platformGroup.add(makeRing(RING_INNER_MARKER - 0.02, RING_INNER_MARKER, 0x00ffb0, 0.35));
   platformGroup.add(makeRing(RING_CENTER_MARKER - 0.015, RING_CENTER_MARKER, 0x00ffb0, 0.5));
 
@@ -116,6 +127,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   const ATOM_FLASH_SECONDS = 0.6;
 
   let fusion: FusionState | null = null;
+  let decay: DecayState | null = null;
 
   function replaceAtom(elementId: string | null, isFlash: boolean): void {
     while (atomGroup.children.length > 0) atomGroup.remove(atomGroup.children[0]!);
@@ -215,11 +227,24 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     });
   }
 
+  function isChamberUnstable(): boolean {
+    let protons = 0;
+    let neutrons = 0;
+    for (const p of chamberParticles) {
+      if (p.id === 'proton') protons++;
+      else if (p.id === 'neutron') neutrons++;
+    }
+    // Nur eine Nukleon-Sorte, mit mindestens 2 Stück, keine Elektronen-Stabilisierung
+    if (protons >= 2 && neutrons === 0) return true;
+    if (neutrons >= 2 && protons === 0) return true;
+    return false;
+  }
+
   function updateChamberPhysics(dt: number): void {
     if (chamberParticles.length === 0) return;
     chamberTime += dt;
 
-    // Cluster-Slots für Nukleonen — indexbasiert nach Reihenfolge in chamberParticles
+    const unstable = isChamberUnstable();
     const nucleons = chamberParticles.filter((p) => p.role === 'nucleon');
     const slots =
       nucleons.length > 0 ? packedPositions(nucleons.length, PARTICLE_RADIUS * 1.85 * 0.55 * 2, 42) : [];
@@ -229,9 +254,20 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       if (p.role === 'nucleon') {
         const target = slots[nucleonIdx]!.clone().add(ATOM_CENTER);
         nucleonIdx++;
-        applyAttraction(p, target, dt, 8, 0.82);
+        if (unstable) {
+          // Coulomb-Abstoßung / instabiles Wackeln: Ziel wird jitternd verschoben,
+          // Anziehung schwächer, Dämpfung geringer — die Nukleonen zappeln.
+          const jitter = 0.35;
+          const wobble = new Vector3(
+            Math.sin(chamberTime * 6 + p.seed * 1.3) * jitter,
+            Math.sin(chamberTime * 5.2 + p.seed * 2.1) * jitter * 0.6,
+            Math.cos(chamberTime * 7 + p.seed * 0.9) * jitter,
+          );
+          applyAttraction(p, target.add(wobble), dt, 4.5, 0.78);
+        } else {
+          applyAttraction(p, target, dt, 8, 0.82);
+        }
       } else if (p.role === 'electron') {
-        // Wolke: pseudo-orbitale Bewegung mit unterschiedlichen Frequenzen pro Elektron
         const cloudR = 1.15;
         const t = chamberTime * 0.9 + p.phase;
         const tilt = (p.seed % 5) * 0.5;
@@ -242,14 +278,21 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         );
         applyAttraction(p, target, dt, 3.5, 0.88);
       } else {
-        // Nuclei / other: sanft zum Zentrum
         applyAttraction(p, ATOM_CENTER, dt, 3, 0.88);
       }
     }
   }
 
   onCraft((event) => {
-    if (!event.ok) return;
+    if (!event.ok) {
+      // Instabile Konfiguration (nur p oder nur n): zerlegt auseinander.
+      if (event.reason === 'no-match' && isChamberUnstable()) {
+        const snapshot = chamberParticles.slice();
+        chamberParticles.length = 0;
+        startDecay(snapshot);
+      }
+      return;
+    }
     idleHint.visible = false;
 
     const elementOutput = Object.keys(event.recipe.outputs).find((id) => {
@@ -258,7 +301,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     });
 
     if (elementOutput && canFuseFromInputs(event.recipe.inputs)) {
-      // Chamber-Partikel für die Fusion übernehmen — kein rebuild.
       const snapshot = chamberParticles.slice();
       const started = startFusion(elementOutput, snapshot);
       if (started) {
@@ -277,6 +319,24 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     resultTimer = RESULT_FLASH_SECONDS;
     rebuildResult(resultGroup, event.recipe.outputs);
   });
+
+  function startDecay(snapshot: ChamberParticle[]): void {
+    // Fluchtgeschwindigkeit radial vom Zentrum weg (oder zufällig wenn genau im Zentrum).
+    const velocities = snapshot.map((p) => {
+      const dir = p.mesh.position.clone().sub(ATOM_CENTER);
+      if (dir.lengthSq() < 0.02) {
+        dir.set(Math.random() - 0.5, Math.random() * 0.6, Math.random() - 0.5);
+      }
+      dir.normalize().multiplyScalar(3.2 + Math.random() * 1.8);
+      return dir;
+    });
+    decay = {
+      particles: snapshot,
+      velocities,
+      elapsed: 0,
+      duration: 1.1,
+    };
+  }
 
   function startFusion(elementId: string, snapshot: ChamberParticle[]): boolean {
     const entity = getEntity(elementId);
@@ -379,6 +439,41 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
 
       if (!fusion) {
         updateChamberPhysics(dt);
+      }
+
+      // Plattform-Ring färbt sich rot bei instabiler Chamber (nur p oder nur n),
+      // sanfte Farbüberblendung + leichtes Puls-Blinken für Alarm-Feel.
+      const unstable = !fusion && !decay && isChamberUnstable();
+      const targetColor = unstable ? outerRingColorUnstable : outerRingColorStable;
+      outerRingMat.color.lerp(targetColor, Math.min(1, dt * 4));
+      if (unstable) {
+        outerRingMat.opacity = 0.55 + Math.sin(chamberTime * 8) * 0.25;
+      } else {
+        outerRingMat.opacity = 0.65;
+      }
+
+      if (decay) {
+        decay.elapsed += dt;
+        const tNorm = decay.elapsed / decay.duration;
+        for (let i = 0; i < decay.particles.length; i++) {
+          const p = decay.particles[i]!;
+          const v = decay.velocities[i]!;
+          p.mesh.position.add(v.clone().multiplyScalar(dt));
+          // Bremsen leicht mit der Zeit, damit sie am Ende driften statt zu rasen.
+          v.multiplyScalar(0.985);
+          const mat = p.mesh.material as MeshStandardMaterial;
+          mat.transparent = true;
+          mat.opacity = Math.max(0, 1 - tNorm);
+        }
+        if (decay.elapsed >= decay.duration) {
+          for (const p of decay.particles) {
+            chamberGroup.remove(p.mesh);
+            disposeMesh(p.mesh);
+          }
+          decay = null;
+          // Store-Zone leeren, damit HUD/State konsistent bleiben.
+          clearZone();
+        }
       }
 
       if (fusion) {
