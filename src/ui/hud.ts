@@ -10,9 +10,10 @@ import {
   setActiveReactor,
   subscribe,
 } from '../game/state/store';
-import { freeSupplyIds, getEntity } from '../game/content';
+import { elements, freeSupplyIds, getEntity } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
-import type { Entity } from '../game/content/types';
+import { pseLayout } from '../game/content/pse-layout';
+import type { Entity, ElementEntity } from '../game/content/types';
 
 let feedbackTimer: number | undefined;
 
@@ -20,27 +21,43 @@ export function mountHud(): void {
   const inventoryEl = document.getElementById('pse-inventory');
   const detailEl = document.getElementById('pse-detail');
   const reactorsEl = document.getElementById('pse-reactors');
-  if (!inventoryEl || !detailEl || !reactorsEl) throw new Error('HUD-Container fehlen im DOM.');
+  const tableEl = document.getElementById('pse-table');
+  const toggleBtn = document.getElementById('pse-toggle-table');
+  if (!inventoryEl || !detailEl || !reactorsEl || !tableEl || !toggleBtn) {
+    throw new Error('HUD-Container fehlen im DOM.');
+  }
 
   let selectedEntityId: string | null = null;
+
+  const selectEntity = (id: string): void => {
+    selectedEntityId = id;
+    rerenderDetail();
+  };
 
   const rerenderDetail = (): void => renderDetail(detailEl, selectedEntityId);
 
   const rerenderInventory = (): void => {
-    renderInventory(inventoryEl, {
-      onSelect: (id) => {
-        selectedEntityId = id;
-        rerenderDetail();
-      },
-    });
+    renderInventory(inventoryEl, { onSelect: selectEntity });
   };
 
   const rerenderReactors = (): void => renderReactors(reactorsEl);
+
+  const rerenderTable = (): void => {
+    if (tableEl.hidden) return;
+    renderPeriodicTable(tableEl, { onSelect: selectEntity });
+  };
+
+  toggleBtn.addEventListener('click', () => {
+    tableEl.hidden = !tableEl.hidden;
+    toggleBtn.classList.toggle('pse-btn-primary', !tableEl.hidden);
+    rerenderTable();
+  });
 
   subscribe(() => {
     rerenderInventory();
     rerenderDetail();
     rerenderReactors();
+    rerenderTable();
   });
 
   onCraft((event) => {
@@ -393,6 +410,75 @@ function renderReactors(el: HTMLElement): void {
     btn.addEventListener('click', () => setActiveReactor(id));
     el.appendChild(btn);
   }
+}
+
+type TableOptions = { onSelect: (id: string) => void };
+
+function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
+  const state = getState();
+  const discovered = new Set(state.discovered);
+  const elementById = new Map<string, ElementEntity>(elements.map((e) => [e.id, e]));
+
+  el.innerHTML = '';
+
+  const grid = document.createElement('div');
+  grid.className = 'pse-table-grid';
+
+  for (const cell of pseLayout) {
+    const el2 = document.createElement('button');
+    el2.type = 'button';
+    el2.className = `pse-table-cell pse-block-${cell.block}`;
+    el2.style.gridRow = String(cell.row);
+    el2.style.gridColumn = String(cell.col);
+
+    const element = elementById.get(cell.symbol);
+    const isDiscovered = element ? discovered.has(element.id) : false;
+    const isKnown = element !== undefined;
+
+    if (isDiscovered && element) {
+      el2.classList.add('pse-cell-discovered');
+      el2.style.setProperty('--cpk', element.cpkColor);
+    } else if (isKnown) {
+      el2.classList.add('pse-cell-known');
+    } else {
+      el2.classList.add('pse-cell-unknown');
+      el2.disabled = true;
+    }
+
+    const zEl = document.createElement('span');
+    zEl.className = 'pse-cell-z';
+    zEl.textContent = String(cell.z);
+    el2.appendChild(zEl);
+
+    const symEl = document.createElement('span');
+    symEl.className = 'pse-cell-sym';
+    symEl.textContent = cell.symbol;
+    el2.appendChild(symEl);
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'pse-cell-name';
+    nameEl.textContent = cell.nameDE;
+    el2.appendChild(nameEl);
+
+    if (element) {
+      el2.title = `${cell.nameDE} — ${isDiscovered ? 'entdeckt' : 'noch nicht entdeckt'}`;
+      el2.addEventListener('click', () => opts.onSelect(element.id));
+    } else {
+      el2.title = `${cell.nameDE} — Z=${cell.z} (noch nicht im Katalog)`;
+    }
+
+    grid.appendChild(el2);
+  }
+
+  el.appendChild(grid);
+
+  const legend = document.createElement('div');
+  legend.className = 'pse-table-legend';
+  legend.innerHTML =
+    '<span class="pse-cell-discovered">■</span> entdeckt · ' +
+    '<span class="pse-cell-known">■</span> im Katalog · ' +
+    '<span class="pse-cell-unknown">■</span> noch nicht angelegt';
+  el.appendChild(legend);
 }
 
 function showFeedback(text: string, kind: 'ok' | 'err'): void {

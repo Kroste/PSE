@@ -345,3 +345,110 @@ body {
   color: var(--text-dim);
   margin: 4px 0 0;
 }
+
+.pse-table-overlay {
+  position: fixed;
+  inset: 60px 16px 16px 16px;
+  z-index: 20;
+  padding: 18px;
+  background: rgba(6, 10, 14, 0.96);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pse-table-overlay[hidden] {
+  display: none;
+}
+
+.pse-table-grid {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(46px, 1fr));
+  grid-template-rows: repeat(10, minmax(52px, auto));
+  gap: 3px;
+  flex: 1;
+}
+
+.pse-table-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 3px 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition:
+    background 100ms,
+    border-color 100ms,
+    transform 80ms;
+  min-height: 52px;
+}
+.pse-table-cell:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+.pse-cell-z {
+  font-size: 9px;
+  opacity: 0.7;
+  line-height: 1;
+}
+.pse-cell-sym {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+.pse-cell-name {
+  font-size: 8px;
+  color: var(--text-dim);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.pse-cell-discovered {
+  background: color-mix(in srgb, var(--cpk) 25%, rgba(6, 10, 14, 0.9));
+  border-color: color-mix(in srgb, var(--cpk) 60%, transparent);
+  color: var(--text);
+}
+.pse-cell-discovered .pse-cell-sym {
+  color: var(--cpk, var(--accent));
+  text-shadow: 0 0 8px color-mix(in srgb, var(--cpk) 40%, transparent);
+}
+.pse-cell-known {
+  background: rgba(0, 255, 176, 0.04);
+  border-color: rgba(0, 255, 176, 0.25);
+}
+.pse-cell-known .pse-cell-sym {
+  color: var(--accent-dim);
+}
+.pse-cell-unknown {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pse-table-legend {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 14px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--panel-border);
+}
+.pse-table-legend .pse-cell-discovered,
+.pse-table-legend .pse-cell-known,
+.pse-table-legend .pse-cell-unknown {
+  padding: 0 3px;
+  margin-right: 4px;
+}

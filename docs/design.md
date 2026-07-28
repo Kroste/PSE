@@ -174,7 +174,12 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   Sternkern-Reaktor (freigeschaltet durch H-Craft), vollständige pp-I-Kette
   (2p→²H+e⁺ / ²H+p→³He+γ / 2·³He→⁴He+2p), Reaktor-Wechsel-Toolbar,
   Drag&Drop von Inventar in Reaktionszone, HUD-Kategorien nach Entity-Kind.
-- **M3** — Alpha-Prozess bis Eisen (Z=26), CNO-Zyklus, PSE-Übersicht-Panel.
-- **M4** — s/r-Prozess (AGB, Supernova), alle 118 Elemente.
+- **M3** ✅ — Alpha-Prozess bis Eisen (Triple-α, α-Kette C→O→Ne→Mg→Si, Si-Burning,
+  ⁵⁶Ni→⁵⁶Fe-β⁺-Zerfall), CNO-Zyklus (6 Schritte, ¹²C als Katalysator),
+  Elemente He, C, N, O, Ne, Mg, Si, Fe mit Assembly-Rezepten an der Werkbank,
+  PSE-Übersicht-Panel (Layout aller 118 Elemente, entdeckte hervorgehoben,
+  Klick öffnet Detail).
+- **M4** — s/r-Prozess (AGB, Supernova), restliche Elemente Li..Og (Zwischenschritte
+  auffüllen; Content-Datenbank auf alle 118 mit Kern-Isotop-Auswahl).
 - **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
 - **M6+** — Polymere, Astrochemie, Endgame.
