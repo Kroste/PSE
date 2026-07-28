@@ -11,27 +11,43 @@ export type NucleusComposition = {
 };
 
 /**
- * Findet das Nuklid, das im Element-Assembly-Rezept (Werkbank) als Input
- * verwendet wird. Fallback: aus Ordnungszahl Z ableiten (A ≈ 2·Z für kleine
- * Elemente, sonst atomicMassU gerundet) — falls es (noch) kein Rezept gibt.
+ * Findet die Nukleon-Zusammensetzung des häufigsten Isotops. Priorität:
+ * 1. Ein Rezept mit `nucleus`-Input (z.B. `assemble-helium-4` → alpha) —
+ *    dessen Kern definiert protons/neutrons.
+ * 2. Ein Rezept mit `proton`/`neutron`-Inputs (Simple-Rezepte) — die
+ *    Multiplizitäten werden aufsummiert.
+ * 3. Fallback aus atomicMassU + Z.
  */
 export function nucleusFor(element: ElementEntity): NucleusComposition {
+  // Priorität 1: Rezept mit Nucleus-Input
   for (const recipe of recipes) {
     if (recipe.reactor !== 'workbench') continue;
     if ((recipe.outputs[element.id] ?? 0) !== 1) continue;
     for (const inputId of Object.keys(recipe.inputs)) {
       const entity = getEntity(inputId);
-      if (!entity) continue;
-      if (entity.kind === 'nucleus') {
+      if (entity && entity.kind === 'nucleus') {
         const nuc = entity as NucleusEntity;
         return { protons: nuc.protons, neutrons: nuc.neutrons, a: nuc.a };
       }
-      if (entity.kind === 'hadron' && entity.id === 'proton') {
-        return { protons: 1, neutrons: 0, a: 1 };
-      }
     }
   }
-  // Fallback: nutze atomicMassU gerundet
+
+  // Priorität 2: Rezept mit proton/neutron-Inputs — Multiplizitäten summieren
+  for (const recipe of recipes) {
+    if (recipe.reactor !== 'workbench') continue;
+    if ((recipe.outputs[element.id] ?? 0) !== 1) continue;
+    let protons = 0;
+    let neutrons = 0;
+    for (const [inputId, count] of Object.entries(recipe.inputs)) {
+      if (inputId === 'proton') protons += count;
+      else if (inputId === 'neutron') neutrons += count;
+    }
+    if (protons > 0 || neutrons > 0) {
+      return { protons, neutrons, a: protons + neutrons };
+    }
+  }
+
+  // Priorität 3: Fallback aus atomicMassU
   const a = Math.round(element.atomicMassU);
   return { protons: element.z, neutrons: Math.max(0, a - element.z), a };
 }
