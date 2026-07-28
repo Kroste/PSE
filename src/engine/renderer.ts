@@ -100,6 +100,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   subscribe((state) => {
     rebuildZone(zoneGroup, state.reactionZone);
     const isEmpty = Object.keys(state.reactionZone).length === 0;
+    // Atom hat Vorrang, verschwindet aber, sobald die Reaktionszone gefüllt ist.
+    atomGroup.visible = isEmpty && currentAtom !== null;
     idleHint.visible = isEmpty && resultTimer <= 0 && currentAtom === null;
   });
 
@@ -114,6 +116,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     });
     if (elementOutput) {
       replaceAtom(elementOutput, true);
+      atomGroup.visible = true; // Zone ist nach craft() geleert.
       return;
     }
 
@@ -162,11 +165,10 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     },
     showAtom(elementId) {
       replaceAtom(elementId, false);
+      const zoneEmpty = zoneGroup.children.length === 0;
+      atomGroup.visible = elementId !== null && zoneEmpty;
       if (elementId !== null) idleHint.visible = false;
-      else {
-        const anyChildInZone = zoneGroup.children.length > 0;
-        if (!anyChildInZone && resultTimer <= 0) idleHint.visible = true;
-      }
+      else if (zoneEmpty && resultTimer <= 0) idleHint.visible = true;
     },
   };
 }
