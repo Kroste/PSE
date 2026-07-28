@@ -17,7 +17,38 @@ export const particles: readonly ParticleEntity[] = particlesRaw as unknown as P
 export const hadrons: readonly HadronEntity[] = hadronsRaw as unknown as HadronEntity[];
 export const nuclei: readonly NucleusEntity[] = nucleiRaw as unknown as NucleusEntity[];
 export const elements: readonly ElementEntity[] = elementsRaw as unknown as ElementEntity[];
-export const recipes: readonly Recipe[] = recipesRaw as unknown as Recipe[];
+
+const staticRecipes: readonly Recipe[] = recipesRaw as unknown as Recipe[];
+
+/**
+ * Generiert Simple-Rezepte "N·p + N·n + Z·e⁻ → Element" für alle Elemente
+ * außer H (das hat sein eigenes assemble-hydrogen im Katalog). N = A - Z,
+ * A ≈ Math.round(atomicMassU) — hinreichend für stabile Isotope; für
+ * transuranische Elemente ist es die Massenzahl des langlebigsten Isotops.
+ */
+function generateSimpleElementRecipes(): Recipe[] {
+  const generated: Recipe[] = [];
+  for (const el of elements) {
+    if (el.z <= 1) continue; // H hat assemble-hydrogen (mode: both)
+    const a = Math.round(el.atomicMassU);
+    const p = el.z;
+    const n = a - el.z;
+    if (n < 0) continue;
+    generated.push({
+      id: `simple-${el.id.toLowerCase()}`,
+      kind: 'assembly',
+      reactor: 'workbench',
+      mode: 'simple',
+      inputs: n === 0 ? { proton: p, 'e-': p } : { proton: p, neutron: n, 'e-': p },
+      outputs: { [el.id]: 1 },
+      scienceNoteDE: `Vereinfachte Montage: ${p} Protonen${n > 0 ? `, ${n} Neutronen` : ''} und ${p} Elektronen bilden direkt ein neutrales ${el.nameDE}-Atom (${a}${el.symbol}).`,
+      source: 'PSE: didaktische Vereinfachung',
+    });
+  }
+  return generated;
+}
+
+export const recipes: readonly Recipe[] = [...staticRecipes, ...generateSimpleElementRecipes()];
 
 export const allEntities: readonly Entity[] = [
   ...particles,

@@ -213,7 +213,12 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   Elektronen auf schrägen Schalenbahnen) in der Hauptbühne. Das
   **Quanten-Orbitalmodell** (s/p/d/f-Wolken) lebt als Live-3D-Preview im
   Detail-Panel.
-- **M4** — s/r-Prozess (AGB, Supernova), restliche Elemente Li..Og (Zwischenschritte
-  auffüllen; Content-Datenbank auf alle 118 mit Kern-Isotop-Auswahl).
+- **M4a** ✅ — Alle 118 Elemente H..Og als ElementEntity (Z, Atommasse, Elektronen-
+  konfiguration, Periode/Gruppe/Block, Kategorie, CPK-Farbe, Beschreibung). Simple-
+  Rezepte für Elemente Z≥2 werden im Loader generiert (`generateSimpleElementRecipes`
+  in `content/index.ts`), sodass alle Atome im Normal-Modus baubar sind ohne den
+  Rezept-Katalog aufzublähen. Damit ist die PSE-Übersicht vollständig gefüllt.
+- **M4b** — s-Prozess am AGB-Stern, r-Prozess an Supernova mit repräsentativen
+  Kern-Zwischenschritten (Neutron-Einfang bis Blei/Uran).
 - **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
 - **M6+** — Polymere, Astrochemie, Endgame.

@@ -292,7 +292,7 @@ describe('game state store', () => {
       const result = craft();
       expect(result.ok).toBe(true);
       if (!result.ok) return;
-      expect(result.recipe.id).toBe('simple-helium');
+      expect(result.recipe.id).toBe('simple-he');
       expect(getState().inventory.He).toBe(1);
     });
 

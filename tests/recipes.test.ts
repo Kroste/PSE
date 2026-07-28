@@ -56,7 +56,7 @@ describe('recipe engine', () => {
   });
 
   describe('recipesForReactor', () => {
-    it('Werkbank im Normalmodus: Grundmontage + simple-Rezepte', () => {
+    it('Werkbank im Normalmodus: Grundmontage + simple-Rezepte für alle Elemente', () => {
       const workbench = recipesForReactor('workbench', false);
       const ids = workbench.map((r) => r.id);
       expect(ids).toEqual(
@@ -64,8 +64,10 @@ describe('recipe engine', () => {
           'assemble-proton',
           'assemble-neutron',
           'assemble-hydrogen',
-          'simple-helium',
-          'simple-iron',
+          'simple-he',
+          'simple-fe',
+          'simple-au',
+          'simple-og',
         ]),
       );
       expect(ids).not.toContain('assemble-helium-4');
@@ -84,7 +86,8 @@ describe('recipe engine', () => {
           'assemble-iron-56',
         ]),
       );
-      expect(ids).not.toContain('simple-helium');
+      expect(ids).not.toContain('simple-he');
+      expect(ids).not.toContain('simple-fe');
     });
 
     it('Sternkern im Expertenmodus: pp-Kette und Alpha-Prozess', () => {

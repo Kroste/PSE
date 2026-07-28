@@ -41,6 +41,27 @@ describe('content catalog', () => {
     expect(ids).toEqual(expect.arrayContaining(['H', 'He', 'C', 'N', 'O', 'Ne', 'Mg', 'Si', 'Fe']));
   });
 
+  it('enthält alle 118 Elemente Z=1..118', () => {
+    expect(elements).toHaveLength(118);
+    const zs = elements.map((e) => e.z).sort((a, b) => a - b);
+    expect(zs).toEqual(Array.from({ length: 118 }, (_, i) => i + 1));
+  });
+
+  it('alle Elemente haben nicht-triviale Konfiguration und Farbe', () => {
+    for (const e of elements) {
+      expect(e.electronConfig.length, `${e.id}.electronConfig`).toBeGreaterThan(1);
+      expect(e.cpkColor, `${e.id}.cpkColor`).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
+  });
+
+  it('Simple-Rezept-Generator liefert für jedes Element außer H ein Rezept', () => {
+    const simpleIds = recipes.filter((r) => r.mode === 'simple').map((r) => r.id);
+    for (const e of elements) {
+      if (e.z === 1) continue;
+      expect(simpleIds, `simple-${e.id.toLowerCase()}`).toContain(`simple-${e.id.toLowerCase()}`);
+    }
+  });
+
   it('Elemente haben Z=Ordnungszahl und passende Periode/Gruppe', () => {
     const check = (id: string, z: number, period: number, group: number | null) => {
       const e = elements.find((x) => x.id === id);
