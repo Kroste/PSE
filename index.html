@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="PSE — baue Materie von Elementarteilchen bis Molekülen." />
+    <title>PSE — Periodensystem der Elemente</title>
+    <link rel="stylesheet" href="/src/ui/styles/main.css" />
+  </head>
+  <body>
+    <canvas id="pse-canvas" aria-label="3D-Reaktionszone"></canvas>
+
+    <header id="pse-toolbar">
+      <span class="pse-brand">PSE</span>
+      <span class="pse-reactor" data-reactor="workbench">Werkbank</span>
+      <span class="pse-spacer"></span>
+      <span class="pse-version" id="pse-version">v0.0.0</span>
+    </header>
+
+    <aside id="pse-inventory" aria-label="Inventar">
+      <h2>Inventar</h2>
+      <p class="pse-hint">Noch leer — Meilenstein M1 bringt die ersten Teilchen.</p>
+    </aside>
+
+    <aside id="pse-detail" aria-label="Detail">
+      <h2>Detail</h2>
+      <p class="pse-hint">Wähle ein Element für Konfiguration, Masse und Quellen.</p>
+    </aside>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
