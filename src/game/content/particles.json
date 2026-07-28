@@ -42,6 +42,20 @@
     "source": "PDG 2024 (Lepton Summary)"
   },
   {
+    "id": "e+",
+    "kind": "particle",
+    "category": "lepton",
+    "nameDE": "Positron",
+    "symbol": "e⁺",
+    "charge": 1,
+    "spin": 0.5,
+    "massMeV": 0.511,
+    "freeSupply": false,
+    "color": "#ff88ff",
+    "scienceNoteDE": "Antiteilchen des Elektrons — gleiche Masse und Spin, entgegengesetzte Ladung. Entsteht bei β⁺-Zerfall und pp-Fusion; annihiliert mit einem Elektron zu zwei γ-Quanten.",
+    "source": "PDG 2024 (Lepton Summary)"
+  },
+  {
     "id": "gamma",
     "kind": "particle",
     "category": "boson",

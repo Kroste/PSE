@@ -28,6 +28,17 @@ export type HadronEntity = EntityBase & {
   massMeV: number;
 };
 
+export type NucleusEntity = EntityBase & {
+  kind: 'nucleus';
+  z: number;
+  a: number;
+  protons: number;
+  neutrons: number;
+  massMeV: number;
+  bindingEnergyMeV: number;
+  halfLifeS?: number;
+};
+
 export type ElementEntity = EntityBase & {
   kind: 'element';
   z: number;
@@ -50,7 +61,7 @@ export type ElementEntity = EntityBase & {
   cpkColor: string;
 };
 
-export type Entity = ParticleEntity | HadronEntity | ElementEntity;
+export type Entity = ParticleEntity | HadronEntity | NucleusEntity | ElementEntity;
 
 export type Multiset = Readonly<Record<EntityId, number>>;
 

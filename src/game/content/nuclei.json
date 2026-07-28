@@ -1,0 +1,63 @@
+[
+  {
+    "id": "deuteron",
+    "kind": "nucleus",
+    "nameDE": "Deuteron",
+    "symbol": "²H",
+    "z": 1,
+    "a": 2,
+    "protons": 1,
+    "neutrons": 1,
+    "massMeV": 1875.613,
+    "bindingEnergyMeV": 2.224,
+    "color": "#ffaacc",
+    "scienceNoteDE": "Kern des Wasserstoff-Isotops Deuterium: ein Proton, ein Neutron. Stabil. Schlüsselzwischenprodukt in der pp-Kette und im Big-Bang-Nukleosynthese-Signal.",
+    "source": "AME2020 (Atomic Mass Evaluation) & NIST"
+  },
+  {
+    "id": "triton",
+    "kind": "nucleus",
+    "nameDE": "Triton",
+    "symbol": "³H",
+    "z": 1,
+    "a": 3,
+    "protons": 1,
+    "neutrons": 2,
+    "massMeV": 2808.921,
+    "bindingEnergyMeV": 8.482,
+    "halfLifeS": 388800000,
+    "color": "#ff77bb",
+    "scienceNoteDE": "Kern des Wasserstoff-Isotops Tritium: ein Proton, zwei Neutronen. β⁻-Radioaktiv, Halbwertszeit ≈ 12,3 Jahre — zerfällt zu Helium-3.",
+    "source": "AME2020 & NUBASE2020"
+  },
+  {
+    "id": "helion",
+    "kind": "nucleus",
+    "nameDE": "Helion",
+    "symbol": "³He",
+    "z": 2,
+    "a": 3,
+    "protons": 2,
+    "neutrons": 1,
+    "massMeV": 2808.391,
+    "bindingEnergyMeV": 7.718,
+    "color": "#ffcc55",
+    "scienceNoteDE": "Kern des Helium-Isotops ³He: zwei Protonen, ein Neutron. Stabil. Endprodukt des zweiten Schritts der pp-I-Kette und Ausgangspunkt für ³He+³He→⁴He.",
+    "source": "AME2020"
+  },
+  {
+    "id": "alpha",
+    "kind": "nucleus",
+    "nameDE": "Alpha-Teilchen",
+    "symbol": "⁴He",
+    "z": 2,
+    "a": 4,
+    "protons": 2,
+    "neutrons": 2,
+    "massMeV": 3727.379,
+    "bindingEnergyMeV": 28.296,
+    "color": "#ffdd77",
+    "scienceNoteDE": "Kern des Helium-Isotops ⁴He: zwei Protonen, zwei Neutronen. Extrem stabil (doppelt magisch), sehr hohe Bindungsenergie pro Nukleon — Endpunkt der pp-Ketten und Grundbaustein weiterer Fusionsprozesse.",
+    "source": "AME2020"
+  }
+]

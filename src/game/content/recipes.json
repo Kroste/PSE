@@ -26,7 +26,38 @@
     "inputs": { "proton": 1, "e-": 1 },
     "outputs": { "H": 1 },
     "energyMeV": -13.6,
-    "scienceNoteDE": "Ein Proton fängt ein Elektron im 1s-Orbital ein — Bindungsenergie 13,6 eV. Damit ist das leichteste Atom komplett.",
-    "source": "NIST Physical Constants (Rydberg energy)"
+    "scienceNoteDE": "Ein Proton fängt ein Elektron im 1s-Orbital ein — Bindungsenergie 13,6 eV. Damit ist das leichteste Atom komplett. Der Sternkern wird als Reaktionsort freigeschaltet.",
+    "source": "NIST Physical Constants (Rydberg energy)",
+    "unlocksReactors": ["stellar-core"]
+  },
+  {
+    "id": "pp-fusion",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "proton": 2 },
+    "outputs": { "deuteron": 1, "e+": 1 },
+    "energyMeV": 0.42,
+    "scienceNoteDE": "Zwei Protonen fusionieren über die schwache Wechselwirkung: eines wandelt sich in ein Neutron um, ein Deuteron entsteht — zusammen mit einem Positron und einem (hier nicht modellierten) Elektron-Neutrino. Rate-limitierender Schritt der pp-Kette, ~10⁻⁹ pro Jahr im Sonnenkern.",
+    "source": "Bahcall et al., Rev. Mod. Phys. 54 (1982) — pp-Chain Q-Values"
+  },
+  {
+    "id": "pp-deuteron-capture",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "deuteron": 1, "proton": 1 },
+    "outputs": { "helion": 1, "gamma": 1 },
+    "energyMeV": 5.493,
+    "scienceNoteDE": "Deuteron fängt via starker Wechselwirkung ein Proton ein und bildet Helium-3 unter Abgabe eines γ-Quants. Im Sonnenkern binnen ~1 Sekunde nach dem Deuteronbau.",
+    "source": "Adelberger et al., Rev. Mod. Phys. 83 (2011) — Solar Fusion II"
+  },
+  {
+    "id": "pp-i-closing",
+    "kind": "fusion",
+    "reactor": "stellar-core",
+    "inputs": { "helion": 2 },
+    "outputs": { "alpha": 1, "proton": 2 },
+    "energyMeV": 12.86,
+    "scienceNoteDE": "Zwei ³He-Kerne fusionieren zu ⁴He unter Freisetzung von zwei Protonen. Schließt die pp-I-Kette; netto: 4p → ⁴He + 2e⁺ + 2νₑ + ~26,7 MeV — der dominante Energiequellprozess der Sonne.",
+    "source": "Adelberger et al., Rev. Mod. Phys. 83 (2011) — Solar Fusion II"
   }
 ]

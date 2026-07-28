@@ -157,5 +157,45 @@ describe('game state store', () => {
       clearZone();
       expect(getState().reactionZone).toEqual({});
     });
+
+    it('assemble-hydrogen schaltet den Sternkern-Reaktor frei', () => {
+      addToInventory('proton', 1);
+      addToZone('proton', 1);
+      addToZone('e-', 1);
+
+      const result = craft();
+      expect(result.ok).toBe(true);
+      expect(getState().unlockedReactors).toContain('stellar-core');
+    });
+
+    it('erneutes H-Craften duplicziert stellar-core nicht in unlockedReactors', () => {
+      addToInventory('proton', 2);
+      addToZone('proton', 1);
+      addToZone('e-', 1);
+      craft();
+      addToZone('proton', 1);
+      addToZone('e-', 1);
+      craft();
+
+      const unlocked = getState().unlockedReactors;
+      expect(unlocked.filter((r) => r === 'stellar-core')).toHaveLength(1);
+    });
+
+    it('pp-Kette am Sternkern: 2p → Deuteron + Positron', () => {
+      addToInventory('proton', 2);
+      // In der Realität wechselt der Spieler den Reaktor manuell — im Test setzen wir direkt.
+      unlockReactor('stellar-core');
+      setActiveReactor('stellar-core');
+
+      addToZone('proton', 2);
+      const result = craft();
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.recipe.id).toBe('pp-fusion');
+      expect(getState().inventory.deuteron).toBe(1);
+      expect(getState().inventory['e+']).toBe(1);
+      expect(getState().discovered).toContain('deuteron');
+      expect(getState().discovered).toContain('e+');
+    });
   });
 });

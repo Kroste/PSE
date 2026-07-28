@@ -62,8 +62,39 @@ describe('recipe engine', () => {
       expect(ids).toEqual(['assemble-hydrogen', 'assemble-neutron', 'assemble-proton']);
     });
 
+    it('liefert die pp-Kette am Sternkern', () => {
+      const stellar = recipesForReactor('stellar-core');
+      const ids = stellar.map((r) => r.id).sort();
+      expect(ids).toEqual(['pp-deuteron-capture', 'pp-fusion', 'pp-i-closing']);
+    });
+
     it('leer für noch nicht bespielte Reaktoren', () => {
       expect(recipesForReactor('supernova')).toEqual([]);
+    });
+  });
+
+  describe('pp-Kette am Sternkern', () => {
+    it('pp-fusion: 2 Protonen → Deuteron + Positron', () => {
+      const r = matchRecipe({ proton: 2 }, 'stellar-core');
+      expect(r?.id).toBe('pp-fusion');
+      expect(r?.outputs).toEqual({ deuteron: 1, 'e+': 1 });
+    });
+
+    it('pp-deuteron-capture: Deuteron + Proton → Helion + γ', () => {
+      const r = matchRecipe({ deuteron: 1, proton: 1 }, 'stellar-core');
+      expect(r?.id).toBe('pp-deuteron-capture');
+      expect(r?.outputs).toEqual({ helion: 1, gamma: 1 });
+    });
+
+    it('pp-i-closing: 2 Helion → Alpha + 2 Protonen', () => {
+      const r = matchRecipe({ helion: 2 }, 'stellar-core');
+      expect(r?.id).toBe('pp-i-closing');
+      expect(r?.outputs).toEqual({ alpha: 1, proton: 2 });
+    });
+
+    it('pp-Kette-Rezepte laufen NICHT an der Werkbank', () => {
+      expect(matchRecipe({ proton: 2 }, 'workbench')).toBeNull();
+      expect(matchRecipe({ helion: 2 }, 'workbench')).toBeNull();
     });
   });
 });

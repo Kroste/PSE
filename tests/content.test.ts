@@ -6,6 +6,7 @@ import {
   freeSupplyIds,
   getEntity,
   hadrons,
+  nuclei,
   particles,
   recipes,
 } from '../src/game/content';
@@ -57,5 +58,34 @@ describe('content catalog', () => {
 
   it('freeSupplyIds enthält alle als freeSupply markierten Teilchen', () => {
     expect(freeSupplyIds).toEqual(expect.arrayContaining(['u', 'd', 'e-', 'gamma', 'g']));
+  });
+
+  it('freeSupplyIds enthält KEIN Positron (entsteht erst bei Fusion)', () => {
+    expect(freeSupplyIds).not.toContain('e+');
+  });
+
+  it('enthält Atomkerne für die pp-Kette', () => {
+    const ids = nuclei.map((n) => n.id);
+    expect(ids).toEqual(expect.arrayContaining(['deuteron', 'triton', 'helion', 'alpha']));
+  });
+
+  it('bei jedem Kern gilt Z = protons und A = protons + neutrons', () => {
+    for (const n of nuclei) {
+      expect(n.z, `${n.id}.z`).toBe(n.protons);
+      expect(n.a, `${n.id}.a`).toBe(n.protons + n.neutrons);
+    }
+  });
+
+  it('Alpha-Teilchen hat höchste Bindungsenergie pro Nukleon in M2-Kernen', () => {
+    const perNucleon = nuclei.map((n) => ({
+      id: n.id,
+      bpN: n.bindingEnergyMeV / n.a,
+    }));
+    const alpha = perNucleon.find((x) => x.id === 'alpha');
+    expect(alpha).toBeDefined();
+    for (const { id, bpN } of perNucleon) {
+      if (id === 'alpha') continue;
+      expect(alpha!.bpN, `alpha > ${id}`).toBeGreaterThan(bpN);
+    }
   });
 });

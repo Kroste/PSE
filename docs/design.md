@@ -50,8 +50,11 @@ Spiel (`scienceNoteDE`) benennt das explizit.
 
 Vollständig typisiert in `src/game/content/types.ts`. Zusammenfassung:
 
-- **Entity** — `particle | hadron | element` (später auch `molecule`). Jede Entity hat
-  `id`, `nameDE`, `scienceNoteDE`, `source`, `color`.
+- **Entity** — `particle | hadron | nucleus | element` (später auch `molecule`). Jede
+  Entity hat `id`, `nameDE`, `scienceNoteDE`, `source`, `color`.
+  - `nucleus` trägt zusätzlich `z` (Kernladungszahl), `a` (Massenzahl), `protons`,
+    `neutrons`, `massMeV`, `bindingEnergyMeV`, optional `halfLifeS` (Sekunden;
+    undefined = stabil).
 - **Recipe** — `{ id, kind, reactor, inputs, outputs, energyMeV?, scienceNoteDE, source, unlocksReactors? }`.
   `inputs`/`outputs` sind **Multisets** (`Record<EntityId, number>`).
 - **Multiset-Match**: ein Rezept passt, wenn die vom Spieler zusammengestellten
@@ -63,7 +66,8 @@ Vollständig typisiert in `src/game/content/types.ts`. Zusammenfassung:
 
 Der Katalog wird beim App-Start via `assertContentConsistency()` geprüft: keine
 doppelten IDs, keine Rezepte auf unbekannte Entities, Hadron-Quarks existieren als
-Quark-Entities. Bricht früh — kaputter Content ist ein Build-Fehler, kein Laufzeit-Bug.
+Quark-Entities, für jeden Kern gilt `Z = protons` und `A = protons + neutrons`.
+Bricht früh — kaputter Content ist ein Build-Fehler, kein Laufzeit-Bug.
 
 ## Craft-Loop
 
@@ -165,9 +169,12 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
 - **M0** ✅ — Fundament (Vite/TS/Three.js, State-Store, Save, Vitest, CI, Pages).
 - **M1** ✅ — Design-Doc, Content-Grundpaket (5 Teilchen, 2 Hadronen, H), Craft-Engine
   im Store, 3D-Reaktionszone mit Live-Binding, DOM-HUD mit Detail-Panel und
-  Rezept-Katalog, erste 3 Rezepte (Proton, Neutron, H). Reaktor-Wechsel-UI kommt in M3.
-- **M2** — Drag&Drop, alle Nukleonen-Isotope, pp-Kette am Sternkern, erste Helium-Kette.
-- **M3** — Alpha-Prozess bis Eisen (Z=26), Reaktor-Wechsel-UI, PSE-Übersicht.
+  Rezept-Katalog, erste 3 Rezepte (Proton, Neutron, H).
+- **M2** ✅ — `nucleus`-Entity, Kerne Deuteron/Triton/Helion/Alpha, Positron,
+  Sternkern-Reaktor (freigeschaltet durch H-Craft), vollständige pp-I-Kette
+  (2p→²H+e⁺ / ²H+p→³He+γ / 2·³He→⁴He+2p), Reaktor-Wechsel-Toolbar,
+  Drag&Drop von Inventar in Reaktionszone, HUD-Kategorien nach Entity-Kind.
+- **M3** — Alpha-Prozess bis Eisen (Z=26), CNO-Zyklus, PSE-Übersicht-Panel.
 - **M4** — s/r-Prozess (AGB, Supernova), alle 118 Elemente.
 - **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
 - **M6+** — Polymere, Astrochemie, Endgame.
