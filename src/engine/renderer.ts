@@ -24,6 +24,7 @@ import type { ElementEntity, Multiset } from '../game/content/types';
 import {
   buildBohrAtom,
   computeAtomTargets,
+  packedPositions,
   type AtomRig,
 } from '../game/atoms/bohr-atom';
 
@@ -32,16 +33,27 @@ export type SceneBundle = {
   scene: Scene;
   camera: PerspectiveCamera;
   update: (dt: number) => void;
-  /** Zeigt das Atom eines Elements dauerhaft an. `null` blendet aus. */
   showAtom: (elementId: string | null) => void;
 };
 
 const RING_OUTER = 1.62;
 const RING_INNER_MARKER = 0.98;
 const RING_CENTER_MARKER = 0.42;
-const PARTICLE_RADIUS = 0.28;
+const PARTICLE_RADIUS = 0.16;
 const RESULT_FLASH_SECONDS = 1.4;
 const ATOM_CENTER = new Vector3(0, 0.9, 0);
+const CHAMBER_SPAWN_R = 2.4;
+
+type ChamberRole = 'nucleon' | 'electron' | 'nucleus' | 'other';
+
+type ChamberParticle = {
+  id: string;
+  mesh: Mesh;
+  role: ChamberRole;
+  velocity: Vector3;
+  phase: number;
+  seed: number;
+};
 
 type FusionMover = {
   mesh: Mesh;
@@ -86,8 +98,12 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   platformGroup.add(makeRing(RING_INNER_MARKER - 0.02, RING_INNER_MARKER, 0x00ffb0, 0.35));
   platformGroup.add(makeRing(RING_CENTER_MARKER - 0.015, RING_CENTER_MARKER, 0x00ffb0, 0.5));
 
-  const zoneGroup = new Group();
-  scene.add(zoneGroup);
+  // Reaktionskammer: persistente Partikel mit Live-Physik
+  const chamberGroup = new Group();
+  scene.add(chamberGroup);
+  const chamberParticles: ChamberParticle[] = [];
+  let chamberTime = 0;
+  let seedCounter = 0;
 
   const resultGroup = new Group();
   scene.add(resultGroup);
@@ -125,21 +141,112 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     renderer.setSize(window.innerWidth, window.innerHeight, false);
   });
 
-  let lastZoneSnapshot: Multiset = {};
-
   subscribe((state) => {
-    if (fusion) {
-      // Während der Fusion wird die Zone-Group nicht neu aufgebaut — die Meshes
-      // leben in der fusion-Group und wandern zum Atom.
-      lastZoneSnapshot = state.reactionZone;
-      return;
-    }
-    rebuildZone(zoneGroup, state.reactionZone);
-    lastZoneSnapshot = state.reactionZone;
-    const isEmpty = Object.keys(state.reactionZone).length === 0;
+    if (fusion) return; // Chamber pausiert während Fusion
+    syncChamber(state.reactionZone);
+    const isEmpty = chamberParticles.length === 0;
     atomGroup.visible = isEmpty && currentAtom !== null;
     idleHint.visible = isEmpty && resultTimer <= 0 && currentAtom === null;
   });
+
+  function syncChamber(zone: Multiset): void {
+    const target = new Map<string, number>();
+    for (const [id, cnt] of Object.entries(zone)) if (cnt > 0) target.set(id, cnt);
+    const current = new Map<string, number>();
+    for (const p of chamberParticles) current.set(p.id, (current.get(p.id) ?? 0) + 1);
+
+    // Add missing
+    for (const [id, wanted] of target) {
+      const have = current.get(id) ?? 0;
+      for (let i = have; i < wanted; i++) spawnChamberParticle(id);
+    }
+    // Remove extras (auch entities, die komplett aus zone raus sind)
+    const allIds = new Set<string>([...current.keys(), ...target.keys()]);
+    for (const id of allIds) {
+      const have = current.get(id) ?? 0;
+      const wanted = target.get(id) ?? 0;
+      if (have <= wanted) continue;
+      let toRemove = have - wanted;
+      for (let i = chamberParticles.length - 1; i >= 0 && toRemove > 0; i--) {
+        if (chamberParticles[i]!.id === id) {
+          const [removed] = chamberParticles.splice(i, 1);
+          chamberGroup.remove(removed!.mesh);
+          disposeMesh(removed!.mesh);
+          toRemove--;
+        }
+      }
+    }
+  }
+
+  function spawnChamberParticle(id: string): void {
+    const entity = getEntity(id);
+    if (!entity) return;
+
+    const mesh = createParticleMesh(id);
+    // Skalierung: Nukleonen kleiner, Elektronen mittel
+    const role: ChamberRole =
+      id === 'proton' || id === 'neutron'
+        ? 'nucleon'
+        : id === 'e-'
+          ? 'electron'
+          : entity.kind === 'nucleus'
+            ? 'nucleus'
+            : 'other';
+    mesh.scale.setScalar(role === 'nucleon' ? 0.55 : role === 'electron' ? 0.5 : 0.8);
+
+    // Startposition: außerhalb der Kammer, zufällig auf einer Kugelschale
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const r = CHAMBER_SPAWN_R + Math.random() * 0.6;
+    mesh.position.set(
+      ATOM_CENTER.x + r * Math.sin(phi) * Math.cos(theta),
+      ATOM_CENTER.y + r * Math.cos(phi) * 0.55,
+      ATOM_CENTER.z + r * Math.sin(phi) * Math.sin(theta),
+    );
+    chamberGroup.add(mesh);
+
+    chamberParticles.push({
+      id,
+      mesh,
+      role,
+      velocity: new Vector3(0, 0, 0),
+      phase: Math.random() * Math.PI * 2,
+      seed: ++seedCounter,
+    });
+  }
+
+  function updateChamberPhysics(dt: number): void {
+    if (chamberParticles.length === 0) return;
+    chamberTime += dt;
+
+    // Cluster-Slots für Nukleonen — indexbasiert nach Reihenfolge in chamberParticles
+    const nucleons = chamberParticles.filter((p) => p.role === 'nucleon');
+    const slots =
+      nucleons.length > 0 ? packedPositions(nucleons.length, PARTICLE_RADIUS * 1.85 * 0.55 * 2, 42) : [];
+
+    let nucleonIdx = 0;
+    for (const p of chamberParticles) {
+      if (p.role === 'nucleon') {
+        const target = slots[nucleonIdx]!.clone().add(ATOM_CENTER);
+        nucleonIdx++;
+        applyAttraction(p, target, dt, 8, 0.82);
+      } else if (p.role === 'electron') {
+        // Wolke: pseudo-orbitale Bewegung mit unterschiedlichen Frequenzen pro Elektron
+        const cloudR = 1.15;
+        const t = chamberTime * 0.9 + p.phase;
+        const tilt = (p.seed % 5) * 0.5;
+        const target = new Vector3(
+          ATOM_CENTER.x + Math.cos(t) * Math.cos(tilt) * cloudR,
+          ATOM_CENTER.y + Math.sin(t * 0.7 + p.phase) * cloudR * 0.55,
+          ATOM_CENTER.z + Math.sin(t) * cloudR + Math.cos(t * 0.4) * 0.2,
+        );
+        applyAttraction(p, target, dt, 3.5, 0.88);
+      } else {
+        // Nuclei / other: sanft zum Zentrum
+        applyAttraction(p, ATOM_CENTER, dt, 3, 0.88);
+      }
+    }
+  }
 
   onCraft((event) => {
     if (!event.ok) return;
@@ -150,13 +257,12 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       return e && e.kind === 'element';
     });
 
-    // Nur Element-Craft mit Nukleonen/Elektronen als Input bekommt Fusion.
     if (elementOutput && canFuseFromInputs(event.recipe.inputs)) {
-      // Snapshot vor Iteration — fusionGroup.add() entfernt die Meshes
-      // sonst live aus zoneGroup.children und würde die Schleife brechen.
-      const zoneSnapshot = [...zoneGroup.children] as Mesh[];
-      const started = startFusion(elementOutput, zoneSnapshot);
+      // Chamber-Partikel für die Fusion übernehmen — kein rebuild.
+      const snapshot = chamberParticles.slice();
+      const started = startFusion(elementOutput, snapshot);
       if (started) {
+        chamberParticles.length = 0;
         atomGroup.visible = false;
         return;
       }
@@ -172,7 +278,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     rebuildResult(resultGroup, event.recipe.outputs);
   });
 
-  function startFusion(elementId: string, zoneMeshes: Mesh[]): boolean {
+  function startFusion(elementId: string, snapshot: ChamberParticle[]): boolean {
     const entity = getEntity(elementId);
     if (!entity || entity.kind !== 'element') return false;
     const targets = computeAtomTargets(entity as ElementEntity);
@@ -181,9 +287,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     const fusionGroup = new Group();
     scene.add(fusionGroup);
 
-    // Impact-Flash am Atom-Zentrum: eine Emissive-Sphere, die synchron
-    // zur Fusion aufleuchtet und pulsiert — visuelles Hauptsignal, dass
-    // etwas passiert.
     const flashMat = new MeshBasicMaterial({
       color: new Color(entity.cpkColor),
       transparent: true,
@@ -193,26 +296,19 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     flashMesh.position.copy(ATOM_CENTER);
     fusionGroup.add(flashMesh);
 
-    // Zutaten in Nukleonen und Elektronen splitten (nach userData.entityId).
     const nucleonMeshes: Mesh[] = [];
     const electronMeshes: Mesh[] = [];
     const otherMeshes: Mesh[] = [];
-    for (const mesh of zoneMeshes) {
-      const id = mesh.userData.entityId as string | undefined;
-      if (id === 'proton' || id === 'neutron') nucleonMeshes.push(mesh);
-      else if (id === 'e-') electronMeshes.push(mesh);
-      else otherMeshes.push(mesh);
+    for (const p of snapshot) {
+      if (p.role === 'nucleon') nucleonMeshes.push(p.mesh);
+      else if (p.role === 'electron') electronMeshes.push(p.mesh);
+      else otherMeshes.push(p.mesh);
     }
 
     const movers: FusionMover[] = [];
 
-    // WICHTIG: attach() statt add() erhält die WELT-Position beim Transfer.
-    // add() würde die Meshes von ihrer (rotierten) zoneGroup-Weltposition auf
-    // die (unrotierte) fusionGroup-Position teleportieren — die Animation
-    // wäre dann nicht sichtbar, weil der Teleport den größten Teil der
-    // Distanz auffrisst.
-
-    // Nukleonen: Phase 1 (0 → 1.4 s) — implodieren zum Kern.
+    // attach() erhält Weltposition (chamberGroup hat keine Rotation, aber
+    // konsistent halten für die Zukunft).
     const nucleonScaleFactor = scale * 0.6;
     nucleonMeshes.forEach((mesh, i) => {
       const target = targets.nucleonPositions[i % targets.nucleonPositions.length]!
@@ -225,13 +321,12 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         from: mesh.position.clone(),
         to: target,
         startT: 0,
-        duration: 1.4,
-        scaleFrom: 1,
+        duration: 1.0,
+        scaleFrom: mesh.scale.x,
         scaleTo: nucleonScaleFactor,
       });
     });
 
-    // Elektronen: Phase 2 (1.0 → 2.4 s) — nach Kollaps eingefangen.
     const electronScaleFactor = scale * 0.55;
     electronMeshes.forEach((mesh, i) => {
       const target = targets.electronPositions[i % Math.max(1, targets.electronPositions.length)]!
@@ -243,14 +338,13 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         mesh,
         from: mesh.position.clone(),
         to: target,
-        startT: 1.0,
-        duration: 1.4,
-        scaleFrom: 1,
+        startT: 0.8,
+        duration: 1.2,
+        scaleFrom: mesh.scale.x,
         scaleTo: electronScaleFactor,
       });
     });
 
-    // Andere Zutaten (γ, Kerne im Expert-Modus, …): zum Zentrum schrumpfen.
     otherMeshes.forEach((mesh) => {
       fusionGroup.attach(mesh);
       movers.push({
@@ -258,8 +352,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         from: mesh.position.clone(),
         to: ATOM_CENTER.clone(),
         startT: 0,
-        duration: 1.4,
-        scaleFrom: 1,
+        duration: 1.0,
+        scaleFrom: mesh.scale.x,
         scaleTo: 0.01,
       });
     });
@@ -268,7 +362,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       group: fusionGroup,
       movers,
       elapsed: 0,
-      totalDuration: 2.8,
+      totalDuration: 2.2,
       targetElementId: elementId,
       flashMesh,
       flashMat,
@@ -283,10 +377,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     update(dt) {
       platformGroup.rotation.y += dt * 0.08;
 
-      // Zone rotiert nur, wenn keine Fusion läuft — sonst sollen die Zutaten
-      // ihre "letzte Position" beim Übernehmen ins Atom behalten.
       if (!fusion) {
-        zoneGroup.rotation.y += dt * 0.35;
+        updateChamberPhysics(dt);
       }
 
       if (fusion) {
@@ -300,10 +392,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
           const s = m.scaleFrom + (m.scaleTo - m.scaleFrom) * eased;
           m.mesh.scale.setScalar(s);
         }
-        // Flash-Pulse: baut langsam auf, peakt bei ~1.4 s (Ende Nukleon-Phase),
-        // verblasst wieder und wächst in Größe für Impact-Feel.
         const tNorm = fusion.elapsed / fusion.totalDuration;
-        const pulse = Math.sin(Math.min(1, tNorm * 1.2) * Math.PI); // 0 → 1 → 0
+        const pulse = Math.sin(Math.min(1, tNorm * 1.2) * Math.PI);
         fusion.flashMat.opacity = pulse * 0.55;
         fusion.flashMesh.scale.setScalar(0.5 + tNorm * 1.4);
 
@@ -314,7 +404,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
           fusion = null;
           replaceAtom(target, true);
           atomGroup.visible = true;
-          rebuildZone(zoneGroup, lastZoneSnapshot);
         }
       }
 
@@ -337,8 +426,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         setGroupOpacity(resultGroup, t);
         if (resultTimer === 0) {
           resultGroup.visible = false;
-          const anyChildInZone = zoneGroup.children.length > 0;
-          if (!anyChildInZone && currentAtom === null) idleHint.visible = true;
+          if (chamberParticles.length === 0 && currentAtom === null) idleHint.visible = true;
         }
       } else {
         resultGroup.visible = false;
@@ -350,19 +438,30 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
       }
     },
     showAtom(elementId) {
-      if (fusion) return; // laufende Fusion nicht unterbrechen
+      if (fusion) return;
       replaceAtom(elementId, false);
-      const zoneEmpty = zoneGroup.children.length === 0;
-      atomGroup.visible = elementId !== null && zoneEmpty;
+      const empty = chamberParticles.length === 0;
+      atomGroup.visible = elementId !== null && empty;
       if (elementId !== null) idleHint.visible = false;
-      else if (zoneEmpty && resultTimer <= 0) idleHint.visible = true;
+      else if (empty && resultTimer <= 0) idleHint.visible = true;
     },
   };
 }
 
+function applyAttraction(
+  p: ChamberParticle,
+  target: Vector3,
+  dt: number,
+  strength: number,
+  damping: number,
+): void {
+  const diff = target.clone().sub(p.mesh.position);
+  p.velocity.add(diff.multiplyScalar(dt * strength));
+  p.velocity.multiplyScalar(damping);
+  p.mesh.position.add(p.velocity.clone().multiplyScalar(dt));
+}
+
 function canFuseFromInputs(inputs: Multiset): boolean {
-  // Nur wenn die Inputs sich sinnvoll den Bohr-Rollen zuordnen lassen:
-  // Nukleonen, Elektronen, Nuklide oder Photonen.
   const ok = new Set(['proton', 'neutron', 'e-', 'gamma']);
   for (const id of Object.keys(inputs)) {
     if (ok.has(id)) continue;
@@ -390,24 +489,6 @@ function makeRing(innerRadius: number, outerRadius: number, color: number, opaci
   return mesh;
 }
 
-function rebuildZone(group: Group, zone: Multiset): void {
-  disposeChildren(group);
-  const items: { id: string; index: number }[] = [];
-  for (const [id, count] of Object.entries(zone)) {
-    for (let i = 0; i < count; i++) items.push({ id, index: items.length });
-  }
-  const total = items.length;
-  if (total === 0) return;
-
-  const radius = Math.min(1.1, 0.35 + total * 0.09);
-  for (const { id, index } of items) {
-    const angle = (index / total) * Math.PI * 2;
-    const mesh = createParticleMesh(id);
-    mesh.position.set(Math.cos(angle) * radius, PARTICLE_RADIUS + 0.05, Math.sin(angle) * radius);
-    group.add(mesh);
-  }
-}
-
 function rebuildResult(group: Group, outputs: Multiset): void {
   disposeChildren(group);
   const items = Object.entries(outputs).flatMap(([id, n]) =>
@@ -416,24 +497,25 @@ function rebuildResult(group: Group, outputs: Multiset): void {
   const spread = items.length > 1 ? 0.35 : 0;
   items.forEach((id, i) => {
     const angle = (i / items.length) * Math.PI * 2;
-    const mesh = createParticleMesh(id, 1.4);
+    const mesh = createParticleMesh(id);
+    mesh.scale.setScalar(1.4);
     mesh.position.set(Math.cos(angle) * spread, 0.9, Math.sin(angle) * spread);
     group.add(mesh);
   });
 }
 
-function createParticleMesh(id: string, sizeScale = 1): Mesh {
+function createParticleMesh(id: string): Mesh {
   const entity = requireEntity(id);
   const material = new MeshStandardMaterial({
     color: new Color(entity.color),
     emissive: new Color(entity.color),
-    emissiveIntensity: 0.35,
+    emissiveIntensity: 0.5,
     roughness: 0.35,
     metalness: 0.15,
     transparent: true,
     opacity: 1,
   });
-  const mesh = new Mesh(new SphereGeometry(PARTICLE_RADIUS * sizeScale, 24, 20), material);
+  const mesh = new Mesh(new SphereGeometry(PARTICLE_RADIUS, 20, 16), material);
   mesh.userData.entityId = id;
   return mesh;
 }
@@ -468,13 +550,16 @@ function setGroupOpacity(group: Group, opacity: number): void {
   });
 }
 
+function disposeMesh(mesh: Mesh): void {
+  mesh.geometry.dispose();
+  const mat = mesh.material as MeshStandardMaterial | MeshBasicMaterial;
+  mat.dispose();
+}
+
 function disposeChildren(group: Group): void {
   for (const child of [...group.children]) {
     group.remove(child);
-    if (child instanceof Mesh) {
-      child.geometry.dispose();
-      (child.material as MeshStandardMaterial).dispose();
-    }
+    if (child instanceof Mesh) disposeMesh(child);
   }
 }
 
