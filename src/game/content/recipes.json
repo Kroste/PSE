@@ -142,8 +142,9 @@
     "inputs": { "helion": 2 },
     "outputs": { "alpha": 1, "proton": 2 },
     "energyMeV": 12.86,
-    "scienceNoteDE": "Zwei ³He-Kerne fusionieren zu ⁴He unter Freisetzung von zwei Protonen. Schließt die pp-I-Kette; netto: 4p → ⁴He + 2e⁺ + 2νₑ + ~26,7 MeV — der dominante Energiequellprozess der Sonne.",
-    "source": "Adelberger et al., Rev. Mod. Phys. 83 (2011) — Solar Fusion II"
+    "scienceNoteDE": "Zwei ³He-Kerne fusionieren zu ⁴He unter Freisetzung von zwei Protonen. Schließt die pp-I-Kette; netto: 4p → ⁴He + 2e⁺ + 2νₑ + ~26,7 MeV — der dominante Energiequellprozess der Sonne. Öffnet den AGB-Stern als neuen Reaktor für den s-Prozess.",
+    "source": "Adelberger et al., Rev. Mod. Phys. 83 (2011) — Solar Fusion II",
+    "unlocksReactors": ["agb-star"]
   },
   {
     "id": "triple-alpha",
@@ -287,5 +288,135 @@
     "energyMeV": 4.966,
     "scienceNoteDE": "CNO-Schritt 6 (schließend): ¹⁵N + p → ¹²C + ⁴He. Regeneriert den Katalysator ¹²C und produziert das Netto-Endprodukt ⁴He. Netto-Bilanz des CNO-Zyklus: 4p → ⁴He + 2e⁺ + 2νₑ + ~26,7 MeV.",
     "source": "Bethe 1939, Phys. Rev. 55, 434"
+  },
+
+  {
+    "id": "s-process-fe-to-sr",
+    "kind": "fusion",
+    "reactor": "agb-star",
+    "mode": "expert",
+    "inputs": { "fe56": 1, "neutron": 32 },
+    "outputs": { "sr88": 1, "gamma": 5 },
+    "energyMeV": 240.0,
+    "scienceNoteDE": "s-Prozess-Kette (vereinfacht) von ⁵⁶Fe über zahlreiche β⁻-Zerfälle und (n,γ)-Reaktionen bis zum doppelt magischen ⁸⁸Sr. Langsame Neutronen-Einfänge in AGB-Sternen (10³-10⁸ Jahre pro Schritt) — Neutronen-Quellen sind ¹³C(α,n)¹⁶O und ²²Ne(α,n)²⁵Mg.",
+    "source": "Käppeler et al., Rev. Mod. Phys. 83 (2011) — s-Process in AGB Stars",
+    "unlocksReactors": ["supernova"]
+  },
+  {
+    "id": "s-process-sr-to-ba",
+    "kind": "fusion",
+    "reactor": "agb-star",
+    "mode": "expert",
+    "inputs": { "sr88": 1, "neutron": 50 },
+    "outputs": { "ba138": 1, "gamma": 6 },
+    "energyMeV": 380.0,
+    "scienceNoteDE": "Zweite Etappe des s-Prozesses: ⁸⁸Sr fängt langsam Neutronen ein und erreicht durch mehrere β⁻-Zerfälle das nächste doppelt magische Isotop ¹³⁸Ba (N=82). Zweiter großer s-Prozess-Peak — hier verweilt der Fluss besonders lange.",
+    "source": "Käppeler et al., Rev. Mod. Phys. 83 (2011)"
+  },
+  {
+    "id": "s-process-ba-to-pb",
+    "kind": "fusion",
+    "reactor": "agb-star",
+    "mode": "expert",
+    "inputs": { "ba138": 1, "neutron": 70 },
+    "outputs": { "pb208": 1, "gamma": 7 },
+    "energyMeV": 460.0,
+    "scienceNoteDE": "Dritte Etappe: Weg von ¹³⁸Ba zum schwersten stabilen Kern ²⁰⁸Pb (Z=82, N=126 — doppelt magisch). Jenseits davon (Bi, Po) beißt sich der s-Prozess an der α-Zerfall-Wand fest. Endpunkt der langsamen Nukleosynthese.",
+    "source": "Käppeler et al., Rev. Mod. Phys. 83 (2011)"
+  },
+
+  {
+    "id": "r-process-burst-to-th",
+    "kind": "fusion",
+    "reactor": "supernova",
+    "mode": "expert",
+    "inputs": { "fe56": 1, "neutron": 176 },
+    "outputs": { "th232": 1, "gamma": 8 },
+    "energyMeV": 900.0,
+    "scienceNoteDE": "r-Prozess-Burst in Kernkollaps-Supernovae und Neutronenstern-Verschmelzungen: In Sekunden werden extrem neutronenreiche Kerne aus ⁵⁶Fe aufgebaut, bevor β⁻-Zerfälle sie zurück zur Stabilitätslinie tragen. Erzeugt Thorium und schwerere Aktinoiden — die schwersten natürlichen Elemente überhaupt.",
+    "source": "Cowan et al., Rev. Mod. Phys. 93 (2021) — r-Process Nucleosynthesis"
+  },
+  {
+    "id": "r-process-burst-to-u235",
+    "kind": "fusion",
+    "reactor": "supernova",
+    "mode": "expert",
+    "inputs": { "fe56": 1, "neutron": 179 },
+    "outputs": { "u235": 1, "gamma": 9 },
+    "energyMeV": 950.0,
+    "scienceNoteDE": "r-Prozess-Pfad zum spaltbaren ²³⁵U: gleichlaufend zu Thorium, aber mit drei mehr Neutronen. ²³⁵U macht ~0,72 % des irdischen Urans aus — Rest ist ²³⁸U aus dem gleichen r-Prozess-Ereignis.",
+    "source": "Cowan et al., Rev. Mod. Phys. 93 (2021)"
+  },
+  {
+    "id": "r-process-burst-to-u238",
+    "kind": "fusion",
+    "reactor": "supernova",
+    "mode": "expert",
+    "inputs": { "fe56": 1, "neutron": 182 },
+    "outputs": { "u238": 1, "gamma": 10 },
+    "energyMeV": 970.0,
+    "scienceNoteDE": "r-Prozess-Endpunkt vor der Aktinoiden-Spaltung: ²³⁸U ist das häufigste natürliche Uran und der schwerste Kern, der in nennenswerten Mengen die Milchstraßen-Materiegeschichte übersteht. Datiert die Erdkruste (4,47 Mrd. Jahre Halbwertszeit).",
+    "source": "Cowan et al., Rev. Mod. Phys. 93 (2021)"
+  },
+
+  {
+    "id": "assemble-strontium-88",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "mode": "expert",
+    "inputs": { "sr88": 1, "e-": 38 },
+    "outputs": { "Sr": 1 },
+    "scienceNoteDE": "⁸⁸Sr-Kern bindet 38 Elektronen zum neutralen Strontium-Atom. Konfiguration [Kr] 5s² — Erdalkalimetall, färbt Flammen tiefrot.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-barium-138",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "mode": "expert",
+    "inputs": { "ba138": 1, "e-": 56 },
+    "outputs": { "Ba": 1 },
+    "scienceNoteDE": "¹³⁸Ba-Kern bindet 56 Elektronen — schweres Erdalkalimetall. BaSO₄ als Röntgen-Kontrastmittel im medizinischen Alltag.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-lead-208",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "mode": "expert",
+    "inputs": { "pb208": 1, "e-": 82 },
+    "outputs": { "Pb": 1 },
+    "scienceNoteDE": "²⁰⁸Pb-Kern bindet 82 Elektronen. Post-Transition-Metall, dicht und weich; Endpunkt vieler radioaktiver Zerfallsreihen.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-thorium-232",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "mode": "expert",
+    "inputs": { "th232": 1, "e-": 90 },
+    "outputs": { "Th": 1 },
+    "scienceNoteDE": "²³²Th-Kern und 90 Elektronen — Actinoid mit sehr langer Halbwertszeit (14 Mrd. Jahre). Potentieller Brennstoff für Thorium-Reaktoren.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-uranium-235",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "mode": "expert",
+    "inputs": { "u235": 1, "e-": 92 },
+    "outputs": { "U": 1 },
+    "scienceNoteDE": "²³⁵U-Kern bindet 92 Elektronen. Actinoid, spaltbar mit thermischen Neutronen — Basis der kritischen Kettenreaktion.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+  {
+    "id": "assemble-uranium-238",
+    "kind": "assembly",
+    "reactor": "workbench",
+    "mode": "expert",
+    "inputs": { "u238": 1, "e-": 92 },
+    "outputs": { "U": 1 },
+    "scienceNoteDE": "²³⁸U-Kern bindet 92 Elektronen zum häufigsten Uran-Isotop. Nicht direkt spaltbar, aber fertil — kann via Neutronen-Einfang und β⁻ zu ²³⁹Pu werden.",
+    "source": "NIST Atomic Weights (IUPAC 2021)"
   }
 ]
