@@ -18,8 +18,9 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
-import { clearZone, onCraft, subscribe } from '../game/state/store';
+import { clearZone, craft, onCraft, subscribe } from '../game/state/store';
 import { getEntity, requireEntity } from '../game/content';
+import { matchRecipe } from '../game/physics/recipes';
 import type { ElementEntity, Multiset } from '../game/content/types';
 import {
   buildBohrAtom,
@@ -105,6 +106,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   const outerRingMat = outerRing.material as MeshBasicMaterial;
   const outerRingColorStable = new Color(0x00ffb0);
   const outerRingColorUnstable = new Color(0xff4466);
+  const outerRingColorReady = new Color(0xffdd66);
   platformGroup.add(outerRing);
   platformGroup.add(makeRing(RING_INNER_MARKER - 0.02, RING_INNER_MARKER, 0x00ffb0, 0.35));
   platformGroup.add(makeRing(RING_CENTER_MARKER - 0.015, RING_CENTER_MARKER, 0x00ffb0, 0.5));
@@ -128,6 +130,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
 
   let fusion: FusionState | null = null;
   let decay: DecayState | null = null;
+  let autoCraftDeadline: number | null = null;
+  const AUTO_CRAFT_DELAY = 2.2;
 
   function replaceAtom(elementId: string | null, isFlash: boolean): void {
     while (atomGroup.children.length > 0) atomGroup.remove(atomGroup.children[0]!);
@@ -154,11 +158,24 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   });
 
   subscribe((state) => {
-    if (fusion) return; // Chamber pausiert während Fusion
+    if (fusion) return;
     syncChamber(state.reactionZone);
     const isEmpty = chamberParticles.length === 0;
     atomGroup.visible = isEmpty && currentAtom !== null;
     idleHint.visible = isEmpty && resultTimer <= 0 && currentAtom === null;
+
+    // Auto-Fusion-Prüfung: passt die Konfiguration zu einem Rezept?
+    // Timer wird bei jeder Zustandsänderung neu gesetzt oder gelöscht.
+    if (isEmpty || decay) {
+      autoCraftDeadline = null;
+      return;
+    }
+    const recipe = matchRecipe(state.reactionZone, state.activeReactor, state.expertMode);
+    if (recipe) {
+      autoCraftDeadline = performance.now() / 1000 + AUTO_CRAFT_DELAY;
+    } else {
+      autoCraftDeadline = null;
+    }
   });
 
   function syncChamber(zone: Multiset): void {
@@ -460,13 +477,30 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
         updateChamberPhysics(dt);
       }
 
-      // Plattform-Ring färbt sich rot bei instabiler Chamber (nur p oder nur n),
-      // sanfte Farbüberblendung + leichtes Puls-Blinken für Alarm-Feel.
+      // Auto-Fusion-Countdown: sobald die Wartezeit abgelaufen ist, craft() rufen.
+      if (autoCraftDeadline !== null && !fusion && !decay) {
+        if (performance.now() / 1000 >= autoCraftDeadline) {
+          autoCraftDeadline = null;
+          craft();
+        }
+      }
+
+      // Plattform-Ring: grün stabil, rot instabil, warmgelb bereit-zur-Fusion.
       const unstable = !fusion && !decay && isChamberUnstable();
-      const targetColor = unstable ? outerRingColorUnstable : outerRingColorStable;
+      const ready = !fusion && !decay && !unstable && autoCraftDeadline !== null;
+      const targetColor = unstable
+        ? outerRingColorUnstable
+        : ready
+          ? outerRingColorReady
+          : outerRingColorStable;
       outerRingMat.color.lerp(targetColor, Math.min(1, dt * 4));
       if (unstable) {
         outerRingMat.opacity = 0.55 + Math.sin(chamberTime * 8) * 0.25;
+      } else if (ready && autoCraftDeadline !== null) {
+        // Beschleunigt pulsieren, je näher der Fusion-Zeitpunkt.
+        const remaining = Math.max(0, autoCraftDeadline - performance.now() / 1000);
+        const pulseSpeed = 4 + (1 - remaining / AUTO_CRAFT_DELAY) * 12;
+        outerRingMat.opacity = 0.6 + Math.sin(chamberTime * pulseSpeed) * 0.3;
       } else {
         outerRingMat.opacity = 0.65;
       }
