@@ -14,6 +14,7 @@ import {
   subscribe,
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
+import { isAudioEnabled, setAudioEnabled, sfx } from '../engine/audio';
 import { elements, freeSupplyIds, getEntity, recipes as allRecipes } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
@@ -36,6 +37,7 @@ export function mountHud(opts: HudOptions = {}): void {
   const toggleBtn = document.getElementById('pse-toggle-table');
   const resetBtn = document.getElementById('pse-reset');
   const expertBtn = document.getElementById('pse-toggle-expert');
+  const audioBtn = document.getElementById('pse-toggle-audio');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -43,7 +45,8 @@ export function mountHud(opts: HudOptions = {}): void {
     !tableEl ||
     !toggleBtn ||
     !resetBtn ||
-    !expertBtn
+    !expertBtn ||
+    !audioBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -117,6 +120,18 @@ export function mountHud(opts: HudOptions = {}): void {
   });
   syncExpertBtn();
 
+  const syncAudioBtn = (): void => {
+    const on = isAudioEnabled();
+    audioBtn.textContent = on ? '🔊 Sound' : '🔇 Sound';
+    audioBtn.classList.toggle('pse-btn-primary', on);
+  };
+  audioBtn.addEventListener('click', () => {
+    setAudioEnabled(!isAudioEnabled());
+    if (isAudioEnabled()) sfx.toggle();
+    syncAudioBtn();
+  });
+  syncAudioBtn();
+
   resetBtn.addEventListener('click', () => {
     const confirmed = window.confirm(
       'Kompletten Fortschritt löschen und neu starten? Diese Aktion lässt sich nicht rückgängig machen.',
@@ -145,6 +160,8 @@ export function mountHud(opts: HudOptions = {}): void {
       const label = describeOutputs(event.recipe.outputs);
       const isNew = event.discoveredIds.length > 0 ? ' · NEU entdeckt!' : '';
       showFeedback(`✔ ${label}${isNew}`, 'ok');
+      if (event.discoveredIds.length > 0) sfx.discovery();
+      else sfx.fusion();
       if (event.discoveredIds[0]) {
         selectedEntityId = event.discoveredIds[0];
         rerenderDetail();
@@ -155,6 +172,7 @@ export function mountHud(opts: HudOptions = {}): void {
           ? 'Reaktionszone ist leer.'
           : 'Keine passende Reaktion für diese Zutaten im aktiven Reaktor.';
       showFeedback(`✖ ${msg}`, 'err');
+      if (event.reason === 'no-match') sfx.decay();
     }
   });
 }
@@ -290,7 +308,10 @@ function inventoryRow(
     rmBtn.type = 'button';
     rmBtn.textContent = '−';
     rmBtn.title = 'Aus Reaktionszone entfernen';
-    rmBtn.addEventListener('click', () => removeFromZone(entity.id, 1));
+    rmBtn.addEventListener('click', () => {
+      sfx.tickDown();
+      removeFromZone(entity.id, 1);
+    });
     row.appendChild(rmBtn);
   }
 
@@ -300,7 +321,9 @@ function inventoryRow(
   addBtn.textContent = '+';
   addBtn.title = 'In Reaktionszone';
   addBtn.disabled = !canAddMore;
-  addBtn.addEventListener('click', () => addToZone(entity.id, 1));
+  addBtn.addEventListener('click', () => {
+    if (addToZone(entity.id, 1)) sfx.tick();
+  });
   row.appendChild(addBtn);
 
   return row;
@@ -327,7 +350,7 @@ function zonePanel(zone: Record<string, number>): HTMLElement {
     const id = e.dataTransfer?.getData(DND_TYPE);
     if (!id) return;
     e.preventDefault();
-    addToZone(id, 1);
+    if (addToZone(id, 1)) sfx.tick();
   });
 
   const entries = Object.entries(zone);
@@ -356,14 +379,20 @@ function craftControls(): HTMLElement {
   craftBtn.className = 'pse-btn pse-btn-primary';
   craftBtn.type = 'button';
   craftBtn.textContent = '⚛  Reaktion ausführen';
-  craftBtn.addEventListener('click', () => craft());
+  craftBtn.addEventListener('click', () => {
+    sfx.reactor();
+    craft();
+  });
   box.appendChild(craftBtn);
 
   const clearBtn = document.createElement('button');
   clearBtn.className = 'pse-btn';
   clearBtn.type = 'button';
   clearBtn.textContent = 'Zone leeren';
-  clearBtn.addEventListener('click', () => clearZone());
+  clearBtn.addEventListener('click', () => {
+    sfx.tickDown();
+    clearZone();
+  });
   box.appendChild(clearBtn);
 
   return box;
@@ -569,7 +598,10 @@ function renderReactors(el: HTMLElement): void {
     if (id === state.activeReactor) btn.classList.add('pse-reactor-active');
     btn.title = meta.descriptionDE;
     btn.textContent = `${meta.symbol}  ${meta.nameDE}`;
-    btn.addEventListener('click', () => setActiveReactor(id));
+    btn.addEventListener('click', () => {
+      sfx.reactor();
+      setActiveReactor(id);
+    });
     el.appendChild(btn);
   }
 }

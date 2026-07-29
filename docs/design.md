@@ -218,7 +218,15 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   Rezepte für Elemente Z≥2 werden im Loader generiert (`generateSimpleElementRecipes`
   in `content/index.ts`), sodass alle Atome im Normal-Modus baubar sind ohne den
   Rezept-Katalog aufzublähen. Damit ist die PSE-Übersicht vollständig gefüllt.
-- **M4b** — s-Prozess am AGB-Stern, r-Prozess an Supernova mit repräsentativen
-  Kern-Zwischenschritten (Neutron-Einfang bis Blei/Uran).
+- **M4b** ✅ — s-Prozess am AGB-Stern (Fe→Sr→Ba→Pb via Neutronen-Einfang, magische
+  Peaks bei N=50/82/126) und r-Prozess in der Supernova (Fe→Th/U in einem Burst).
+  Neue schwere Kerne (Sr-88, Ba-138, Pb-208, Th-232, U-235, U-238) plus
+  Element-Assembly für Sr/Ba/Pb/Th/U. Freischaltungskette H → Sternkern → AGB →
+  Supernova via `unlocksReactors` an den Schlüssel-Rezepten.
+- **M4c** ✅ — Live-Reaktionskammer statt starrem Ring (persistente 3D-Partikel mit
+  Physik: Nukleon-Cluster, Elektron-Wolke), Instabilitäts-Feedback (nervöses Wackeln
+  + Zerfall-Animation nach Valley of Stability), Fusion-Animation, Auto-Fusion nach
+  2.2 s bei Rezept-Match. Ziel-Panel im HUD ("Nächstes Element", Klick öffnet Detail).
+  Sound-Cues via Web Audio (Klick, Reactor, Fusion, Zerfall, Discovery), umschaltbar.
 - **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
 - **M6+** — Polymere, Astrochemie, Endgame.
