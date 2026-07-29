@@ -14,9 +14,10 @@ import {
   subscribe,
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
-import { elements, freeSupplyIds, getEntity } from '../game/content';
+import { elements, freeSupplyIds, getEntity, recipes as allRecipes } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
+import { isRecipeAvailableInMode } from '../game/physics/recipes';
 import type { Entity, ElementEntity, Recipe } from '../game/content/types';
 import { createOrbitalPreview, type OrbitalPreview } from '../game/atoms/orbital-preview';
 
@@ -209,6 +210,7 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
   el.appendChild(zonePanel(state.reactionZone));
   el.appendChild(craftControls());
   el.appendChild(feedbackBox());
+  el.appendChild(goalBox(opts.onSelect));
   el.appendChild(hintsBox());
 }
 
@@ -363,6 +365,58 @@ function craftControls(): HTMLElement {
   clearBtn.textContent = 'Zone leeren';
   clearBtn.addEventListener('click', () => clearZone());
   box.appendChild(clearBtn);
+
+  return box;
+}
+
+function findNextGoal(): { element: ElementEntity; recipe: Recipe } | null {
+  const state = getState();
+  const discovered = new Set(state.discovered);
+  const nextEl = elements
+    .filter((e) => !discovered.has(e.id))
+    .sort((a, b) => a.z - b.z)[0];
+  if (!nextEl) return null;
+  const recipe = allRecipes.find(
+    (r) =>
+      (r.outputs[nextEl.id] ?? 0) === 1 &&
+      isRecipeAvailableInMode(r, state.expertMode),
+  );
+  if (!recipe) return null;
+  return { element: nextEl, recipe };
+}
+
+function goalBox(onSelect: (id: string) => void): HTMLElement {
+  const box = document.createElement('div');
+  box.className = 'pse-goal';
+
+  const goal = findNextGoal();
+  if (!goal) {
+    box.classList.add('pse-goal-done');
+    box.textContent = '✓ Alle Elemente in diesem Modus entdeckt';
+    return box;
+  }
+
+  const header = document.createElement('div');
+  header.className = 'pse-goal-header';
+  header.textContent = 'Nächstes Ziel';
+  box.appendChild(header);
+
+  const title = document.createElement('button');
+  title.className = 'pse-goal-title';
+  title.type = 'button';
+  title.textContent = `${goal.element.symbol}  ·  ${goal.element.nameDE}  (Z=${goal.element.z})`;
+  title.style.color = goal.element.cpkColor;
+  title.addEventListener('click', () => onSelect(goal.element.id));
+  box.appendChild(title);
+
+  const reactorMetaInfo = reactorMeta[goal.recipe.reactor];
+  const inputsText = Object.entries(goal.recipe.inputs)
+    .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+    .join(' + ');
+  const recipeLine = document.createElement('div');
+  recipeLine.className = 'pse-goal-recipe';
+  recipeLine.textContent = `${inputsText} → ${goal.element.symbol}  @ ${reactorMetaInfo.nameDE}`;
+  box.appendChild(recipeLine);
 
   return box;
 }

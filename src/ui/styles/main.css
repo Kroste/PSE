@@ -294,6 +294,53 @@ body {
   color: var(--danger);
 }
 
+.pse-goal {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 221, 102, 0.4);
+  border-radius: 3px;
+  background: rgba(255, 221, 102, 0.06);
+}
+.pse-goal-done {
+  border-color: rgba(0, 255, 176, 0.4);
+  background: rgba(0, 255, 176, 0.06);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 10px;
+  text-align: center;
+}
+.pse-goal-header {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #ffdd66;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-bottom: 4px;
+}
+.pse-goal-title {
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  border-radius: 3px;
+}
+.pse-goal-title:hover {
+  background: rgba(255, 221, 102, 0.12);
+}
+.pse-goal-recipe {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 2px 6px 0;
+}
+
 .pse-hints {
   margin-top: 12px;
 }
