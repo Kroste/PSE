@@ -830,12 +830,36 @@ function renderReactors(el: HTMLElement): void {
 
 type TableOptions = { onSelect: (id: string) => void };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  'alkali-metal': 'Alkalimetalle',
+  'alkaline-earth-metal': 'Erdalkalimetalle',
+  'transition-metal': 'Übergangsmetalle',
+  'post-transition-metal': 'Weitere Metalle',
+  metalloid: 'Halbmetalle',
+  'reactive-nonmetal': 'Reaktive Nichtmetalle',
+  'noble-gas': 'Edelgase',
+  halogen: 'Halogene',
+  lanthanide: 'Lanthanoide',
+  actinide: 'Actinoide',
+};
+
 function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
   const state = getState();
   const discovered = new Set(state.discovered);
   const elementById = new Map<string, ElementEntity>(elements.map((e) => [e.id, e]));
 
   el.innerHTML = '';
+
+  // Statistik-Kopfzeile: Wie viele der 118 sind entdeckt / im Katalog
+  const totalKnown = elements.length;
+  const totalDiscovered = elements.filter((e) => discovered.has(e.id)).length;
+  const statsBar = document.createElement('div');
+  statsBar.className = 'pse-table-stats';
+  statsBar.innerHTML =
+    `<span class="pse-stats-strong">${totalDiscovered}</span> / 118 entdeckt` +
+    ` &middot; <span class="pse-stats-strong">${totalKnown}</span> im Katalog` +
+    ` &middot; ${118 - totalKnown} noch nicht angelegt`;
+  el.appendChild(statsBar);
 
   const grid = document.createElement('div');
   grid.className = 'pse-table-grid';
@@ -861,6 +885,9 @@ function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
       el2.disabled = true;
     }
 
+    // Kategorien-Farbrand
+    if (element) el2.classList.add(`pse-cat-${element.elementCategory}`);
+
     const zEl = document.createElement('span');
     zEl.className = 'pse-cell-z';
     zEl.textContent = String(cell.z);
@@ -876,11 +903,32 @@ function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
     nameEl.textContent = cell.nameDE;
     el2.appendChild(nameEl);
 
+    // Zusatz-Info: Atommasse für Elemente im Katalog
     if (element) {
-      el2.title = `${cell.nameDE} — ${isDiscovered ? 'entdeckt' : 'noch nicht entdeckt'}`;
+      const massEl = document.createElement('span');
+      massEl.className = 'pse-cell-mass';
+      // Bei transuranen Elementen ist atomicMassU die Massenzahl des
+      // langlebigsten Isotops — dann in Klammern anzeigen
+      const isSynthetic = element.elementCategory === 'actinide' && element.z >= 93;
+      const mass = element.atomicMassU;
+      massEl.textContent = isSynthetic || element.z > 103 ? `(${Math.round(mass)})` : mass.toFixed(2);
+      el2.appendChild(massEl);
+    }
+
+    // Rich tooltip mit vollen Infos
+    if (element) {
+      const configLine = element.electronConfig ? `\nKonfiguration: ${element.electronConfig}` : '';
+      const catLine = CATEGORY_LABELS[element.elementCategory] ?? element.elementCategory;
+      el2.title =
+        `${element.nameDE} (${cell.symbol}, Z=${cell.z})\n` +
+        `Kategorie: ${catLine}\n` +
+        `Atommasse: ${element.atomicMassU} u` +
+        configLine +
+        `\nPeriode ${element.period}, Gruppe ${element.group ?? '—'}, Block ${element.block}\n` +
+        (isDiscovered ? '✓ entdeckt' : '○ noch nicht entdeckt');
       el2.addEventListener('click', () => opts.onSelect(element.id));
     } else {
-      el2.title = `${cell.nameDE} — Z=${cell.z} (noch nicht im Katalog)`;
+      el2.title = `${cell.nameDE} — Z=${cell.z}\nNoch nicht im Katalog angelegt`;
     }
 
     grid.appendChild(el2);
@@ -888,12 +936,33 @@ function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
 
   el.appendChild(grid);
 
+  // Erweiterte Legende: Zell-Zustände + Kategorien-Farben
   const legend = document.createElement('div');
   legend.className = 'pse-table-legend';
-  legend.innerHTML =
-    '<span class="pse-cell-discovered">■</span> entdeckt · ' +
-    '<span class="pse-cell-known">■</span> im Katalog · ' +
-    '<span class="pse-cell-unknown">■</span> noch nicht angelegt';
+
+  const statesRow = document.createElement('div');
+  statesRow.className = 'pse-legend-row';
+  statesRow.innerHTML =
+    '<span class="pse-legend-label">Zustand:</span> ' +
+    '<span class="pse-legend-item"><span class="pse-legend-swatch pse-cell-discovered"></span> entdeckt</span>' +
+    '<span class="pse-legend-item"><span class="pse-legend-swatch pse-cell-known"></span> im Katalog</span>' +
+    '<span class="pse-legend-item"><span class="pse-legend-swatch pse-cell-unknown"></span> noch nicht angelegt</span>';
+  legend.appendChild(statesRow);
+
+  const catsRow = document.createElement('div');
+  catsRow.className = 'pse-legend-row';
+  const catsLabel = document.createElement('span');
+  catsLabel.className = 'pse-legend-label';
+  catsLabel.textContent = 'Kategorien:';
+  catsRow.appendChild(catsLabel);
+  for (const [key, label] of Object.entries(CATEGORY_LABELS)) {
+    const item = document.createElement('span');
+    item.className = 'pse-legend-item';
+    item.innerHTML = `<span class="pse-legend-swatch pse-cat-${key}"></span> ${label}`;
+    catsRow.appendChild(item);
+  }
+  legend.appendChild(catsRow);
+
   el.appendChild(legend);
 }
 
