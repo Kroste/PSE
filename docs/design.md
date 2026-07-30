@@ -277,3 +277,86 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   Auto-Rezept-Generierung für chem-lab (mode: both). Custom-Moleküle
   erscheinen im Inventar, im Chemielabor und in der Wissensdatenbank
   gleichwertig zu Katalog-Molekülen.
+- **Struktur-Editor + SMILES-Import** ✅ — Custom-Verbindungs-Editor
+  bekommt zwei Tabs: Struktur-Formular (Chemiker: Atome + Bindungen
+  auswählen, kein JSON) und JSON (Power-User). SMILES-Kürzel-Notation
+  parst zu Atomen/Bindungen (`CCO` → Ethanol, `CC(=O)O` → Essigsäure,
+  `C1=CC=CC=C1` → Benzol Kekulé). 3D-Koordinaten via Force-directed
+  Layout automatisch berechnet. Live-Vorschau (Summenformel Hill-Notation,
+  Molmasse, VSEPR-Geometrie).
+- **MOL/SDF-Import** ✅ — V2000-Parser (`src/game/chemistry/mol.ts`)
+  für den Import aus PubChem, ChemDraw und ähnlichen Chemie-Tools.
+  Datei-Upload oder Text-Paste im Struktur-Editor; 3D-Koordinaten aus
+  der Datei werden 1:1 übernommen. Multi-Molekül-SDF nimmt das erste.
+  Aromatische Bindungsordnung (4) mappt auf Einfachbindung.
+- **Sandbox-Modus** ✅ — Toolbar-Toggle "🎨 Sandbox" schaltet auf einen
+  eigenen Save-Slot (`pse.sandbox.save.v1`) mit allen 118 Elementen und
+  Katalog-Molekülen vorentdeckt, allen Reaktoren offen, Chemielabor
+  aktiv. Sichtbarer SANDBOX-Badge unter der Toolbar. Zurück-Schalten
+  lädt den echten Fortschritts-Slot ohne Verlust.
+- **Stabilitäts-Status-Chip** ✅ — Ersatz für die entfernten Plattform-
+  Ringe (die bei großen Molekülen visuell clippten). Dezenter Chip im
+  Reaktionszone-Panel mit 6 Zuständen: idle (⋯), stable (✓ grün),
+  unstable (⚠ rot pulsiert), ready (⏳ gelb mit Progress-Bar bis Auto-
+  Fusion), fusing (⚛), decaying (💥). Text-basiert, Screen-Reader-fest.
+- **Reaktions-Mechanismen** ✅ — Neue Toolbar-Sektion "⚛ Mechanismen"
+  mit 6 klassischen Reaktionen: SN1, SN2, elektrophile Addition
+  (HBr an Ethen, Markownikow), Fischer-Veresterung, Aldol-Kondensation,
+  radikalische Polymerisation (PE). Jeder Mechanismus als Schritt-für-
+  Schritt-Durchgang mit Vorher/Nachher-Strukturformeln, Elektronenfluss-
+  Beschreibung (curly arrows in Worten) und optionalen Beobachtungs-
+  hinweisen. Quellen aus Clayden, Vollhardt, Bruice, Odian.
+- **Content-Ausbau (Wellen 6-8)** ✅ — Molekül-Katalog von 55 auf 170
+  Einträge gewachsen. Neue Kategorien und Vertiefungen:
+  - +36 organische / pharmazeutische / astrochemische (Alkane C₄-C₈,
+    Alkohole, Ether, Aromaten, Halogen-KWs, weitere Aminosäuren,
+    Fructose, Coffein, Aspirin, Neurotransmitter Dopamin/Serotonin/
+    Adrenalin, HCN, HC₃N).
+  - +30 Polymer-Einträge in fein gegliederten Kategorien: Thermoplaste
+    (PP/PS/PVC/PMMA/PVA/PAN/POM/PC/PET), Elastomere (Naturkautschuk,
+    SBR), Biopolymere (PLA, Cellulose), Hochleistungspolymere (Nylon-6,
+    Nylon-66, Kevlar, PEEK), Duroplast (Epoxy), leitfähiges Polymer
+    (Polyacetylen), PDMS-Trimer, plus 10 fehlende Monomere (Butadien,
+    Isopren, MMA, Vinylacetat, Acrylnitril, Acrylsäure, HMD,
+    Adipinsäure, Bisphenol A, Melamin).
+  - +25 Silikon-Tiefenzug (Master-Thesis-tauglich): funktionalisierte
+    Silane (GPTMS, MPTMS, MPTES-SH, AEAPTMS, OTS, TEVS), Cyclosiloxane
+    (D6, DMD, V4, H-D4), lineare PDMS (MD2M, MD3M, PDMS-oil-5,
+    Dihydroxy-PDMS), POSS und Silikate (T8Me, T8Vinyl, H₄SiO₄, MQ-
+    Harz), Vernetzer (TEOS-Kondensat, Karstedt-Modell, RTV), natürliche
+    Silikate (α-Quarz, Olivin, Kaolinit).
+
+## Offene Milestones
+
+- **M10 — Reaktions-Kinetik & Gleichgewicht.** Statt binärem "passt
+  oder passt nicht" ein einfaches Kinetik-Modell: Reaktions-
+  geschwindigkeit hängt von Konzentrationen ab, Gleichgewicht mit
+  Rückreaktion (Le Chatelier per Zutaten-Menge). Erlaubt Reaktionen
+  wie Estergleichgewicht auch pädagogisch korrekt darzustellen.
+- **M11 — 3D-Mechanismen-Visualisierung.** Die Text-Mechanismen aus
+  M9+ um echte curly arrows als 3D-Bezier-Kurven erweitern, animiert
+  über die Ball-Stick-Struktur der beteiligten Moleküle. Show, don't
+  tell — für den visuellen Lerntyp.
+- **M12 — Aufgaben-Modus / Lernpfade.** Vordefinierte Challenges
+  ("Baue Aspirin aus Grundstoffen", "Zeige den SN2-Mechanismus für
+  OH⁻ + CH₃Br", "Alle DNA-Basen in einer Session"). Auswertung als
+  Achievement-Set, optional Zeitmessung. Guide-Modus mit Hinweisen.
+- **M13 — Spektroskopie-Ansicht.** Zu jedem Molekül die Standard-
+  Spektren (IR-Peaks für Funktionalgruppen, ¹H-NMR-Verschiebungen,
+  UV/Vis-Absorption) als statisches Diagramm im Detail-Panel. Kein
+  echtes DFT — kuratierte Datenbank aus Literaturwerten.
+- **M14 — Enzym-Katalyse & Peptide.** Chemielabor bekommt Sub-
+  Modus "Biolabor" mit Enzymen als Katalysator-Entities (können
+  wiederverwendet werden, senken Aktivierungsenergie sichtbar).
+  Peptid-Bildung aus Aminosäuren, DNA-Basenpaarung, einfaches
+  Zentraldogma (DNA → RNA → Protein) als geführte Sequenz.
+- **M15 — MOL/SDF-Export & Sharing.** Custom-Verbindungen als
+  .mol-Datei exportieren (V2000-Roundtrip), URL-Share (State in
+  base64-codiertem URL-Fragment), einfacher Import bereitgestellter
+  Beispielsammlungen ("Master-Thesis Silikone", "Grundstoff-
+  Chemie") beim ersten Start.
+- **M16 — Stereo-/Isomerie-Bewusstsein.** Kennzeichnung von
+  Chiralitäts-Zentren, cis/trans, R/S in der 3D-Ansicht.
+  Struktur-Editor erlaubt Angabe der Stereo-Information.
+  Optionale "Racemat vs. Enantiomer"-Unterscheidung im Kinetik-
+  Modell (Bezug zu M10).
