@@ -74,6 +74,10 @@ export function mountHud(opts: HudOptions = {}): void {
 
   let selectedEntityId: string | null = null;
 
+  // Inventar-UX-State: Suchfilter + kollapsierte Sektionen. Persistiert.
+  let inventorySearch = '';
+  const collapsedSections = new Set<string>(loadCollapsedSections());
+
   const selectEntity = (id: string): void => {
     selectedEntityId = id;
     rerenderDetail();
@@ -81,6 +85,18 @@ export function mountHud(opts: HudOptions = {}): void {
     if ((entity?.kind === 'element' || entity?.kind === 'molecule') && opts.showAtom) {
       opts.showAtom(id);
     }
+  };
+
+  const toggleSection = (key: string): void => {
+    if (collapsedSections.has(key)) collapsedSections.delete(key);
+    else collapsedSections.add(key);
+    saveCollapsedSections(collapsedSections);
+    rerenderInventory();
+  };
+
+  const setSearch = (q: string): void => {
+    inventorySearch = q;
+    rerenderInventory();
   };
 
   const rerenderDetail = (): void => {
@@ -101,7 +117,13 @@ export function mountHud(opts: HudOptions = {}): void {
   };
 
   const rerenderInventory = (): void => {
-    renderInventory(inventoryEl, { onSelect: selectEntity });
+    renderInventory(inventoryEl, {
+      onSelect: selectEntity,
+      search: inventorySearch,
+      collapsed: collapsedSections,
+      onToggleSection: toggleSection,
+      onSearchChange: setSearch,
+    });
   };
 
   const rerenderReactors = (): void => renderReactors(reactorsEl);
@@ -184,7 +206,43 @@ export function mountHud(opts: HudOptions = {}): void {
   });
 }
 
-type InventoryOptions = { onSelect: (id: string) => void };
+type InventoryOptions = {
+  onSelect: (id: string) => void;
+  search?: string;
+  collapsed?: Set<string>;
+  onToggleSection?: (key: string) => void;
+  onSearchChange?: (q: string) => void;
+};
+
+const COLLAPSED_STORAGE_KEY = 'pse.ui.collapsedSections';
+
+function loadCollapsedSections(): string[] {
+  try {
+    const raw = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCollapsedSections(set: Set<string>): void {
+  try {
+    localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify([...set]));
+  } catch {
+    // ignorieren
+  }
+}
+
+function matchesSearch(entity: Entity, needle: string): boolean {
+  if (!needle) return true;
+  const q = needle.toLowerCase();
+  if (entity.id.toLowerCase().includes(q)) return true;
+  if (entity.nameDE.toLowerCase().includes(q)) return true;
+  if (entity.symbol && entity.symbol.toLowerCase().includes(q)) return true;
+  if (entity.kind === 'molecule' && entity.formula.toLowerCase().includes(q)) return true;
+  if (entity.kind === 'molecule' && entity.categoryDE.toLowerCase().includes(q)) return true;
+  return false;
+}
 
 /**
  * Welche Entity-Kinds sind pro Reaktor sinnvoll?
@@ -209,26 +267,62 @@ function reactorAllowsKind(reactor: string, kind: string): boolean {
 
 function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
   const state = getState();
+  const search = opts.search ?? '';
+  const collapsed = opts.collapsed ?? new Set<string>();
+
+  // Focus im Suchfeld über rerenders erhalten
+  const wasSearchFocused =
+    document.activeElement instanceof HTMLInputElement &&
+    document.activeElement.classList.contains('pse-search-input');
+  const cursorPos =
+    wasSearchFocused && document.activeElement instanceof HTMLInputElement
+      ? document.activeElement.selectionStart
+      : null;
+
   el.innerHTML = '';
 
-  // Elementarteilchen nur, wenn der aktive Reaktor Partikel-Level braucht.
+  // Suchfeld ganz oben — bleibt fokussiert auch nach rerender
+  el.appendChild(searchBox(search, opts.onSearchChange));
+
+  const passesSearch = (entity: Entity): boolean => matchesSearch(entity, search);
+
+  // Elementarteilchen (freeSupply) nur, wenn Reaktor sie braucht
   if (reactorAllowsKind(state.activeReactor, 'particle')) {
-    el.appendChild(sectionHeader('Elementarteilchen'));
+    const items: Array<[string, number]> = [];
     for (const id of freeSupplyIds) {
       const entity = getEntity(id);
       if (!entity) continue;
-      el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
+      if (!passesSearch(entity)) continue;
+      items.push([id, Infinity]);
+    }
+    if (items.length > 0) {
+      appendCollapsibleSection(
+        el,
+        'freesupply',
+        'Elementarteilchen',
+        items.length,
+        collapsed,
+        opts.onToggleSection,
+        () => {
+          for (const [id] of items) {
+            const entity = getEntity(id);
+            if (!entity) continue;
+            el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
+          }
+        },
+      );
     }
   }
 
+  // Discovered non-freeSupply nach kind gruppieren
   const freeSet = new Set<string>(freeSupplyIds);
   const nonFreeIds = state.discovered.filter((id) => !freeSet.has(id));
-  const byKind: Record<string, Array<[string, number]>> = {};
+  const byKind: Record<string, string[]> = {};
   for (const id of nonFreeIds) {
     const entity = getEntity(id);
     if (!entity) continue;
     if (!reactorAllowsKind(state.activeReactor, entity.kind)) continue;
-    (byKind[entity.kind] ??= []).push([id, Infinity]);
+    (byKind[entity.kind] ??= []).push(id);
   }
 
   const kindOrder: Array<[string, string]> = [
@@ -236,25 +330,71 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
     ['hadron', 'Hadronen'],
     ['nucleus', 'Atomkerne'],
     ['element', 'Atome & Elemente'],
-    ['molecule', 'Moleküle & Verbindungen'],
+    // Moleküle behandeln wir eigens (Sub-Gruppierung nach categoryDE)
   ];
   for (const [kind, title] of kindOrder) {
-    const entries = byKind[kind];
-    if (!entries || entries.length === 0) continue;
-    el.appendChild(sectionHeader(title));
-    for (const [id, count] of entries) {
-      const entity = getEntity(id);
-      if (!entity) continue;
-      el.appendChild(inventoryRow(entity, count, state.reactionZone[id] ?? 0, opts));
-    }
+    const ids = byKind[kind];
+    if (!ids || ids.length === 0) continue;
+    const filtered = ids.filter((id) => {
+      const e = getEntity(id);
+      return e ? passesSearch(e) : false;
+    });
+    if (filtered.length === 0) continue;
+    appendCollapsibleSection(
+      el,
+      `kind:${kind}`,
+      title,
+      filtered.length,
+      collapsed,
+      opts.onToggleSection,
+      () => {
+        for (const id of filtered) {
+          const entity = getEntity(id);
+          if (!entity) continue;
+          el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
+        }
+      },
+    );
   }
 
-  if (state.discovered.length > 0) {
-    el.appendChild(sectionHeader('Entdeckt'));
-    const line = document.createElement('div');
-    line.className = 'pse-discovered';
-    line.textContent = state.discovered.map((id) => getEntity(id)?.symbol ?? id).join(' · ');
-    el.appendChild(line);
+  // Moleküle: Sub-Gruppierung nach categoryDE
+  const molIds = byKind['molecule'];
+  if (molIds && molIds.length > 0) {
+    const byCategory = new Map<string, string[]>();
+    for (const id of molIds) {
+      const e = getEntity(id);
+      if (!e || e.kind !== 'molecule') continue;
+      if (!passesSearch(e)) continue;
+      const cat = e.categoryDE || 'Sonstige';
+      const list = byCategory.get(cat) ?? [];
+      list.push(id);
+      byCategory.set(cat, list);
+    }
+    // Sortierung: alphabetisch, aber "Silikon"/"Silizium" ans Ende (spezialisiert)
+    const categories = [...byCategory.keys()].sort((a, b) => {
+      const aSilicon = a.startsWith('Silizium') || a.startsWith('Silikon');
+      const bSilicon = b.startsWith('Silizium') || b.startsWith('Silikon');
+      if (aSilicon !== bSilicon) return aSilicon ? 1 : -1;
+      return a.localeCompare(b, 'de');
+    });
+    for (const cat of categories) {
+      const ids = byCategory.get(cat)!;
+      appendCollapsibleSection(
+        el,
+        `mol:${cat}`,
+        cat,
+        ids.length,
+        collapsed,
+        opts.onToggleSection,
+        () => {
+          for (const id of ids) {
+            const entity = getEntity(id);
+            if (!entity) continue;
+            el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
+          }
+        },
+      );
+    }
   }
 
   el.appendChild(zonePanel(state.reactionZone));
@@ -262,6 +402,49 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
   el.appendChild(feedbackBox());
   el.appendChild(goalBox(opts.onSelect));
   el.appendChild(hintsBox());
+
+  // Focus im Suchfeld wiederherstellen
+  if (wasSearchFocused) {
+    const newInput = el.querySelector<HTMLInputElement>('.pse-search-input');
+    if (newInput) {
+      newInput.focus();
+      if (cursorPos !== null) newInput.setSelectionRange(cursorPos, cursorPos);
+    }
+  }
+}
+
+function searchBox(current: string, onChange?: (q: string) => void): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'pse-search';
+  const input = document.createElement('input');
+  input.type = 'search';
+  input.placeholder = '🔍  Suche nach Symbol, Formel oder Name';
+  input.value = current;
+  input.className = 'pse-search-input';
+  input.addEventListener('input', () => onChange?.(input.value));
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function appendCollapsibleSection(
+  parent: HTMLElement,
+  key: string,
+  title: string,
+  count: number,
+  collapsed: Set<string>,
+  onToggle: ((k: string) => void) | undefined,
+  renderBody: () => void,
+): void {
+  const isCollapsed = collapsed.has(key);
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'pse-section pse-section-toggle';
+  header.classList.toggle('pse-section-collapsed', isCollapsed);
+  const chevron = isCollapsed ? '▸' : '▾';
+  header.textContent = `${chevron}  ${title}  (${count})`;
+  header.addEventListener('click', () => onToggle?.(key));
+  parent.appendChild(header);
+  if (!isCollapsed) renderBody();
 }
 
 function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
