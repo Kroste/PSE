@@ -3039,5 +3039,206 @@
     "color": "#88cc88",
     "scienceNoteDE": "Repräsentativer Ausschnitt aus Polyethylen: fünf Wiederholungs­einheiten in Zickzack-Konformation (Decan-Ausschnitt). PE ist der meistproduzierte Kunststoff überhaupt (>100 Mt/Jahr); HDPE für Milchkanister, LDPE für Folien, UHMWPE für Prothesen und schusssichere Westen.",
     "source": "Ullmann's (Polyolefins) & Ziegler-Natta 1953"
+  },
+
+  {
+    "id": "H3plus",
+    "kind": "molecule",
+    "nameDE": "Trihydrogen-Kation",
+    "symbol": "H₃⁺",
+    "formula": "H3",
+    "atomCounts": { "H": 3 },
+    "atoms": [
+      { "element": "H", "position": [0.5, 0, 0] },
+      { "element": "H", "position": [-0.25, 0.43, 0] },
+      { "element": "H", "position": [-0.25, -0.43, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 1 },
+      { "from": 2, "to": 0, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 3.023,
+    "categoryDE": "Astrochemie (Ion)",
+    "color": "#ff77aa",
+    "scienceNoteDE": "Wichtigstes Ion der interstellaren Chemie — Dreieck aus drei Protonen mit zwei Elektronen. Startet die gesamte Ionen-Molekül-Chemie in kalten Molekülwolken (Reaktion mit CO, N₂, H₂O → HCO⁺, N₂H⁺, H₃O⁺).",
+    "source": "Oka, Phil. Trans. R. Soc. A 364 (2006)"
+  },
+  {
+    "id": "HCOplus",
+    "kind": "molecule",
+    "nameDE": "Formyl-Kation",
+    "symbol": "HCO⁺",
+    "formula": "CHO",
+    "atomCounts": { "H": 1, "C": 1, "O": 1 },
+    "atoms": [
+      { "element": "H", "position": [-1.65, 0, 0] },
+      { "element": "C", "position": [-0.55, 0, 0] },
+      { "element": "O", "position": [0.55, 0, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 3 }
+    ],
+    "geometry": "linear",
+    "molarMassGmol": 29.018,
+    "categoryDE": "Astrochemie (Ion)",
+    "color": "#dd6688",
+    "scienceNoteDE": "Häufigstes molekulares Kation in der interstellaren Materie. Entsteht aus H₃⁺ + CO. Dient in der Astronomie als Tracer für dichte Molekülwolken (mm-Wellen-Übergänge sind schmalbandig, empfindlich messbar).",
+    "source": "Snyder & Buhl, Astrophys. J. 163 (1971)"
+  },
+  {
+    "id": "CN",
+    "kind": "molecule",
+    "nameDE": "Cyanid-Radikal",
+    "symbol": "CN·",
+    "formula": "CN",
+    "atomCounts": { "C": 1, "N": 1 },
+    "atoms": [
+      { "element": "C", "position": [-0.58, 0, 0] },
+      { "element": "N", "position": [0.58, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 3 }],
+    "geometry": "linear",
+    "molarMassGmol": 26.018,
+    "categoryDE": "Astrochemie (Radikal)",
+    "color": "#cc6699",
+    "scienceNoteDE": "Erstes im Weltall entdecktes Molekül (McKellar 1940 in Cyan-Sternspektren). Wichtiges Thermometer für den kosmischen Mikrowellenhintergrund — Rotationsanregung bei ~2,7 K liefert direkte Temperaturmessung des Universums.",
+    "source": "McKellar, Publ. Dom. Astrophys. Obs. Victoria 7 (1941)"
+  },
+  {
+    "id": "OH",
+    "kind": "molecule",
+    "nameDE": "Hydroxyl-Radikal",
+    "symbol": "OH·",
+    "formula": "OH",
+    "atomCounts": { "O": 1, "H": 1 },
+    "atoms": [
+      { "element": "O", "position": [-0.5, 0, 0] },
+      { "element": "H", "position": [0.5, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 1 }],
+    "geometry": "linear",
+    "molarMassGmol": 17.008,
+    "categoryDE": "Astrochemie (Radikal)",
+    "color": "#dd7799",
+    "scienceNoteDE": "Zweites im Weltall entdecktes Molekül (Weinreb et al. 1963, 18-cm-Linien). Kosmisch häufigstes Radikal; auf der Erde \"Waschmittel der Atmosphäre\" — oxidiert Methan und Kohlenmonoxid.",
+    "source": "Weinreb et al., Nature 200 (1963)"
+  },
+  {
+    "id": "methanimin",
+    "kind": "molecule",
+    "nameDE": "Methanimin (Aminomethylen)",
+    "symbol": "CH₂=NH",
+    "formula": "CH3N",
+    "atomCounts": { "C": 1, "H": 3, "N": 1 },
+    "atoms": [
+      { "element": "C", "position": [-0.65, 0, 0] },
+      { "element": "N", "position": [0.65, 0, 0] },
+      { "element": "H", "position": [-1.2, 0.94, 0] },
+      { "element": "H", "position": [-1.2, -0.94, 0] },
+      { "element": "H", "position": [1.2, 0.94, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 1, "to": 4, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 29.041,
+    "categoryDE": "Astrochemie (COM)",
+    "color": "#bb77bb",
+    "scienceNoteDE": "In interstellaren Molekülwolken nachgewiesen — direkter Aminosäure-Vorläufer über die Strecker-Synthese (CH₂NH + HCN + H₂O → Glycin). Präbiotisch relevant: verbindet einfache Interstellarchemie mit Bausteinen des Lebens.",
+    "source": "Godfrey et al., Astrophys. Lett. 13 (1973)"
+  },
+  {
+    "id": "glycolaldehyd",
+    "kind": "molecule",
+    "nameDE": "Glycolaldehyd (Zucker-Vorstufe)",
+    "symbol": "HOCH₂CHO",
+    "formula": "C2H4O2",
+    "atomCounts": { "C": 2, "H": 4, "O": 2 },
+    "atoms": [
+      { "element": "C", "position": [-0.85, 0, 0] },
+      { "element": "C", "position": [0.85, 0, 0] },
+      { "element": "O", "position": [-1.55, 1.2, 0] },
+      { "element": "O", "position": [1.55, 1.1, 0] },
+      { "element": "H", "position": [-2.5, 1.1, 0] },
+      { "element": "H", "position": [1.45, -1.05, 0] },
+      { "element": "H", "position": [-1.4, -0.9, 0.85] },
+      { "element": "H", "position": [-1.4, -0.9, -0.85] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 2, "to": 4, "order": 1 },
+      { "from": 1, "to": 3, "order": 2 },
+      { "from": 1, "to": 5, "order": 1 },
+      { "from": 0, "to": 6, "order": 1 },
+      { "from": 0, "to": 7, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 60.052,
+    "categoryDE": "Astrochemie (COM)",
+    "color": "#aa88cc",
+    "scienceNoteDE": "Einfachster Zucker (2-Kohlenstoff-Aldose) — in interstellaren Wolken (Sagittarius B2) und in Kometen nachgewiesen. Kondensiert mit sich selbst zu Threose/Erythrose — mögliche interstellare Herkunft der Zucker-Bausteine des Lebens.",
+    "source": "Hollis, Lovas & Jewell, Astrophys. J. 540 (2000)"
+  },
+  {
+    "id": "naphthalin",
+    "kind": "molecule",
+    "nameDE": "Naphthalin (kleinster PAK)",
+    "symbol": "C₁₀H₈",
+    "formula": "C10H8",
+    "atomCounts": { "C": 10, "H": 8 },
+    "atoms": [
+      { "element": "C", "position": [1.24, 0.7, 0] },
+      { "element": "C", "position": [1.24, -0.7, 0] },
+      { "element": "C", "position": [0, -1.4, 0] },
+      { "element": "C", "position": [-1.24, -0.7, 0] },
+      { "element": "C", "position": [-1.24, 0.7, 0] },
+      { "element": "C", "position": [0, 1.4, 0] },
+      { "element": "C", "position": [2.48, 1.4, 0] },
+      { "element": "C", "position": [3.72, 0.7, 0] },
+      { "element": "C", "position": [3.72, -0.7, 0] },
+      { "element": "C", "position": [2.48, -1.4, 0] },
+      { "element": "H", "position": [0, -2.5, 0] },
+      { "element": "H", "position": [-2.19, -1.25, 0] },
+      { "element": "H", "position": [-2.19, 1.25, 0] },
+      { "element": "H", "position": [0, 2.5, 0] },
+      { "element": "H", "position": [2.48, 2.5, 0] },
+      { "element": "H", "position": [4.67, 1.25, 0] },
+      { "element": "H", "position": [4.67, -1.25, 0] },
+      { "element": "H", "position": [2.48, -2.5, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 2 },
+      { "from": 2, "to": 3, "order": 1 },
+      { "from": 3, "to": 4, "order": 2 },
+      { "from": 4, "to": 5, "order": 1 },
+      { "from": 5, "to": 0, "order": 2 },
+      { "from": 0, "to": 6, "order": 2 },
+      { "from": 6, "to": 7, "order": 1 },
+      { "from": 7, "to": 8, "order": 2 },
+      { "from": 8, "to": 9, "order": 1 },
+      { "from": 9, "to": 1, "order": 2 },
+      { "from": 2, "to": 10, "order": 1 },
+      { "from": 3, "to": 11, "order": 1 },
+      { "from": 4, "to": 12, "order": 1 },
+      { "from": 5, "to": 13, "order": 1 },
+      { "from": 6, "to": 14, "order": 1 },
+      { "from": 7, "to": 15, "order": 1 },
+      { "from": 8, "to": 16, "order": 1 },
+      { "from": 9, "to": 17, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 128.174,
+    "categoryDE": "Astrochemie (PAK)",
+    "color": "#8899cc",
+    "scienceNoteDE": "Kleinster polyzyklischer aromatischer Kohlenwasserstoff (PAK, zwei verschmolzene Benzol-Ringe). PAKs erklären die UIR-Emissionsbanden (unidentifizierte Infrarot-Emissionen) im interstellaren Medium — sie enthalten ~15 % des gesamten kosmischen Kohlenstoffs.",
+    "source": "Tielens, Annu. Rev. Astron. Astrophys. 46 (2008)"
   }
 ]
