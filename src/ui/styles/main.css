@@ -1748,16 +1748,150 @@ body {
 .pse-tour-actions .pse-btn {
   padding: 6px 14px;
 }
-#pse-tour-restart {
+#pse-corner-bar {
   position: fixed;
   right: 12px;
   bottom: 12px;
   z-index: 25;
-  opacity: 0.5;
+  display: flex;
+  gap: 6px;
+  opacity: 0.55;
   transition: opacity 200ms;
 }
-#pse-tour-restart:hover {
+#pse-corner-bar:hover {
   opacity: 1;
+}
+
+/* ---------------- About-Modal ---------------- */
+
+.pse-about-root {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.pse-about-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.pse-about-modal {
+  position: relative;
+  width: min(600px, 92vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: rgba(10, 15, 20, 0.98);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 26px 30px 22px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+.pse-about-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+}
+.pse-about-logo {
+  font-size: 48px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-shadow: 0 0 30px rgba(0, 255, 176, 0.4);
+  margin-bottom: 4px;
+}
+.pse-about-tagline {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.pse-about-desc {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+  text-align: left;
+  margin: 0 0 22px;
+}
+.pse-about-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.pse-about-stat {
+  padding: 10px 6px;
+  background: rgba(0, 255, 176, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+}
+.pse-about-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.pse-about-stat-label {
+  font-size: 10px;
+  color: var(--text);
+  margin-top: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pse-about-stat-suffix {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.pse-about-links {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.pse-about-link {
+  padding: 10px 16px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+.pse-about-link-icon {
+  margin-right: 4px;
+}
+/* BMC-Farben (offizieller Look) */
+.pse-about-link-bmc {
+  background: #ffdd00 !important;
+  color: #000 !important;
+  border: 1px solid #ffdd00 !important;
+  border-radius: 3px;
+  padding: 10px 16px;
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.pse-about-link-bmc:hover {
+  background: #fff03d !important;
+}
+.pse-about-credits {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  padding-top: 14px;
+  border-top: 1px dashed var(--panel-border);
+}
+.pse-about-credits strong {
+  color: var(--text);
 }
 
 /* ---------------- Achievement-Toast ---------------- */

@@ -6,6 +6,7 @@ import { assertContentConsistency } from './game/content';
 import { mountHud } from './ui/hud';
 import { maybeAutoStartTour, startTour } from './ui/onboarding';
 import { initAchievementToasts } from './ui/achievement-toast';
+import { openAbout } from './ui/about';
 
 assertContentConsistency();
 
@@ -31,15 +32,26 @@ if (versionEl) {
   });
 }
 
-// Manueller Tour-Restart-Button unten rechts.
+// Corner-Buttons unten rechts: About und Tour-Restart.
+const cornerBar = document.createElement('div');
+cornerBar.id = 'pse-corner-bar';
+document.body.appendChild(cornerBar);
+
+const aboutBtn = document.createElement('button');
+aboutBtn.type = 'button';
+aboutBtn.className = 'pse-btn';
+aboutBtn.textContent = 'ℹ About';
+aboutBtn.title = 'Info, GitHub, Buy me a coffee';
+aboutBtn.addEventListener('click', () => openAbout());
+cornerBar.appendChild(aboutBtn);
+
 const tourBtn = document.createElement('button');
 tourBtn.type = 'button';
-tourBtn.id = 'pse-tour-restart';
 tourBtn.className = 'pse-btn';
 tourBtn.textContent = '❔ Tour';
 tourBtn.title = 'Onboarding-Tour neu starten';
 tourBtn.addEventListener('click', () => startTour());
-document.body.appendChild(tourBtn);
+cornerBar.appendChild(tourBtn);
 
 // Achievement-Toasts feuern lassen wenn Nutzer live etwas freischaltet.
 initAchievementToasts();
