@@ -984,6 +984,26 @@ function feedbackBox(): HTMLElement {
   return box;
 }
 
+function appendKineticsBadges(row: HTMLElement, recipe: Recipe): void {
+  if (recipe.activationEnergyKJmol === undefined && recipe.equilibriumConstantLog === undefined) {
+    return;
+  }
+  const badge = document.createElement('span');
+  badge.className = 'pse-kinetics-badge';
+  const parts: string[] = [];
+  if (recipe.activationEnergyKJmol !== undefined) {
+    parts.push(`E_a ${recipe.activationEnergyKJmol} kJ/mol`);
+  }
+  if (recipe.equilibriumConstantLog !== undefined) {
+    const K = recipe.equilibriumConstantLog;
+    const sign = K > 0 ? 'Produkte' : 'Edukte';
+    parts.push(`log K = ${K.toFixed(1)} (${sign} bevorzugt)`);
+  }
+  badge.textContent = `⚗ ${parts.join(' · ')}`;
+  badge.title = 'Kinetik-/Gleichgewichts-Angabe (didaktischer Literaturwert)';
+  row.appendChild(badge);
+}
+
 function hintsBox(): HTMLElement {
   const box = document.createElement('div');
   box.className = 'pse-hints';
@@ -1012,7 +1032,9 @@ function hintsBox(): HTMLElement {
       const right = Object.entries(recipe.outputs)
         .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
         .join(' + ');
-      line.textContent = `${left}  →  ${right}`;
+      const arrow = recipe.reversible ? '⇌' : '→';
+      line.textContent = `${left}  ${arrow}  ${right}`;
+      appendKineticsBadges(line, recipe);
       box.appendChild(line);
     }
   }

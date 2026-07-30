@@ -1604,6 +1604,20 @@ body {
   text-align: center;
 }
 
+.pse-kinetics-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(255, 138, 61, 0.12);
+  border: 1px solid rgba(255, 138, 61, 0.4);
+  color: #ffb488;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
 .pse-detail-actions {
   margin-top: 10px;
   display: flex;

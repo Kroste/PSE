@@ -169,4 +169,17 @@ export type Recipe = {
    * `both` = in beiden. Fehlt = `both`.
    */
   mode?: RecipeMode;
+  /**
+   * Wenn `true`, generiert der Content-Loader automatisch ein passendes
+   * Rückreaktions-Rezept mit vertauschten inputs/outputs (Le Chatelier).
+   * Die Rückreaktion bekommt die id `<forward-id>-reverse`.
+   */
+  reversible?: boolean;
+  /** Aktivierungsenergie in kJ/mol (didaktisch, Literaturwert). */
+  activationEnergyKJmol?: number;
+  /**
+   * log₁₀ der Gleichgewichtskonstante bei Standardbedingungen (298 K,
+   * 1 atm). Positiv = Produkte bevorzugt, negativ = Edukte bevorzugt.
+   */
+  equilibriumConstantLog?: number;
 };

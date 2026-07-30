@@ -100,4 +100,33 @@ describe('chem-lab recipes', () => {
       expect(mol.stereoNoteDE, `${id}.stereoNoteDE`).toBe(note);
     }
   });
+
+  it('Reversible Rezepte generieren automatisch ein -reverse-Rezept', async () => {
+    const { KINETICS } = await import('../src/game/content/kinetics-annotations');
+    for (const [id, k] of Object.entries(KINETICS)) {
+      if (!k.reversible) continue;
+      const reverseId = `${id}-reverse`;
+      const forward = recipes.find((r) => r.id === id);
+      const reverse = recipes.find((r) => r.id === reverseId);
+      expect(forward, id).toBeDefined();
+      expect(reverse, reverseId).toBeDefined();
+      // Reverse-Rezept hat inputs/outputs vertauscht
+      expect(reverse!.inputs).toEqual(forward!.outputs);
+      expect(reverse!.outputs).toEqual(forward!.inputs);
+    }
+  });
+
+  it('Kinetik-Annotationen sind in Rezepte gemergt', async () => {
+    const { KINETICS } = await import('../src/game/content/kinetics-annotations');
+    for (const [id, k] of Object.entries(KINETICS)) {
+      const r = recipes.find((x) => x.id === id);
+      if (!r) continue;
+      if (k.activationEnergyKJmol !== undefined) {
+        expect(r.activationEnergyKJmol, `${id}.Ea`).toBe(k.activationEnergyKJmol);
+      }
+      if (k.reversible !== undefined) {
+        expect(r.reversible, `${id}.reversible`).toBe(k.reversible);
+      }
+    }
+  });
 });

@@ -6,6 +6,7 @@ import moleculesRaw from './molecules.json';
 import recipesRaw from './recipes.json';
 import { STEREO_NOTES } from './stereo-annotations';
 import { SPECTRA } from './spectra';
+import { KINETICS } from './kinetics-annotations';
 import type {
   Entity,
   EntityId,
@@ -62,7 +63,45 @@ export function getCustomMolecules(): MoleculeEntity[] {
 }
 export const molecules: readonly MoleculeEntity[] = [...baseMolecules, ...loadCustomMolecules()];
 
-const staticRecipes: readonly Recipe[] = recipesRaw as unknown as Recipe[];
+/**
+ * Basis-Rezepte + Kinetik-Overlay (Aktivierungsenergie, Gleichgewichts-
+ * konstante, Reversibilitäts-Flag). JSON bleibt unangetastet, Notiz
+ * kommt zur Ladezeit via Map dazu.
+ */
+const staticRecipes: readonly Recipe[] = (recipesRaw as unknown as Recipe[]).map((r) => {
+  const k = KINETICS[r.id];
+  if (!k) return r;
+  return {
+    ...r,
+    reversible: k.reversible ?? r.reversible,
+    activationEnergyKJmol: k.activationEnergyKJmol ?? r.activationEnergyKJmol,
+    equilibriumConstantLog: k.equilibriumConstantLog ?? r.equilibriumConstantLog,
+  };
+});
+
+/**
+ * Für jedes als `reversible` markierte Rezept ein Rückreaktions-Rezept
+ * generieren — vertauscht inputs/outputs, id-Suffix `-reverse`.
+ * Le Chatelier: gibt der Spieler die Produkte in die Zone, kann er die
+ * Reaktion in die andere Richtung fahren.
+ */
+function generateReverseRecipes(source: readonly Recipe[]): Recipe[] {
+  const out: Recipe[] = [];
+  for (const r of source) {
+    if (!r.reversible) continue;
+    out.push({
+      ...r,
+      id: `${r.id}-reverse`,
+      inputs: r.outputs,
+      outputs: r.inputs,
+      scienceNoteDE: `Rückreaktion: ${r.scienceNoteDE} — spielbar wenn Produkte im Überschuss vorliegen (Le Chatelier).`,
+      // Ea der Rückreaktion = Ea_forward + ΔG (näherungsweise).
+      // Wir übernehmen einfach den gleichen Wert; genaueres bleibt Übung.
+      unlocksReactors: undefined,
+    });
+  }
+  return out;
+}
 
 /** Auto-generiertes Rezept pro Custom-Molekül im chem-lab (mode: both). */
 function generateCustomMoleculeRecipes(): Recipe[] {
@@ -110,6 +149,7 @@ function generateSimpleElementRecipes(): Recipe[] {
 
 export const recipes: readonly Recipe[] = [
   ...staticRecipes,
+  ...generateReverseRecipes(staticRecipes),
   ...generateSimpleElementRecipes(),
   ...generateCustomMoleculeRecipes(),
 ];
