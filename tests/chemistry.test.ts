@@ -3,6 +3,7 @@ import { hillFormula, computeMolarMass, guessGeometry } from '../src/game/chemis
 import { parseSmiles, countAtoms } from '../src/game/chemistry/smiles';
 import { layoutMolecule3D } from '../src/game/chemistry/layout';
 import { parseMolFile } from '../src/game/chemistry/mol';
+import { MECHANISMS, getMechanism } from '../src/game/chemistry/mechanisms';
 
 describe('hillFormula', () => {
   it('gibt C zuerst, dann H, dann Rest alphabetisch aus', () => {
@@ -266,5 +267,41 @@ M  END`;
   1  5  1  0  0  0  0
 M  END`;
     expect(() => parseMolFile(bad)).toThrow(/außerhalb/);
+  });
+});
+
+describe('MECHANISMS', () => {
+  it('enthält alle klassischen Mechanismen', () => {
+    const ids = MECHANISMS.map((m) => m.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['sn2', 'sn1', 'addition-hbr-ethen', 'esterification', 'aldol', 'radikal-polymerisation']),
+    );
+  });
+
+  it('jeder Mechanismus hat mindestens 2 Schritte', () => {
+    for (const m of MECHANISMS) {
+      expect(m.steps.length, m.id).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('jeder Schritt hat before/after/electronFlow', () => {
+    for (const m of MECHANISMS) {
+      for (const [i, s] of m.steps.entries()) {
+        expect(s.titleDE, `${m.id}[${i}].titleDE`).toBeTruthy();
+        expect(s.before, `${m.id}[${i}].before`).toBeTruthy();
+        expect(s.after, `${m.id}[${i}].after`).toBeTruthy();
+        expect(s.electronFlowDE, `${m.id}[${i}].electronFlowDE`).toBeTruthy();
+      }
+    }
+  });
+
+  it('IDs sind global eindeutig', () => {
+    const ids = MECHANISMS.map((m) => m.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('getMechanism findet by id', () => {
+    expect(getMechanism('sn2')?.nameDE).toContain('SN2');
+    expect(getMechanism('does-not-exist')).toBeUndefined();
   });
 });

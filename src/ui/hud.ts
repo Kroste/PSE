@@ -36,6 +36,12 @@ import { computeMolarMass, guessGeometry, hillFormula } from '../game/chemistry/
 import { layoutMolecule3D } from '../game/chemistry/layout';
 import { parseSmiles } from '../game/chemistry/smiles';
 import { parseMolFile } from '../game/chemistry/mol';
+import {
+  MECHANISMS,
+  MECHANISM_CATEGORIES,
+  getMechanism,
+  type Mechanism,
+} from '../game/chemistry/mechanisms';
 
 let feedbackTimer: number | undefined;
 
@@ -62,6 +68,8 @@ export function mountHud(opts: HudOptions = {}): void {
   const achievementsEl = document.getElementById('pse-achievements');
   const achievementsBtn = document.getElementById('pse-toggle-achievements');
   const sandboxBtn = document.getElementById('pse-toggle-sandbox');
+  const mechanismsEl = document.getElementById('pse-mechanisms');
+  const mechanismsBtn = document.getElementById('pse-toggle-mechanisms');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -77,7 +85,9 @@ export function mountHud(opts: HudOptions = {}): void {
     !editorBtn ||
     !achievementsEl ||
     !achievementsBtn ||
-    !sandboxBtn
+    !sandboxBtn ||
+    !mechanismsEl ||
+    !mechanismsBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -184,7 +194,7 @@ export function mountHud(opts: HudOptions = {}): void {
     renderAchievements(achievementsEl);
   };
 
-  const closeAllOverlays = (except: 'table' | 'kb' | 'editor' | 'achievements'): void => {
+  const closeAllOverlays = (except: 'table' | 'kb' | 'editor' | 'achievements' | 'mechanisms'): void => {
     if (except !== 'table') {
       tableEl.hidden = true;
       toggleBtn.classList.remove('pse-btn-primary');
@@ -200,6 +210,10 @@ export function mountHud(opts: HudOptions = {}): void {
     if (except !== 'achievements') {
       achievementsEl.hidden = true;
       achievementsBtn.classList.remove('pse-btn-primary');
+    }
+    if (except !== 'mechanisms') {
+      mechanismsEl.hidden = true;
+      mechanismsBtn.classList.remove('pse-btn-primary');
     }
   };
 
@@ -231,6 +245,45 @@ export function mountHud(opts: HudOptions = {}): void {
     achievementsBtn.classList.toggle('pse-btn-primary', !achievementsEl.hidden);
     if (!achievementsEl.hidden) closeAllOverlays('achievements');
     rerenderAchievements();
+  });
+
+  // Mechanismen-State: aktueller Mechanismus (id) + Schritt-Index.
+  // `null` = Übersichts-Liste; ansonsten Detail-Ansicht des gewählten
+  // Mechanismus am angezeigten Schritt.
+  const mechanismsState: { selectedId: string | null; stepIndex: number } = {
+    selectedId: null,
+    stepIndex: 0,
+  };
+  const rerenderMechanisms = (): void => {
+    if (mechanismsEl.hidden) return;
+    renderMechanisms(mechanismsEl, mechanismsState, {
+      onSelect: (id) => {
+        mechanismsState.selectedId = id;
+        mechanismsState.stepIndex = 0;
+        rerenderMechanisms();
+      },
+      onStep: (delta) => {
+        const m = mechanismsState.selectedId ? getMechanism(mechanismsState.selectedId) : null;
+        if (!m) return;
+        mechanismsState.stepIndex = Math.max(
+          0,
+          Math.min(m.steps.length - 1, mechanismsState.stepIndex + delta),
+        );
+        rerenderMechanisms();
+      },
+      onBack: () => {
+        mechanismsState.selectedId = null;
+        mechanismsState.stepIndex = 0;
+        rerenderMechanisms();
+      },
+    });
+  };
+
+  mechanismsBtn.addEventListener('click', () => {
+    mechanismsEl.hidden = !mechanismsEl.hidden;
+    mechanismsBtn.classList.toggle('pse-btn-primary', !mechanismsEl.hidden);
+    if (!mechanismsEl.hidden) closeAllOverlays('mechanisms');
+    rerenderMechanisms();
   });
 
   const syncExpertBtn = (): void => {
@@ -2218,4 +2271,181 @@ function renderAchievements(el: HTMLElement): void {
   }
 
   el.appendChild(grid);
+}
+
+/** ------------------- Reaktions-Mechanismen-Overlay ------------------- */
+
+type MechanismsUiState = { selectedId: string | null; stepIndex: number };
+type MechanismsUiOptions = {
+  onSelect: (id: string) => void;
+  onStep: (delta: number) => void;
+  onBack: () => void;
+};
+
+function renderMechanisms(
+  el: HTMLElement,
+  state: MechanismsUiState,
+  opts: MechanismsUiOptions,
+): void {
+  el.innerHTML = '';
+
+  if (state.selectedId === null) {
+    renderMechanismList(el, opts);
+    return;
+  }
+  const mechanism = getMechanism(state.selectedId);
+  if (!mechanism) {
+    // Fallback: unbekannte ID → zur Liste zurück
+    opts.onBack();
+    return;
+  }
+  renderMechanismDetail(el, mechanism, state.stepIndex, opts);
+}
+
+function renderMechanismList(el: HTMLElement, opts: MechanismsUiOptions): void {
+  const header = document.createElement('div');
+  header.className = 'pse-mech-header';
+  header.innerHTML =
+    `<strong>Reaktions-Mechanismen</strong> &middot; ` +
+    `${MECHANISMS.length} klassische Mechanismen mit Elektronenfluss-Erklärung.`;
+  el.appendChild(header);
+
+  const hint = document.createElement('p');
+  hint.className = 'pse-hint';
+  hint.textContent =
+    'Wähle einen Mechanismus, um Schritt für Schritt durchzugehen — Vorher/Nachher-Formeln, Elektronenwanderung und Beobachtungshinweise.';
+  el.appendChild(hint);
+
+  // Gruppiert nach Kategorie
+  for (const category of MECHANISM_CATEGORIES) {
+    const items = MECHANISMS.filter((m) => m.categoryDE === category);
+    if (items.length === 0) continue;
+
+    const catHeader = document.createElement('h3');
+    catHeader.className = 'pse-section';
+    catHeader.textContent = category;
+    el.appendChild(catHeader);
+
+    const grid = document.createElement('div');
+    grid.className = 'pse-mech-grid';
+    for (const m of items) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'pse-mech-card';
+      const name = document.createElement('div');
+      name.className = 'pse-mech-card-name';
+      name.textContent = m.nameDE;
+      card.appendChild(name);
+      const reaction = document.createElement('div');
+      reaction.className = 'pse-mech-card-reaction';
+      reaction.textContent = m.overallReaction;
+      card.appendChild(reaction);
+      const summary = document.createElement('div');
+      summary.className = 'pse-mech-card-summary';
+      summary.textContent = m.summaryDE;
+      card.appendChild(summary);
+      const meta = document.createElement('div');
+      meta.className = 'pse-mech-card-meta';
+      meta.textContent = `${m.steps.length} Schritte`;
+      card.appendChild(meta);
+      card.addEventListener('click', () => opts.onSelect(m.id));
+      grid.appendChild(card);
+    }
+    el.appendChild(grid);
+  }
+}
+
+function renderMechanismDetail(
+  el: HTMLElement,
+  mechanism: Mechanism,
+  stepIndex: number,
+  opts: MechanismsUiOptions,
+): void {
+  const backBar = document.createElement('div');
+  backBar.className = 'pse-mech-backbar';
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.className = 'pse-btn';
+  backBtn.textContent = '← Alle Mechanismen';
+  backBtn.addEventListener('click', () => opts.onBack());
+  backBar.appendChild(backBtn);
+  el.appendChild(backBar);
+
+  const header = document.createElement('div');
+  header.className = 'pse-mech-detail-header';
+  header.innerHTML =
+    `<div class="pse-mech-detail-category">${mechanism.categoryDE}</div>` +
+    `<h2 class="pse-mech-detail-title">${mechanism.nameDE}</h2>` +
+    `<div class="pse-mech-detail-reaction">${mechanism.overallReaction}</div>` +
+    `<div class="pse-mech-detail-conditions">Bedingungen: ${mechanism.conditionsDE}</div>`;
+  el.appendChild(header);
+
+  // Schritt-Navigation
+  const nav = document.createElement('div');
+  nav.className = 'pse-mech-nav';
+  const prev = document.createElement('button');
+  prev.type = 'button';
+  prev.className = 'pse-btn';
+  prev.textContent = '◄ Zurück';
+  prev.disabled = stepIndex === 0;
+  prev.addEventListener('click', () => opts.onStep(-1));
+  nav.appendChild(prev);
+  const label = document.createElement('span');
+  label.className = 'pse-mech-nav-label';
+  label.textContent = `Schritt ${stepIndex + 1} von ${mechanism.steps.length}`;
+  nav.appendChild(label);
+  const next = document.createElement('button');
+  next.type = 'button';
+  next.className = 'pse-btn';
+  next.textContent = 'Weiter ►';
+  next.disabled = stepIndex >= mechanism.steps.length - 1;
+  next.addEventListener('click', () => opts.onStep(1));
+  nav.appendChild(next);
+  el.appendChild(nav);
+
+  // Progress-Punkte
+  const dots = document.createElement('div');
+  dots.className = 'pse-mech-dots';
+  for (let i = 0; i < mechanism.steps.length; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'pse-mech-dot';
+    if (i === stepIndex) dot.classList.add('pse-mech-dot-active');
+    else if (i < stepIndex) dot.classList.add('pse-mech-dot-done');
+    dots.appendChild(dot);
+  }
+  el.appendChild(dots);
+
+  const step = mechanism.steps[stepIndex]!;
+  const card = document.createElement('div');
+  card.className = 'pse-mech-step';
+  card.innerHTML =
+    `<h3 class="pse-mech-step-title">${step.titleDE}</h3>` +
+    `<div class="pse-mech-transition">` +
+    `<pre class="pse-mech-formula pse-mech-formula-before">${escapeHtml(step.before)}</pre>` +
+    `<div class="pse-mech-arrow">→</div>` +
+    `<pre class="pse-mech-formula pse-mech-formula-after">${escapeHtml(step.after)}</pre>` +
+    `</div>` +
+    `<div class="pse-mech-flow">` +
+    `<div class="pse-mech-flow-label">Elektronenfluss</div>` +
+    `<p class="pse-mech-flow-text">${escapeHtml(step.electronFlowDE)}</p>` +
+    `</div>` +
+    (step.observationDE
+      ? `<div class="pse-mech-observation">` +
+        `<div class="pse-mech-observation-label">Beobachtung</div>` +
+        `<p>${escapeHtml(step.observationDE)}</p></div>`
+      : '');
+  el.appendChild(card);
+
+  const source = document.createElement('div');
+  source.className = 'pse-mech-source';
+  source.textContent = `Quelle: ${mechanism.source}`;
+  el.appendChild(source);
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

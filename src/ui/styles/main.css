@@ -1326,3 +1326,256 @@ body {
   padding: 1px 4px;
   border-radius: 2px;
 }
+
+/* ---------------- Reaktions-Mechanismen-Overlay ---------------- */
+
+.pse-mechanisms-overlay {
+  position: fixed;
+  inset: 60px 16px 16px 16px;
+  z-index: 20;
+  padding: 14px 18px;
+  background: rgba(6, 10, 14, 0.96);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pse-mechanisms-overlay[hidden] {
+  display: none;
+}
+
+.pse-mech-header {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--panel-border);
+}
+.pse-mech-header strong {
+  color: var(--accent);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pse-mech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+}
+.pse-mech-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--panel-border);
+  border-left-width: 3px;
+  border-left-color: var(--accent);
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-mono);
+  transition:
+    background 120ms,
+    border-color 120ms,
+    transform 80ms;
+}
+.pse-mech-card:hover {
+  background: rgba(0, 255, 176, 0.08);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.pse-mech-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.pse-mech-card-reaction {
+  font-size: 12px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  padding: 4px 0;
+  border-top: 1px dashed var(--panel-border);
+}
+.pse-mech-card-summary {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.pse-mech-card-meta {
+  font-size: 10px;
+  color: var(--text-dim);
+  align-self: flex-end;
+  opacity: 0.7;
+}
+
+.pse-mech-backbar {
+  display: flex;
+  gap: 8px;
+}
+.pse-mech-detail-header {
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+}
+.pse-mech-detail-category {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+.pse-mech-detail-title {
+  margin: 4px 0 6px;
+  color: var(--accent);
+  font-size: 18px;
+}
+.pse-mech-detail-reaction {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text);
+  padding: 6px 0;
+}
+.pse-mech-detail-conditions {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.pse-mech-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pse-mech-nav-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.pse-mech-nav .pse-btn {
+  padding: 6px 14px;
+}
+
+.pse-mech-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+.pse-mech-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 200ms;
+}
+.pse-mech-dot-done {
+  background: rgba(0, 255, 176, 0.4);
+}
+.pse-mech-dot-active {
+  background: var(--accent);
+  transform: scale(1.4);
+}
+
+.pse-mech-step {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pse-mech-step-title {
+  margin: 0;
+  color: var(--accent);
+  font-size: 15px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+.pse-mech-transition {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pse-mech-formula {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+.pse-mech-formula-before {
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+}
+.pse-mech-formula-after {
+  border-left: 3px solid var(--accent);
+  color: var(--accent);
+}
+.pse-mech-arrow {
+  font-size: 22px;
+  color: var(--accent);
+  font-weight: 700;
+  min-width: 30px;
+  text-align: center;
+}
+
+.pse-mech-flow,
+.pse-mech-observation {
+  padding: 10px 12px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.pse-mech-flow {
+  border-left: 3px solid #66aaff;
+}
+.pse-mech-observation {
+  border-left: 3px solid #ffdd66;
+}
+.pse-mech-flow-label,
+.pse-mech-observation-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.8;
+}
+.pse-mech-flow-label {
+  color: #88bbff;
+}
+.pse-mech-observation-label {
+  color: #ffdd66;
+}
+.pse-mech-flow-text,
+.pse-mech-observation p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.pse-mech-source {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  opacity: 0.7;
+  text-align: right;
+}
