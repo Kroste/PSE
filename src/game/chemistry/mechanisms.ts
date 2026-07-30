@@ -242,6 +242,31 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'Ein Wassermolekül im Lösemittel nimmt ein Proton vom Oxonium ab. Elektronenpaar der O-H-Bindung geht an O zurück.',
         observationDE: 'Aus dem H⁺ + Br⁻ wird HBr — das ist das Nebenprodukt.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-1.5, 0, 0] }, // 0: t-Bu-C
+            { element: 'O', position: [0, 0, 0] }, // 1: O⁺
+            { element: 'H', position: [0.7, 0.9, 0] }, // 2: H am O (bleibt)
+            { element: 'H', position: [0.7, -0.9, 0] }, // 3: H (geht ab)
+            { element: 'O', position: [2.1, -1.5, 0] }, // 4: Wasser-O (Base)
+            { element: 'H', position: [1.6, -2.3, 0] },
+            { element: 'H', position: [3.0, -1.8, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 1 },
+            { from: 1, to: 3, order: 1, style: 'dashed' }, // schwindend
+            { from: 4, to: 5, order: 1 },
+            { from: 4, to: 6, order: 1 },
+            { from: 4, to: 3, order: 1, style: 'dashed' }, // neu werdend
+          ],
+          arrows: [
+            // Lone pair der Base zum Proton
+            { from: [2.0, -1.2, 0], to: [0.75, -0.9, 0], curvature: 0.35 },
+            // O-H-Bindung geht zurück zum O
+            { from: [0.45, -0.65, 0], to: [0.1, -0.1, 0], curvature: 0.3 },
+          ],
+        },
       },
     ],
     source: 'Clayden, Greeves, Warren — Organische Chemie (2. Aufl., Kap. 15)',
@@ -338,6 +363,27 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'Freies Elektronenpaar am Carbonyl-Sauerstoff nimmt ein Proton auf. Der Kohlenstoff wird dadurch deutlich elektrophiler.',
         observationDE: 'Die Säure macht den Carbonyl-C für den nächsten Angriff attraktiv.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-1.4, 0, 0] }, // 0: Methyl
+            { element: 'C', position: [0, 0, 0] }, // 1: Carbonyl-C
+            { element: 'O', position: [0, 1.3, 0] }, // 2: =O (Lone Pair greift H)
+            { element: 'O', position: [1.2, -0.8, 0] }, // 3: -OH
+            { element: 'H', position: [2.1, -0.5, 0] },
+            { element: 'H', position: [1.2, 2.4, 0] }, // 5: H⁺ (kommt von oben)
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 2 },
+            { from: 1, to: 3, order: 1 },
+            { from: 3, to: 4, order: 1 },
+            { from: 2, to: 5, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Lone pair vom Carbonyl-O zum Proton
+            { from: [0.3, 1.5, 0], to: [1.1, 2.3, 0], curvature: 0.35 },
+          ],
+        },
       },
       {
         titleDE: 'Angriff des Alkohols',
@@ -385,6 +431,33 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'Proton wandert vom Ethoxy-O zur OH-Gruppe (macht sie zu -OH₂⁺). Elektronenpaar der C-OH₂⁺-Bindung wandert zum O — Wasser tritt aus.',
         observationDE: 'Das ausgetretene Wasser ist die "Abgangsgruppe" dieser Kondensation.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [0, 0, 0] }, // 0: zentraler C (tetraedrisch)
+            { element: 'O', position: [1.2, 0.9, 0] }, // 1: -OH2+ (wird Wasser)
+            { element: 'H', position: [2.1, 0.7, 0] },
+            { element: 'H', position: [1.5, 2.0, 0] },
+            { element: 'O', position: [-1.2, 0.7, 0] }, // 4: -O-Et (bleibt)
+            { element: 'C', position: [-2.0, -0.4, 0] }, // 5: Et-C
+            { element: 'C', position: [-1.4, 0, 0] }, // 6: Methyl-C
+            { element: 'O', position: [0.6, -1.3, 0] }, // 7: -OH (wird =O)
+            { element: 'H', position: [1.5, -1.3, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1, style: 'dashed' }, // C-OH2 schwindend
+            { from: 1, to: 2, order: 1 },
+            { from: 1, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1 },
+            { from: 4, to: 5, order: 1 },
+            { from: 0, to: 6, order: 1 },
+            { from: 0, to: 7, order: 1 },
+            { from: 7, to: 8, order: 1 },
+          ],
+          arrows: [
+            // C-OH2+ Bindung → O (Wasser tritt aus)
+            { from: [0.6, 0.45, 0], to: [1.2, 0.9, 0], curvature: 0.3 },
+          ],
+        },
       },
       {
         titleDE: 'Deprotonierung zum Ester',
@@ -392,6 +465,33 @@ export const MECHANISMS: Mechanism[] = [
         after: 'CH₃-C(=O)-OCH₂CH₃    +    H⁺',
         electronFlowDE:
           'Ein Wassermolekül nimmt das überschüssige Proton am Carbonyl-Sauerstoff wieder ab. Katalysator ist regeneriert.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-1.5, 0, 0] }, // 0: Methyl
+            { element: 'C', position: [0, 0, 0] }, // 1: Carbonyl-C
+            { element: 'O', position: [0, 1.3, 0] }, // 2: =O+ (mit H)
+            { element: 'H', position: [0.6, 2.1, 0] }, // 3: H (geht ab)
+            { element: 'O', position: [1.3, -0.8, 0] }, // 4: -O-Et
+            { element: 'C', position: [2.6, -0.4, 0] }, // 5: Et-C
+            { element: 'O', position: [1.7, 2.9, 0] }, // 6: Wasser-O (Base)
+            { element: 'H', position: [1.1, 3.6, 0] },
+            { element: 'H', position: [2.6, 2.9, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 2 },
+            { from: 2, to: 3, order: 1, style: 'dashed' }, // schwindend
+            { from: 1, to: 4, order: 1 },
+            { from: 4, to: 5, order: 1 },
+            { from: 6, to: 7, order: 1 },
+            { from: 6, to: 8, order: 1 },
+            { from: 6, to: 3, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            { from: [1.6, 2.9, 0], to: [0.7, 2.1, 0], curvature: 0.3 },
+            { from: [0.3, 1.7, 0], to: [0, 1.3, 0], curvature: 0.3 },
+          ],
+        },
       },
     ],
     source: 'Bruice — Organic Chemistry (8th ed., Ch. 17)',
@@ -411,6 +511,33 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'Base zieht α-Proton vom C neben der Carbonyl-Gruppe ab. Elektronenpaar der C-H-Bindung wandert in die Carbonyl-Ebene und wird durch Resonanz mit dem C=O stabilisiert.',
         observationDE: 'Nur α-H (nachbarn zur C=O) sind sauer genug (pKa ~20) — die Carbonyl-Gruppe stabilisiert die negative Ladung.',
+        viz3d: {
+          atoms: [
+            { element: 'O', position: [-2.5, 0, 0] }, // 0: HO⁻ Base
+            { element: 'H', position: [-3.3, 0.6, 0] },
+            { element: 'C', position: [-0.7, 0, 0] }, // 2: α-C
+            { element: 'H', position: [-1.4, 0.9, 0] }, // 3: α-H (schwindend)
+            { element: 'H', position: [-0.7, -0.9, 0.5] },
+            { element: 'C', position: [0.7, 0.7, 0] }, // 5: Carbonyl-C
+            { element: 'O', position: [1.9, 0.4, 0] }, // 6: =O
+            { element: 'H', position: [0.7, 1.7, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 2, to: 3, order: 1, style: 'dashed' }, // C-H schwindend
+            { from: 2, to: 4, order: 1 },
+            { from: 2, to: 5, order: 1 },
+            { from: 5, to: 6, order: 2 },
+            { from: 5, to: 7, order: 1 },
+            { from: 0, to: 3, order: 1, style: 'dashed' }, // neue O-H werdend
+          ],
+          arrows: [
+            // Base greift α-H
+            { from: [-2.3, 0.2, 0], to: [-1.3, 0.85, 0], curvature: 0.3 },
+            // C-H-Paar → π-System der C=O (wandert in die Ebene)
+            { from: [-1.05, 0.45, 0], to: [-0.35, 0.35, 0], curvature: 0.35 },
+          ],
+        },
       },
       {
         titleDE: 'Nucleophiler Angriff des Enolats',
@@ -458,6 +585,31 @@ export const MECHANISMS: Mechanism[] = [
         after: 'CH₃-CH(OH)-CH₂-CHO (Aldol)    +    OH⁻',
         electronFlowDE:
           'Alkoxid deprotoniert ein Wassermolekül. Base regeneriert.',
+        viz3d: {
+          atoms: [
+            { element: 'O', position: [-1.5, 0, 0] }, // 0: Alkoxid O⁻
+            { element: 'C', position: [0, 0, 0] }, // 1: sp³-C
+            { element: 'C', position: [0.7, 1.2, 0] }, // 2: CH2
+            { element: 'C', position: [-0.7, -1.2, 0] }, // 3: Methyl
+            { element: 'O', position: [-2.7, 1.5, 0] }, // 4: Wasser-O
+            { element: 'H', position: [-2.0, 1.0, 0] }, // 5: Wasser-H (geht ab)
+            { element: 'H', position: [-3.6, 1.2, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 1 },
+            { from: 1, to: 3, order: 1 },
+            { from: 4, to: 5, order: 1, style: 'dashed' }, // schwindend
+            { from: 4, to: 6, order: 1 },
+            { from: 0, to: 5, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Lone pair vom Alkoxid → H
+            { from: [-1.3, 0.3, 0], to: [-2.1, 1.0, 0], curvature: 0.3 },
+            // O-H-Paar zurück zum O
+            { from: [-2.35, 1.25, 0], to: [-2.7, 1.5, 0], curvature: 0.25 },
+          ],
+        },
       },
       {
         titleDE: 'Dehydratisierung zum Enal',
@@ -466,6 +618,39 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'E1cb: α-Proton wird abgezogen, das entstehende Carbanion wirft dann OH⁻ aus. Ergebnis: konjugiertes α,β-ungesättigtes Carbonyl (Enal).',
         observationDE: 'Erst bei Erwärmung — die reine Aldol-Addition (Schritt 3) ist auch isolierbar.',
+        viz3d: {
+          atoms: [
+            { element: 'O', position: [-3.0, 1.4, 0] }, // 0: Base OH⁻
+            { element: 'H', position: [-3.9, 1.6, 0] },
+            { element: 'C', position: [-1.4, 0, 0] }, // 2: β-C (mit OH)
+            { element: 'C', position: [0, 0.5, 0] }, // 3: α-C (mit H, das abgeht)
+            { element: 'H', position: [-0.4, 1.5, 0] }, // 4: α-H (schwindend)
+            { element: 'C', position: [1.4, 0, 0] }, // 5: Carbonyl-C
+            { element: 'O', position: [2.5, 0.6, 0] }, // 6: =O
+            { element: 'H', position: [1.4, -1.0, 0] },
+            { element: 'O', position: [-2.4, -0.7, 0] }, // 8: OH (schwindend)
+            { element: 'H', position: [-3.2, -1.0, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 2, to: 3, order: 1 }, // wird C=C
+            { from: 3, to: 4, order: 1, style: 'dashed' }, // α-H schwindend
+            { from: 3, to: 5, order: 1 },
+            { from: 5, to: 6, order: 2 },
+            { from: 5, to: 7, order: 1 },
+            { from: 2, to: 8, order: 1, style: 'dashed' }, // OH schwindend
+            { from: 8, to: 9, order: 1 },
+            { from: 0, to: 4, order: 1, style: 'dashed' }, // neue O-H
+          ],
+          arrows: [
+            // Base greift α-H
+            { from: [-2.8, 1.4, 0], to: [-0.4, 1.4, 0], curvature: 0.35 },
+            // C-H-Paar wird zur C=C
+            { from: [-0.2, 1.0, 0], to: [-0.7, 0.25, 0], curvature: 0.3 },
+            // C-OH wandert zum OH (Wasser tritt aus)
+            { from: [-1.9, -0.35, 0], to: [-2.4, -0.7, 0], curvature: 0.3 },
+          ],
+        },
       },
     ],
     source: 'Clayden — Organische Chemie (2. Aufl., Kap. 26)',
@@ -488,6 +673,37 @@ export const MECHANISMS: Mechanism[] = [
           'Nucleophiler Sauerstoff wird durch Kopplungs­reagenz oder tRNA-Anhang aktiviert. Am Ribosom: die COOH wird als Ester an das 3\'-OH der tRNA gebunden.',
         observationDE:
           'Ohne Aktivierung wäre die Reaktion viel zu langsam — Carboxylat und Amin bilden bevorzugt ein Salz statt eine Bindung.',
+        viz3d: {
+          atoms: [
+            { element: 'N', position: [-2.5, 0, 0] }, // 0: H2N-
+            { element: 'H', position: [-3.1, 0.8, 0] },
+            { element: 'H', position: [-3.1, -0.8, 0] },
+            { element: 'C', position: [-1.2, 0.4, 0] }, // 3: Cα
+            { element: 'C', position: [0, 0, 0] }, // 4: Carbonyl-C
+            { element: 'O', position: [0, 1.3, 0] }, // 5: =O
+            { element: 'O', position: [1.2, -0.7, 0] }, // 6: -OH (schwindend)
+            { element: 'H', position: [2.1, -0.4, 0] }, // 7: (geht mit Aktivator)
+            { element: 'O', position: [2.7, -1.6, 0] }, // 8: Aktivator (tRNA-O)
+            { element: 'C', position: [4.0, -1.5, 0] }, // 9: tRNA-C (Andeutung)
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 3, to: 4, order: 1 },
+            { from: 4, to: 5, order: 2 },
+            { from: 4, to: 6, order: 1, style: 'dashed' }, // -OH tritt aus
+            { from: 6, to: 7, order: 1 },
+            { from: 8, to: 9, order: 1 },
+            { from: 4, to: 8, order: 1, style: 'dashed' }, // werdender Ester
+          ],
+          arrows: [
+            // Lone Pair vom tRNA-O → Carbonyl-C
+            { from: [2.5, -1.3, 0], to: [0.3, -0.15, 0], curvature: 0.4 },
+            // C-OH-Paar → OH (raus)
+            { from: [0.6, -0.35, 0], to: [1.2, -0.7, 0], curvature: 0.25 },
+          ],
+        },
       },
       {
         titleDE: 'Nucleophiler Angriff der Amino-Gruppe',
@@ -535,6 +751,36 @@ export const MECHANISMS: Mechanism[] = [
           'Elektronenpaar der C-O-Bindung wandert zum abgehenden O (Hydroxyl bzw. tRNA-Ester). Neue C=O rebildet sich. Peptidbindung ist planar (partieller Doppelbindungscharakter durch N-Lone-Pair).',
         observationDE:
           'Die Peptidbindung ist wegen Resonanz planar und nur eingeschränkt drehbar — Grundlage der Sekundärstruktur (α-Helix, β-Faltblatt).',
+        viz3d: {
+          atoms: [
+            // Tetrahedrales Intermediat + Abgangsgruppe rechts
+            { element: 'N', position: [-2.0, -0.8, 0] }, // 0: N (der neue Amid-N)
+            { element: 'H', position: [-2.5, -1.7, 0] },
+            { element: 'C', position: [-3.4, -0.4, 0] }, // 2: Cα rechts
+            { element: 'C', position: [0, 0, 0] }, // 3: zentraler C (tetraedrisch)
+            { element: 'O', position: [0, 1.4, 0] }, // 4: -OH (wird =O)
+            { element: 'H', position: [0.8, 2.0, 0] },
+            { element: 'O', position: [1.4, -0.6, 0] }, // 6: Abgangsgruppe (schwindend)
+            { element: 'C', position: [2.6, -1.2, 0] }, // 7: tRNA/Ester-Rest
+            { element: 'C', position: [-1.4, 0.7, 0] }, // 8: Cα links
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 3, to: 4, order: 1 }, // wird C=O
+            { from: 4, to: 5, order: 1 },
+            { from: 3, to: 6, order: 1, style: 'dashed' }, // Abgang
+            { from: 6, to: 7, order: 1 },
+            { from: 3, to: 8, order: 1 },
+          ],
+          arrows: [
+            // C-O-Bindungspaar → wird π-Bindung (C=O rebildet sich)
+            { from: [0, 0.6, 0], to: [0, 1.4, 0], curvature: 0.3 },
+            // C-Abgangsgruppen-Bindungspaar → O der Abgangsgruppe
+            { from: [0.6, -0.3, 0], to: [1.4, -0.6, 0], curvature: 0.3 },
+          ],
+        },
       },
     ],
     source: 'Voet & Voet — Biochemistry (4th ed., Ch. 4-5)',
@@ -554,6 +800,25 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'Homolyse: die schwache O-O-Bindung bricht symmetrisch — jedes O behält ein Elektron. Es entstehen zwei Alkoxy-Radikale. Halbpfeile ("fish-hook") statt normaler Elektronenpaar-Pfeile.',
         observationDE: 'Wärme oder UV-Licht liefert die Aktivierungsenergie. Halbwertszeit des Initiators bestimmt die Reaktionsgeschwindigkeit.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-2.4, 0, 0] }, // 0: R-C (links)
+            { element: 'O', position: [-1.0, 0, 0] }, // 1: O
+            { element: 'O', position: [1.0, 0, 0] }, // 2: O
+            { element: 'C', position: [2.4, 0, 0] }, // 3: R-C (rechts)
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 1, style: 'dashed' }, // bricht homolytisch
+            { from: 2, to: 3, order: 1 },
+          ],
+          arrows: [
+            // Halbpfeil links (ein Elektron zum O)
+            { from: [-0.3, 0.3, 0], to: [-0.9, 0.3, 0], curvature: 0.25, fullArrow: false },
+            // Halbpfeil rechts (anderes Elektron zum anderen O)
+            { from: [0.3, -0.3, 0], to: [0.9, -0.3, 0], curvature: 0.25, fullArrow: false },
+          ],
+        },
       },
       {
         titleDE: 'Kettenstart',
@@ -561,6 +826,33 @@ export const MECHANISMS: Mechanism[] = [
         after: 'R-O-CH₂-CH₂·',
         electronFlowDE:
           'Radikal-Elektron und ein π-Elektron der C=C-Doppelbindung bilden eine neue σ-Bindung. Das andere π-Elektron bleibt als ungepaartes Elektron am zweiten C — neues Kohlenstoff-Radikal.',
+        viz3d: {
+          atoms: [
+            { element: 'O', position: [-2.5, 0.3, 0] }, // 0: R-O· Radikal
+            { element: 'C', position: [-3.6, -0.3, 0] }, // 1: R
+            { element: 'C', position: [-0.5, 0.5, 0] }, // 2: C1 (nimmt R-O)
+            { element: 'C', position: [1.0, 0.5, 0] }, // 3: C2 (wird Radikal)
+            { element: 'H', position: [-1.1, 1.4, 0] },
+            { element: 'H', position: [-0.5, -0.5, 0] },
+            { element: 'H', position: [1.6, 1.4, 0] },
+            { element: 'H', position: [1.6, -0.5, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 2, to: 3, order: 2 }, // C=C
+            { from: 2, to: 4, order: 1 },
+            { from: 2, to: 5, order: 1 },
+            { from: 3, to: 6, order: 1 },
+            { from: 3, to: 7, order: 1 },
+            { from: 0, to: 2, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Halbpfeil vom Radikal-O zum C1
+            { from: [-2.3, 0.4, 0], to: [-0.7, 0.5, 0], curvature: 0.3, fullArrow: false },
+            // Halbpfeil π-Elektron des C=C zum C2 (wird neues Radikal)
+            { from: [0.3, 0.7, 0], to: [1.0, 0.7, 0], curvature: 0.25, fullArrow: false },
+          ],
+        },
       },
       {
         titleDE: 'Kettenwachstum (Propagation)',
@@ -615,6 +907,37 @@ export const MECHANISMS: Mechanism[] = [
         electronFlowDE:
           'Zwei Radikal-Enden treffen sich, ihre ungepaarten Elektronen bilden eine neue C-C-Bindung. Kette ist tot.',
         observationDE: 'Alternative: Disproportionierung — ein Radikal überträgt sein β-H auf das andere, es entstehen ein Alken und ein Alkan.',
+        viz3d: {
+          atoms: [
+            // Zwei Radikal-Kettenenden nähern sich in der Mitte
+            { element: 'C', position: [-2.8, 0.3, 0] }, // 0: R-CH2-
+            { element: 'C', position: [-1.4, -0.3, 0] }, // 1: -CH2· (Radikal links)
+            { element: 'C', position: [1.4, -0.3, 0] }, // 2: ·CH2- (Radikal rechts)
+            { element: 'C', position: [2.8, 0.3, 0] }, // 3: -CH2-R
+            { element: 'H', position: [-3.4, 1.1, 0] },
+            { element: 'H', position: [-1.4, -1.3, 0] },
+            { element: 'H', position: [-1.4, -0.3, 0.9] },
+            { element: 'H', position: [1.4, -1.3, 0] },
+            { element: 'H', position: [1.4, -0.3, 0.9] },
+            { element: 'H', position: [3.4, 1.1, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 2, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1 },
+            { from: 1, to: 5, order: 1 },
+            { from: 1, to: 6, order: 1 },
+            { from: 2, to: 7, order: 1 },
+            { from: 2, to: 8, order: 1 },
+            { from: 3, to: 9, order: 1 },
+            { from: 1, to: 2, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Zwei Halbpfeile, die sich in der Mitte treffen
+            { from: [-1.0, -0.1, 0], to: [0, -0.3, 0], curvature: 0.2, fullArrow: false },
+            { from: [1.0, -0.1, 0], to: [0, -0.3, 0], curvature: -0.2, fullArrow: false },
+          ],
+        },
       },
     ],
     source: 'Odian — Principles of Polymerization (4th ed., Ch. 3)',
@@ -637,6 +960,29 @@ export const MECHANISMS: Mechanism[] = [
           'Damit E2 konzertiert laufen kann, muss das β-H mit der C-X-Bindung anti-periplanar stehen (Diederwinkel 180°). Bei Cyclohexan heißt das: beide axial. Bei acyclischen Systemen ist die frei rotierbare Konformation meist zugänglich.',
         observationDE:
           'Ist keine anti-periplanare Konformation möglich (z. B. sperrige Substituenten), fällt die Reaktion auf E1 oder SN1 zurück.',
+        viz3d: {
+          atoms: [
+            // Zeigt Cβ-H und Cα-Br "gegenüber", 180° Diederwinkel
+            { element: 'H', position: [0, 1.5, 0] }, // 0: β-H (oben)
+            { element: 'C', position: [-0.7, 0.5, 0] }, // 1: Cβ
+            { element: 'C', position: [0.7, -0.5, 0] }, // 2: Cα
+            { element: 'Br', position: [0.7, -2.0, 0] }, // 3: Br (unten, anti zu H)
+            { element: 'H', position: [-1.7, 0.9, 0] },
+            { element: 'H', position: [-1.0, 0.0, 0.9] },
+            { element: 'H', position: [1.7, -0.1, 0] },
+            { element: 'H', position: [0.7, -0.6, 0.9] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 1 },
+            { from: 2, to: 3, order: 1 },
+            { from: 1, to: 4, order: 1 },
+            { from: 1, to: 5, order: 1 },
+            { from: 2, to: 6, order: 1 },
+            { from: 2, to: 7, order: 1 },
+          ],
+          arrows: [],
+        },
       },
       {
         titleDE: 'Konzertierter Übergang',
@@ -756,6 +1102,42 @@ export const MECHANISMS: Mechanism[] = [
           'Kein weiterer Elektronenfluss — die Cycloaddition ist bereits abgeschlossen. Wichtig aber die räumliche Konsequenz: alle Substituenten am Dienophil, die vor der Reaktion cis (auf derselben Seite der C=C) standen, bleiben cis im Produkt. Trans bleibt trans. Ebenso beim Dien: E/Z-Konfiguration überträgt sich 1:1 in die räumliche Anordnung am neuen Ring.',
         observationDE:
           'Endo-Regel: bei Reaktionen mit sekundären orbitalen Wechselwirkungen (elektronenziehende Substituenten im Dienophil) ist das endo-Produkt kinetisch bevorzugt, obwohl das exo-Produkt thermodynamisch stabiler wäre.',
+        viz3d: {
+          // Cyclohexen-Produkt: 6er-Ring mit einer C=C
+          atoms: [
+            { element: 'C', position: [1.4, 0, 0] },
+            { element: 'C', position: [0.7, 1.21, 0] },
+            { element: 'C', position: [-0.7, 1.21, 0] },
+            { element: 'C', position: [-1.4, 0, 0] },
+            { element: 'C', position: [-0.7, -1.21, 0] },
+            { element: 'C', position: [0.7, -1.21, 0] },
+            { element: 'H', position: [2.3, 0.5, 0] },
+            { element: 'H', position: [1.1, 2.15, 0.4] },
+            { element: 'H', position: [-1.1, 2.15, 0.4] },
+            { element: 'H', position: [-2.3, 0.5, 0] },
+            { element: 'H', position: [-1.1, -2.15, 0.4] },
+            { element: 'H', position: [-1.1, -2.15, -0.4] },
+            { element: 'H', position: [1.1, -2.15, 0.4] },
+            { element: 'H', position: [1.1, -2.15, -0.4] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 2 }, // die verbleibende C=C
+            { from: 2, to: 3, order: 1 },
+            { from: 3, to: 4, order: 1 },
+            { from: 4, to: 5, order: 1 },
+            { from: 5, to: 0, order: 1 },
+            { from: 0, to: 6, order: 1 },
+            { from: 1, to: 7, order: 1 },
+            { from: 2, to: 8, order: 1 },
+            { from: 3, to: 9, order: 1 },
+            { from: 4, to: 10, order: 1 },
+            { from: 4, to: 11, order: 1 },
+            { from: 5, to: 12, order: 1 },
+            { from: 5, to: 13, order: 1 },
+          ],
+          arrows: [],
+        },
       },
     ],
     source: 'Diels & Alder, Liebigs Ann. Chem. 460, 98 (1928); Clayden Kap. 34',
@@ -821,6 +1203,29 @@ export const MECHANISMS: Mechanism[] = [
           'Verdünnte Säure (meist NH₄Cl-Lösung) protoniert das Alkoxid — Elektronenpaar am O⁻ nimmt ein Proton auf. Ergebnis: der freie Alkohol.',
         observationDE:
           'Diese Aufarbeitung ist so Standard, dass sie oft in Reaktionsgleichungen einfach als "H₃O⁺" oder gar nicht dazugeschrieben wird. Ohne sie hätte man aber nur das Magnesium-Alkoxid.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-1.5, 0, 0] }, // 0: CH3
+            { element: 'C', position: [-0.2, 0, 0] }, // 1: CH
+            { element: 'O', position: [0.6, 1.2, 0] }, // 2: O⁻
+            { element: 'H', position: [-0.2, -1.0, 0] }, // 3: H am C
+            { element: 'O', position: [2.3, 2.3, 0] }, // 4: H2O
+            { element: 'H', position: [1.6, 1.9, 0] }, // 5: H (geht ab)
+            { element: 'H', position: [3.1, 1.9, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 1 },
+            { from: 1, to: 3, order: 1 },
+            { from: 4, to: 5, order: 1, style: 'dashed' }, // schwindend
+            { from: 4, to: 6, order: 1 },
+            { from: 2, to: 5, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Lone pair vom Alkoxid → H
+            { from: [0.8, 1.4, 0], to: [1.6, 1.9, 0], curvature: 0.3 },
+          ],
+        },
       },
     ],
     source: 'Grignard, C. R. Acad. Sci. 130, 1322 (1900); Clayden Kap. 9',
@@ -843,6 +1248,36 @@ export const MECHANISMS: Mechanism[] = [
           'Freies Elektronenpaar am Aluminium (formal an dessen leerem p-Orbital) zieht das Chlor ab; das C-Cl-Bindungselektronenpaar folgt komplett. Zurück bleibt ein Methylkation, das Elektrophil.',
         observationDE:
           'Bei primären Halogeniden entsteht oft KEIN freies Kation, sondern nur ein stark polarisiertes Komplex — dennoch ausreichend elektrophil.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-2.0, 0, 0] }, // 0: CH3
+            { element: 'H', position: [-2.7, 0.9, 0] },
+            { element: 'H', position: [-2.7, -0.9, 0] },
+            { element: 'H', position: [-2.0, 0, 0.9] },
+            { element: 'Cl', position: [-0.4, 0, 0] }, // 4: Cl (wird gezogen)
+            // AlCl3 rechts (Al mit 3 Cl)
+            { element: 'Al', position: [1.4, 0, 0] }, // 5
+            { element: 'Cl', position: [2.3, 1.1, 0] },
+            { element: 'Cl', position: [2.3, -1.1, 0] },
+            { element: 'Cl', position: [1.4, 0, 1.3] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1, style: 'dashed' }, // C-Cl schwindend
+            { from: 5, to: 6, order: 1 },
+            { from: 5, to: 7, order: 1 },
+            { from: 5, to: 8, order: 1 },
+            { from: 4, to: 5, order: 1, style: 'dashed' }, // Cl-Al werdend
+          ],
+          arrows: [
+            // C-Cl-Paar → Cl (heterolytisch)
+            { from: [-1.4, 0.15, 0], to: [-0.4, 0.3, 0], curvature: 0.3 },
+            // Al zieht Cl weg (Elektronenpaar des Cl → Al leeres p)
+            { from: [-0.1, 0, 0], to: [1.0, 0, 0], curvature: 0.3 },
+          ],
+        },
       },
       {
         titleDE: 'Elektrophile aromatische Substitution',
@@ -917,6 +1352,38 @@ export const MECHANISMS: Mechanism[] = [
           'Das Carbanion-artige C des Ylids (⁻CH₂-PPh₃⁺, Yliden-Form) hat ein freies Elektronenpaar. Dieses greift den elektrophilen Carbonyl-C an. π-Elektronen der C=O wandern zum O — es entsteht ein zwitterionisches Betain mit P⁺ und O⁻ an gegenüberliegenden Enden.',
         observationDE:
           'Der Ylid-Kohlenstoff ist ein starkes Nucleophil, weil das benachbarte Phosphor das negative Elektronenpaar durch d-Orbital-Beteiligung stabilisiert.',
+        viz3d: {
+          atoms: [
+            { element: 'P', position: [-2.5, 0.8, 0] }, // 0: Ph3P⁺
+            { element: 'C', position: [-3.5, -0.4, 0] }, { element: 'C', position: [-3.5, 1.9, 0] }, { element: 'C', position: [-2.5, 0.8, 1.3] }, // 3 Phenyl-Andeutungen
+            { element: 'C', position: [-1.2, 0.0, 0] }, // 4: Ylid-C (Carbanion)
+            { element: 'H', position: [-1.4, -1.0, 0] },
+            { element: 'H', position: [-1.4, 0.0, 0.9] },
+            // Formaldehyd rechts
+            { element: 'C', position: [0.8, 0.0, 0] }, // 7: Carbonyl-C
+            { element: 'O', position: [0.8, 1.3, 0] }, // 8: =O
+            { element: 'H', position: [1.7, -0.4, 0] },
+            { element: 'H', position: [-0.1, -0.4, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1 }, // P-C (Yliden-Doppelbindungscharakter)
+            { from: 4, to: 5, order: 1 },
+            { from: 4, to: 6, order: 1 },
+            { from: 7, to: 8, order: 2 }, // C=O
+            { from: 7, to: 9, order: 1 },
+            { from: 7, to: 10, order: 1 },
+            { from: 4, to: 7, order: 1, style: 'dashed' }, // neue C-C werdend
+          ],
+          arrows: [
+            // Freies Elektronenpaar am Ylid-C → Carbonyl-C
+            { from: [-0.9, 0.15, 0], to: [0.6, 0.0, 0], curvature: 0.35 },
+            // π-Elektronen der C=O → O
+            { from: [0.8, 0.7, 0], to: [0.8, 1.3, 0], curvature: 0.3 },
+          ],
+        },
       },
       {
         titleDE: 'Oxaphosphetan-Ring und Zerfall',
