@@ -2,7 +2,6 @@ import {
   CanvasTexture,
   Color,
   DirectionalLight,
-  DoubleSide,
   Group,
   HemisphereLight,
   LinearFilter,
@@ -10,7 +9,6 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
-  RingGeometry,
   Scene,
   SphereGeometry,
   Sprite,
@@ -38,9 +36,6 @@ export type SceneBundle = {
   showAtom: (elementId: string | null) => void;
 };
 
-const RING_OUTER = 1.62;
-const RING_INNER_MARKER = 0.98;
-const RING_CENTER_MARKER = 0.42;
 const PARTICLE_RADIUS = 0.16;
 const RESULT_FLASH_SECONDS = 1.4;
 const ATOM_CENTER = new Vector3(0, 0.9, 0);
@@ -100,17 +95,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   const key = new DirectionalLight(0x88ffcc, 1.4);
   key.position.set(4, 6, 5);
   scene.add(key);
-
-  const platformGroup = new Group();
-  scene.add(platformGroup);
-  const outerRing = makeRing(RING_OUTER - 0.05, RING_OUTER, 0x00ffb0, 0.65);
-  const outerRingMat = outerRing.material as MeshBasicMaterial;
-  const outerRingColorStable = new Color(0x00ffb0);
-  const outerRingColorUnstable = new Color(0xff4466);
-  const outerRingColorReady = new Color(0xffdd66);
-  platformGroup.add(outerRing);
-  platformGroup.add(makeRing(RING_INNER_MARKER - 0.02, RING_INNER_MARKER, 0x00ffb0, 0.35));
-  platformGroup.add(makeRing(RING_CENTER_MARKER - 0.015, RING_CENTER_MARKER, 0x00ffb0, 0.5));
 
   // Reaktionskammer: persistente Partikel mit Live-Physik
   const chamberGroup = new Group();
@@ -570,8 +554,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     scene,
     camera,
     update(dt) {
-      platformGroup.rotation.y += dt * 0.08;
-
       if (!fusion) {
         updateChamberPhysics(dt);
       }
@@ -582,26 +564,6 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
           autoCraftDeadline = null;
           craft();
         }
-      }
-
-      // Plattform-Ring: grün stabil, rot instabil, warmgelb bereit-zur-Fusion.
-      const unstable = !fusion && !decay && isChamberUnstable();
-      const ready = !fusion && !decay && !unstable && autoCraftDeadline !== null;
-      const targetColor = unstable
-        ? outerRingColorUnstable
-        : ready
-          ? outerRingColorReady
-          : outerRingColorStable;
-      outerRingMat.color.lerp(targetColor, Math.min(1, dt * 4));
-      if (unstable) {
-        outerRingMat.opacity = 0.55 + Math.sin(chamberTime * 8) * 0.25;
-      } else if (ready && autoCraftDeadline !== null) {
-        // Beschleunigt pulsieren, je näher der Fusion-Zeitpunkt.
-        const remaining = Math.max(0, autoCraftDeadline - performance.now() / 1000);
-        const pulseSpeed = 4 + (1 - remaining / AUTO_CRAFT_DELAY) * 12;
-        outerRingMat.opacity = 0.6 + Math.sin(chamberTime * pulseSpeed) * 0.3;
-      } else {
-        outerRingMat.opacity = 0.65;
       }
 
       if (decay) {
@@ -721,19 +683,6 @@ function canFuseFromInputs(inputs: Multiset): boolean {
 
 function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-}
-
-function makeRing(innerRadius: number, outerRadius: number, color: number, opacity: number): Mesh {
-  const geo = new RingGeometry(innerRadius, outerRadius, 128);
-  const mat = new MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-    side: DoubleSide,
-  });
-  const mesh = new Mesh(geo, mat);
-  mesh.rotation.x = -Math.PI / 2;
-  return mesh;
 }
 
 function rebuildResult(group: Group, outputs: Multiset): void {
