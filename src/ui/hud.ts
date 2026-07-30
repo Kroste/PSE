@@ -38,6 +38,7 @@ import { parseSmiles } from '../game/chemistry/smiles';
 import { parseMolFile } from '../game/chemistry/mol';
 import { planFor, type BuildPlan } from '../game/pathfinding';
 import { openQuickSearch } from './quick-search';
+import { openCompare } from './compare';
 import { writeMolFile } from '../game/chemistry/mol-writer';
 import { renderSpectraSection } from './spectra-chart';
 import {
@@ -78,6 +79,7 @@ export function mountHud(opts: HudOptions = {}): void {
   const mechanismsBtn = document.getElementById('pse-toggle-mechanisms');
   const challengesEl = document.getElementById('pse-challenges');
   const challengesBtn = document.getElementById('pse-toggle-challenges');
+  const compareBtn = document.getElementById('pse-toggle-compare');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -97,7 +99,8 @@ export function mountHud(opts: HudOptions = {}): void {
     !mechanismsEl ||
     !mechanismsBtn ||
     !challengesEl ||
-    !challengesBtn
+    !challengesBtn ||
+    !compareBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -314,6 +317,13 @@ export function mountHud(opts: HudOptions = {}): void {
     challengesBtn.classList.toggle('pse-btn-primary', !challengesEl.hidden);
     if (!challengesEl.hidden) closeAllOverlays('challenges');
     rerenderChallenges();
+  });
+
+  compareBtn.addEventListener('click', () => {
+    // Wenn gerade ein Molekül im Detail steht, das als linkes vorbelegen
+    const selEnt = selectedEntityId ? getEntity(selectedEntityId) : null;
+    const leftId = selEnt?.kind === 'molecule' ? selEnt.id : null;
+    openCompare({ leftId });
   });
 
   const syncExpertBtn = (): void => {
@@ -788,6 +798,14 @@ function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
       exportBtn.title = 'Als .mol-Datei speichern (kompatibel mit PubChem, ChemDraw, RDKit)';
       exportBtn.addEventListener('click', () => downloadMolFile(entity as MoleculeEntity));
       actions.appendChild(exportBtn);
+
+      const compareBtn = document.createElement('button');
+      compareBtn.type = 'button';
+      compareBtn.className = 'pse-btn';
+      compareBtn.textContent = '⚖ Vergleichen';
+      compareBtn.title = 'Zweites Molekül zum Seite-an-Seite-Vergleich wählen';
+      compareBtn.addEventListener('click', () => openCompare({ leftId: entity.id }));
+      actions.appendChild(compareBtn);
     }
 
     const planBtn = document.createElement('button');
