@@ -253,11 +253,27 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   Sternfusion) oder "Nächste Reaktion" (Chemielabor).
   PSE-Overlay zeigt Atommasse, Kategorien-Farbrand, Statistik-Kopfzeile und
   vollständige Legende.
-- **M6** — Biomoleküle: Zucker (Glukose, Fructose, Saccharose), Aminosäuren
-  (Glycin, Alanin), Peptide, DNA-Basen (Adenin, Thymin, Guanin, Cytosin).
-- **M7** — Polymere: Polyethylen, PET, Nylon, längere PDMS-Ketten, Kevlar.
-- **M8** — Astrochemie: interstellare Ionen und Radikale (H₃⁺, HCO⁺, CN·),
-  komplexere organische Moleküle im Weltraum (Methylamin, PAHs, Aminosäuren-
-  Vorstufen).
-- **M9** — Endgame: Prestige-System nach Discovery-Vollendung, Story-Modus,
-  vielleicht Wiederholungsspiel mit anderen Startbedingungen.
+- **M6** ✅ — Biomoleküle: Aminosäuren (Glycin, Alanin, Serin), Zucker
+  (α-D-Glukose, β-D-Ribose), Nukleobasen (Adenin, Thymin, Guanin, Cytosin,
+  Uracil). Neue Kategorien "Biomolekül (Aminosäure/Zucker/Nukleobase)".
+- **M7** ✅ — Polymer-Monomere und -Ausschnitt: Propen, Vinylchlorid, Styrol,
+  Tetrafluorethylen, Caprolactam, Terephthalsäure sowie PE-Fragment (n=3)
+  als Beispiel-Ausschnitt einer Polymerkette. Neue Kategorien "Polymer-Monomer"
+  und "Polymer (Ausschnitt)".
+- **M8** ✅ — Astrochemie: Ionen (H₃⁺, HCO⁺), Radikale (CN·, OH·), komplexe
+  organische Moleküle (Methanimin, Glykolaldehyd) und PAK (Naphthalin) —
+  interstellare Chemie in eigenen Astrochemie-Kategorien.
+- **M9** ✅ — Endgame-Panel: 20 Achievements (erste Reaktion, Symbol-Meilensteine
+  wie H/He/C/Fe/U/Og, Kategorie-Vollständigkeit wie alle Edelgase/Alkali/
+  Halogene/DNA-Basen/Silikone, Reaktor-Vollständigkeit, Katalog-Vollständigkeit)
+  mit sortiertem Grid (erreicht zuerst), Progress-Bar und Entity-Kind-Statistik.
+- **Wissensdatenbank** ✅ — Overlay-Panel mit allen Entities (Elementarteilchen,
+  Hadronen, Atomkerne, Elemente, Moleküle), filterbar nach Kind, Status
+  (entdeckt/unbekannt) und Freitextsuche über Symbol/Name/Formel/Kategorie.
+  Klick öffnet Detail.
+- **Custom-Verbindungen** ✅ — JSON-Editor-Overlay für nutzerdefinierte
+  Moleküle. Validierung (Pflichtfelder, gültige Element-IDs, atomCounts vs.
+  atoms konsistent, Bond-Indizes, Geometrie), Speicherung in LocalStorage,
+  Auto-Rezept-Generierung für chem-lab (mode: both). Custom-Moleküle
+  erscheinen im Inventar, im Chemielabor und in der Wissensdatenbank
+  gleichwertig zu Katalog-Molekülen.

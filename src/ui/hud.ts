@@ -30,6 +30,7 @@ import { pseLayout } from '../game/content/pse-layout';
 import { isRecipeAvailableInMode } from '../game/physics/recipes';
 import type { Entity, ElementEntity, MoleculeEntity, Recipe } from '../game/content/types';
 import { createOrbitalPreview, type OrbitalPreview } from '../game/atoms/orbital-preview';
+import { ACHIEVEMENTS, countAchieved, totalAchievements } from '../game/achievements';
 
 let feedbackTimer: number | undefined;
 
@@ -51,6 +52,8 @@ export function mountHud(opts: HudOptions = {}): void {
   const kbBtn = document.getElementById('pse-toggle-kb');
   const editorEl = document.getElementById('pse-editor');
   const editorBtn = document.getElementById('pse-toggle-editor');
+  const achievementsEl = document.getElementById('pse-achievements');
+  const achievementsBtn = document.getElementById('pse-toggle-achievements');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -63,7 +66,9 @@ export function mountHud(opts: HudOptions = {}): void {
     !kbEl ||
     !kbBtn ||
     !editorEl ||
-    !editorBtn
+    !editorBtn ||
+    !achievementsEl ||
+    !achievementsBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -164,25 +169,41 @@ export function mountHud(opts: HudOptions = {}): void {
     });
   };
 
-  toggleBtn.addEventListener('click', () => {
-    tableEl.hidden = !tableEl.hidden;
-    toggleBtn.classList.toggle('pse-btn-primary', !tableEl.hidden);
-    if (!tableEl.hidden) {
+  const rerenderAchievements = (): void => {
+    if (achievementsEl.hidden) return;
+    renderAchievements(achievementsEl);
+  };
+
+  const closeAllOverlays = (except: 'table' | 'kb' | 'editor' | 'achievements'): void => {
+    if (except !== 'table') {
+      tableEl.hidden = true;
+      toggleBtn.classList.remove('pse-btn-primary');
+    }
+    if (except !== 'kb') {
       kbEl.hidden = true;
       kbBtn.classList.remove('pse-btn-primary');
     }
+    if (except !== 'editor') {
+      editorEl.hidden = true;
+      editorBtn.classList.remove('pse-btn-primary');
+    }
+    if (except !== 'achievements') {
+      achievementsEl.hidden = true;
+      achievementsBtn.classList.remove('pse-btn-primary');
+    }
+  };
+
+  toggleBtn.addEventListener('click', () => {
+    tableEl.hidden = !tableEl.hidden;
+    toggleBtn.classList.toggle('pse-btn-primary', !tableEl.hidden);
+    if (!tableEl.hidden) closeAllOverlays('table');
     rerenderTable();
   });
 
   kbBtn.addEventListener('click', () => {
     kbEl.hidden = !kbEl.hidden;
     kbBtn.classList.toggle('pse-btn-primary', !kbEl.hidden);
-    if (!kbEl.hidden) {
-      tableEl.hidden = true;
-      toggleBtn.classList.remove('pse-btn-primary');
-      editorEl.hidden = true;
-      editorBtn.classList.remove('pse-btn-primary');
-    }
+    if (!kbEl.hidden) closeAllOverlays('kb');
     rerenderKb();
   });
 
@@ -190,12 +211,16 @@ export function mountHud(opts: HudOptions = {}): void {
     editorEl.hidden = !editorEl.hidden;
     editorBtn.classList.toggle('pse-btn-primary', !editorEl.hidden);
     if (!editorEl.hidden) {
-      tableEl.hidden = true;
-      toggleBtn.classList.remove('pse-btn-primary');
-      kbEl.hidden = true;
-      kbBtn.classList.remove('pse-btn-primary');
+      closeAllOverlays('editor');
       renderCustomEditor(editorEl);
     }
+  });
+
+  achievementsBtn.addEventListener('click', () => {
+    achievementsEl.hidden = !achievementsEl.hidden;
+    achievementsBtn.classList.toggle('pse-btn-primary', !achievementsEl.hidden);
+    if (!achievementsEl.hidden) closeAllOverlays('achievements');
+    rerenderAchievements();
   });
 
   const syncExpertBtn = (): void => {
@@ -227,10 +252,9 @@ export function mountHud(opts: HudOptions = {}): void {
     if (!confirmed) return;
     clearStorage();
     resetState();
-    if (!tableEl.hidden) {
-      tableEl.hidden = true;
-      toggleBtn.classList.remove('pse-btn-primary');
-    }
+    tableEl.hidden = true;
+    toggleBtn.classList.remove('pse-btn-primary');
+    closeAllOverlays('table');
     selectedEntityId = null;
     rerenderDetail();
   });
@@ -241,6 +265,7 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderReactors();
     rerenderTable();
     rerenderKb();
+    rerenderAchievements();
     syncExpertBtn();
   });
 
@@ -1528,4 +1553,106 @@ function validateCustomMolecule(input: string): ValidationResult {
   }
 
   return { ok: true, molecule: { ...obj, kind: 'molecule' } as MoleculeEntity };
+}
+
+/** ------------------- Achievement-Overlay ------------------- */
+
+function renderAchievements(el: HTMLElement): void {
+  const state = getState();
+  const discovered = new Set(state.discovered);
+  el.innerHTML = '';
+
+  const achieved = countAchieved(state);
+  const total = totalAchievements();
+  const pct = Math.round((achieved / total) * 100);
+
+  const header = document.createElement('div');
+  header.className = 'pse-achievements-header';
+  header.innerHTML =
+    `<strong>Ziele & Fortschritt</strong> &middot; ` +
+    `<span class="pse-stats-strong">${achieved}</span> von ` +
+    `<span class="pse-stats-strong">${total}</span> Zielen erreicht ` +
+    `(${pct}%)`;
+  el.appendChild(header);
+
+  const bar = document.createElement('div');
+  bar.className = 'pse-progress-bar';
+  const fill = document.createElement('div');
+  fill.className = 'pse-progress-fill';
+  fill.style.width = `${pct}%`;
+  bar.appendChild(fill);
+  el.appendChild(bar);
+
+  // Statistik pro Entity-Kind
+  const stats = document.createElement('div');
+  stats.className = 'pse-achievement-stats';
+  const kinds: Array<[string, string, readonly Entity[]]> = [
+    ['particle', 'Elementarteilchen', allEntities.filter((e) => e.kind === 'particle')],
+    ['hadron', 'Hadronen', allEntities.filter((e) => e.kind === 'hadron')],
+    ['nucleus', 'Atomkerne', allEntities.filter((e) => e.kind === 'nucleus')],
+    ['element', 'Elemente', allEntities.filter((e) => e.kind === 'element')],
+    ['molecule', 'Moleküle', allEntities.filter((e) => e.kind === 'molecule')],
+  ];
+  for (const [key, label, list] of kinds) {
+    const d = list.filter((e) => discovered.has(e.id)).length;
+    const box = document.createElement('div');
+    box.className = `pse-stat-box pse-stat-${key}`;
+    box.innerHTML =
+      `<div class="pse-stat-value">${d}<span class="pse-stat-total">/${list.length}</span></div>` +
+      `<div class="pse-stat-label">${label}</div>`;
+    stats.appendChild(box);
+  }
+  el.appendChild(stats);
+
+  // Achievements-Grid — freigeschaltete zuerst
+  const gridHeader = document.createElement('h3');
+  gridHeader.className = 'pse-section';
+  gridHeader.textContent = 'Ziele';
+  el.appendChild(gridHeader);
+
+  const grid = document.createElement('div');
+  grid.className = 'pse-achievements-grid';
+
+  const sorted = [...ACHIEVEMENTS].sort((a, b) => {
+    const aOk = a.check(state) ? 1 : 0;
+    const bOk = b.check(state) ? 1 : 0;
+    return bOk - aOk;
+  });
+
+  for (const ach of sorted) {
+    const unlocked = ach.check(state);
+    const card = document.createElement('div');
+    card.className = unlocked
+      ? 'pse-achievement-card pse-achievement-unlocked'
+      : 'pse-achievement-card pse-achievement-locked';
+
+    const icon = document.createElement('div');
+    icon.className = 'pse-achievement-icon';
+    icon.textContent = ach.icon;
+    card.appendChild(icon);
+
+    const body = document.createElement('div');
+    body.className = 'pse-achievement-body';
+
+    const title = document.createElement('div');
+    title.className = 'pse-achievement-title';
+    title.textContent = ach.title;
+    body.appendChild(title);
+
+    const desc = document.createElement('div');
+    desc.className = 'pse-achievement-desc';
+    desc.textContent = ach.description;
+    body.appendChild(desc);
+
+    card.appendChild(body);
+
+    const status = document.createElement('div');
+    status.className = 'pse-achievement-status';
+    status.textContent = unlocked ? '✓' : '○';
+    card.appendChild(status);
+
+    grid.appendChild(card);
+  }
+
+  el.appendChild(grid);
 }
