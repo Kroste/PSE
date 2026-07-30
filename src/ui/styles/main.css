@@ -1073,3 +1073,180 @@ body {
   font-size: 12px;
   border-radius: 3px;
 }
+
+/* ---------------- Struktur-Editor (Formular) ---------------- */
+
+.pse-editor-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--panel-border);
+  margin-top: 8px;
+}
+.pse-editor-tab {
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--panel-border);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.pse-editor-tab:hover {
+  color: var(--accent);
+}
+.pse-editor-tab-active {
+  background: rgba(0, 255, 176, 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.pse-editor-tab-content {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pse-struct-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 12px;
+}
+.pse-struct-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pse-struct-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pse-struct-input {
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  min-width: 0;
+}
+.pse-struct-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.pse-struct-field textarea.pse-struct-input {
+  resize: vertical;
+  min-height: 44px;
+}
+
+.pse-struct-smiles {
+  padding: 10px 12px;
+  background: rgba(0, 255, 176, 0.04);
+  border: 1px dashed var(--accent);
+  border-radius: 3px;
+}
+.pse-struct-smiles-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.pse-struct-smiles-row .pse-struct-input {
+  flex: 1;
+}
+.pse-struct-smiles-feedback {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.pse-struct-smiles-feedback[data-kind='ok'] {
+  color: var(--accent);
+}
+.pse-struct-smiles-feedback[data-kind='err'] {
+  color: var(--danger);
+}
+
+.pse-struct-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pse-struct-atomlist,
+.pse-struct-bondlist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pse-struct-atom,
+.pse-struct-bond {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+}
+.pse-struct-atom-idx {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 5px;
+  background: var(--accent);
+  color: var(--bg-0);
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+.pse-struct-bond-order {
+  color: var(--accent);
+  font-weight: 700;
+  padding: 0 2px;
+}
+.pse-struct-atom .pse-btn-rm,
+.pse-struct-bond .pse-btn-rm {
+  padding: 0 6px;
+  font-size: 14px;
+  line-height: 1;
+}
+.pse-struct-addrow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pse-struct-addrow select.pse-struct-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.pse-struct-preview {
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+.pse-struct-preview strong {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  margin-right: 6px;
+}
+.pse-struct-preview code {
+  color: var(--accent);
+  background: rgba(0, 255, 176, 0.08);
+  padding: 1px 4px;
+  border-radius: 2px;
+}

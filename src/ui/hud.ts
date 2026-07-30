@@ -32,6 +32,9 @@ import { isRecipeAvailableInMode } from '../game/physics/recipes';
 import type { Entity, ElementEntity, MoleculeEntity, Recipe } from '../game/content/types';
 import { createOrbitalPreview, type OrbitalPreview } from '../game/atoms/orbital-preview';
 import { ACHIEVEMENTS, countAchieved, totalAchievements } from '../game/achievements';
+import { computeMolarMass, guessGeometry, hillFormula } from '../game/chemistry/formula';
+import { layoutMolecule3D } from '../game/chemistry/layout';
+import { parseSmiles } from '../game/chemistry/smiles';
 
 let feedbackTimer: number | undefined;
 
@@ -1332,6 +1335,45 @@ const CUSTOM_TEMPLATE = JSON.stringify(
   2,
 );
 
+type EditorTab = 'structure' | 'json';
+let activeEditorTab: EditorTab = 'structure';
+
+type StructureDraft = {
+  id: string;
+  nameDE: string;
+  symbol: string;
+  categoryDE: string;
+  color: string;
+  scienceNoteDE: string;
+  source: string;
+  atoms: string[];
+  bonds: { from: number; to: number; order: number }[];
+};
+
+const structureDraft: StructureDraft = {
+  id: '',
+  nameDE: '',
+  symbol: '',
+  categoryDE: 'Custom (Nutzer)',
+  color: '#88ccdd',
+  scienceNoteDE: '',
+  source: 'Custom',
+  atoms: [],
+  bonds: [],
+};
+
+function resetStructureDraft(): void {
+  structureDraft.id = '';
+  structureDraft.nameDE = '';
+  structureDraft.symbol = '';
+  structureDraft.categoryDE = 'Custom (Nutzer)';
+  structureDraft.color = '#88ccdd';
+  structureDraft.scienceNoteDE = '';
+  structureDraft.source = 'Custom';
+  structureDraft.atoms = [];
+  structureDraft.bonds = [];
+}
+
 function renderCustomEditor(el: HTMLElement): void {
   el.innerHTML = '';
 
@@ -1381,14 +1423,382 @@ function renderCustomEditor(el: HTMLElement): void {
   }
   el.appendChild(listSection);
 
-  // Editor für neue Verbindung
-  const editSection = document.createElement('div');
-  editSection.className = 'pse-editor-edit';
-  const editHeader = document.createElement('h3');
-  editHeader.className = 'pse-section';
-  editHeader.textContent = 'Neue Verbindung (JSON)';
-  editSection.appendChild(editHeader);
+  // Tab-Header
+  const tabBar = document.createElement('div');
+  tabBar.className = 'pse-editor-tabs';
+  for (const [key, label] of [
+    ['structure', '🧪 Struktur'],
+    ['json', '📝 JSON (Fortgeschritten)'],
+  ] as const) {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'pse-editor-tab';
+    tab.classList.toggle('pse-editor-tab-active', activeEditorTab === key);
+    tab.textContent = label;
+    tab.addEventListener('click', () => {
+      activeEditorTab = key;
+      renderCustomEditor(el);
+    });
+    tabBar.appendChild(tab);
+  }
+  el.appendChild(tabBar);
 
+  const tabContent = document.createElement('div');
+  tabContent.className = 'pse-editor-tab-content';
+  if (activeEditorTab === 'structure') {
+    renderStructureEditor(tabContent, () => renderCustomEditor(el));
+  } else {
+    renderJsonEditor(tabContent);
+  }
+  el.appendChild(tabContent);
+}
+
+function renderStructureEditor(el: HTMLElement, rerender: () => void): void {
+  el.innerHTML = '';
+
+  // Metadaten-Grid
+  const meta = document.createElement('div');
+  meta.className = 'pse-struct-meta';
+
+  const addField = (
+    label: string,
+    key: keyof StructureDraft,
+    placeholder: string,
+    type: 'text' | 'color' | 'textarea' = 'text',
+  ): void => {
+    const wrap = document.createElement('label');
+    wrap.className = 'pse-struct-field';
+    const lbl = document.createElement('span');
+    lbl.className = 'pse-struct-label';
+    lbl.textContent = label;
+    wrap.appendChild(lbl);
+    let input: HTMLInputElement | HTMLTextAreaElement;
+    if (type === 'textarea') {
+      input = document.createElement('textarea');
+      input.rows = 2;
+    } else {
+      input = document.createElement('input');
+      input.type = type;
+    }
+    input.className = 'pse-struct-input';
+    input.value = String(structureDraft[key] ?? '');
+    input.placeholder = placeholder;
+    input.addEventListener('input', () => {
+      (structureDraft as unknown as Record<string, string>)[key as string] = input.value;
+    });
+    wrap.appendChild(input);
+    meta.appendChild(wrap);
+  };
+
+  addField('ID', 'id', 'meine_verbindung (nur a-z, 0-9, _, -)');
+  addField('Name (DE)', 'nameDE', 'z. B. Meine Verbindung');
+  addField('Symbol', 'symbol', 'z. B. MyMol');
+  addField('Kategorie', 'categoryDE', 'z. B. Custom (Nutzer)');
+  addField('Farbe', 'color', '#88ccdd', 'color');
+  addField('Quelle', 'source', 'z. B. Nutzer, Wikipedia …');
+  addField('Beschreibung', 'scienceNoteDE', 'Kurze Beschreibung deines Moleküls.', 'textarea');
+  el.appendChild(meta);
+
+  // SMILES-Bonus
+  const smilesSection = document.createElement('div');
+  smilesSection.className = 'pse-struct-smiles';
+  const smilesHeader = document.createElement('h3');
+  smilesHeader.className = 'pse-section';
+  smilesHeader.textContent = '⚡ SMILES-Import (optional)';
+  smilesSection.appendChild(smilesHeader);
+  const smilesHint = document.createElement('p');
+  smilesHint.className = 'pse-hint';
+  smilesHint.innerHTML =
+    'Kürzel-Notation aus der Chemie. Beispiele: <code>CCO</code> (Ethanol), ' +
+    '<code>CC(=O)O</code> (Essigsäure), <code>C1CCCCC1</code> (Cyclohexan), ' +
+    '<code>C1=CC=CC=C1</code> (Benzol, Kekulé). Einlesen ersetzt Atome und Bindungen. ' +
+    'Unterstützt: C N O S P F Cl Br I H, Bindungen = # -, Verzweigungen ( ), Ringe 1–9.';
+  smilesSection.appendChild(smilesHint);
+  const smilesRow = document.createElement('div');
+  smilesRow.className = 'pse-struct-smiles-row';
+  const smilesInput = document.createElement('input');
+  smilesInput.type = 'text';
+  smilesInput.className = 'pse-struct-input';
+  smilesInput.placeholder = 'z. B. CCO';
+  smilesRow.appendChild(smilesInput);
+  const smilesBtn = document.createElement('button');
+  smilesBtn.className = 'pse-btn';
+  smilesBtn.type = 'button';
+  smilesBtn.textContent = 'Einlesen';
+  smilesRow.appendChild(smilesBtn);
+  const smilesFeedback = document.createElement('span');
+  smilesFeedback.className = 'pse-struct-smiles-feedback';
+  smilesRow.appendChild(smilesFeedback);
+  smilesBtn.addEventListener('click', () => {
+    try {
+      const parsed = parseSmiles(smilesInput.value);
+      structureDraft.atoms = parsed.atoms;
+      structureDraft.bonds = parsed.bonds;
+      smilesFeedback.textContent = `✔ ${parsed.atoms.length} Atome, ${parsed.bonds.length} Bindungen`;
+      smilesFeedback.dataset.kind = 'ok';
+      rerender();
+    } catch (e) {
+      smilesFeedback.textContent = `✖ ${(e as Error).message}`;
+      smilesFeedback.dataset.kind = 'err';
+    }
+  });
+  smilesSection.appendChild(smilesRow);
+  el.appendChild(smilesSection);
+
+  // Atome
+  const atomsSection = document.createElement('div');
+  atomsSection.className = 'pse-struct-section';
+  const atomsHeader = document.createElement('h3');
+  atomsHeader.className = 'pse-section';
+  atomsHeader.textContent = `Atome (${structureDraft.atoms.length})`;
+  atomsSection.appendChild(atomsHeader);
+
+  const atomList = document.createElement('div');
+  atomList.className = 'pse-struct-atomlist';
+  if (structureDraft.atoms.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'pse-hint';
+    empty.textContent = 'Noch keine Atome — füge unten das erste hinzu.';
+    atomList.appendChild(empty);
+  }
+  for (const [i, sym] of structureDraft.atoms.entries()) {
+    const chip = document.createElement('div');
+    chip.className = 'pse-struct-atom';
+    chip.innerHTML = `<span class="pse-struct-atom-idx">${i + 1}</span> ${sym}`;
+    const rm = document.createElement('button');
+    rm.className = 'pse-btn pse-btn-rm';
+    rm.type = 'button';
+    rm.textContent = '×';
+    rm.title = 'Atom entfernen (löscht auch verknüpfte Bindungen)';
+    rm.addEventListener('click', () => {
+      structureDraft.atoms.splice(i, 1);
+      // Bindungen, die auf i verwiesen, löschen; Indizes > i dekrementieren.
+      structureDraft.bonds = structureDraft.bonds
+        .filter((b) => b.from !== i && b.to !== i)
+        .map((b) => ({
+          from: b.from > i ? b.from - 1 : b.from,
+          to: b.to > i ? b.to - 1 : b.to,
+          order: b.order,
+        }));
+      rerender();
+    });
+    chip.appendChild(rm);
+    atomList.appendChild(chip);
+  }
+  atomsSection.appendChild(atomList);
+
+  const addAtomRow = document.createElement('div');
+  addAtomRow.className = 'pse-struct-addrow';
+  const elementSelect = document.createElement('select');
+  elementSelect.className = 'pse-struct-input';
+  for (const e of elements) {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = `${e.symbol} · ${e.nameDE} (Z=${e.z})`;
+    elementSelect.appendChild(opt);
+  }
+  elementSelect.value = 'C';
+  addAtomRow.appendChild(elementSelect);
+  const addAtomBtn = document.createElement('button');
+  addAtomBtn.className = 'pse-btn';
+  addAtomBtn.type = 'button';
+  addAtomBtn.textContent = '＋ Atom hinzufügen';
+  addAtomBtn.addEventListener('click', () => {
+    structureDraft.atoms.push(elementSelect.value);
+    rerender();
+  });
+  addAtomRow.appendChild(addAtomBtn);
+  atomsSection.appendChild(addAtomRow);
+  el.appendChild(atomsSection);
+
+  // Bindungen
+  const bondsSection = document.createElement('div');
+  bondsSection.className = 'pse-struct-section';
+  const bondsHeader = document.createElement('h3');
+  bondsHeader.className = 'pse-section';
+  bondsHeader.textContent = `Bindungen (${structureDraft.bonds.length})`;
+  bondsSection.appendChild(bondsHeader);
+
+  const bondList = document.createElement('div');
+  bondList.className = 'pse-struct-bondlist';
+  if (structureDraft.bonds.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'pse-hint';
+    empty.textContent = 'Noch keine Bindungen. Wähle zwei Atom-Nummern unten.';
+    bondList.appendChild(empty);
+  }
+  const orderLabel = (o: number): string => (o === 1 ? '—' : o === 2 ? '＝' : '≡');
+  for (const [i, b] of structureDraft.bonds.entries()) {
+    const row = document.createElement('div');
+    row.className = 'pse-struct-bond';
+    const from = structureDraft.atoms[b.from] ?? '?';
+    const to = structureDraft.atoms[b.to] ?? '?';
+    row.innerHTML =
+      `<span class="pse-struct-atom-idx">${b.from + 1}</span>${from} ` +
+      `<span class="pse-struct-bond-order">${orderLabel(b.order)}</span> ` +
+      `${to}<span class="pse-struct-atom-idx">${b.to + 1}</span>`;
+    const rm = document.createElement('button');
+    rm.className = 'pse-btn pse-btn-rm';
+    rm.type = 'button';
+    rm.textContent = '×';
+    rm.addEventListener('click', () => {
+      structureDraft.bonds.splice(i, 1);
+      rerender();
+    });
+    row.appendChild(rm);
+    bondList.appendChild(row);
+  }
+  bondsSection.appendChild(bondList);
+
+  if (structureDraft.atoms.length >= 2) {
+    const addBondRow = document.createElement('div');
+    addBondRow.className = 'pse-struct-addrow';
+    const mkAtomSelect = (): HTMLSelectElement => {
+      const s = document.createElement('select');
+      s.className = 'pse-struct-input';
+      for (const [i, sym] of structureDraft.atoms.entries()) {
+        const o = document.createElement('option');
+        o.value = String(i);
+        o.textContent = `${i + 1}: ${sym}`;
+        s.appendChild(o);
+      }
+      return s;
+    };
+    const fromSel = mkAtomSelect();
+    const toSel = mkAtomSelect();
+    toSel.value = '1';
+    const orderSel = document.createElement('select');
+    orderSel.className = 'pse-struct-input';
+    for (const [v, lbl] of [
+      ['1', 'Einfachbindung —'],
+      ['2', 'Doppelbindung ＝'],
+      ['3', 'Dreifachbindung ≡'],
+    ]) {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = lbl;
+      orderSel.appendChild(o);
+    }
+    addBondRow.appendChild(fromSel);
+    addBondRow.appendChild(toSel);
+    addBondRow.appendChild(orderSel);
+    const addBondBtn = document.createElement('button');
+    addBondBtn.className = 'pse-btn';
+    addBondBtn.type = 'button';
+    addBondBtn.textContent = '＋ Bindung hinzufügen';
+    addBondBtn.addEventListener('click', () => {
+      const from = Number(fromSel.value);
+      const to = Number(toSel.value);
+      const order = Number(orderSel.value);
+      if (from === to) return;
+      // Doppelte Bindungen zwischen selben Atomen unterbinden
+      if (structureDraft.bonds.some((b) => (b.from === from && b.to === to) || (b.from === to && b.to === from))) {
+        return;
+      }
+      structureDraft.bonds.push({ from, to, order });
+      rerender();
+    });
+    addBondRow.appendChild(addBondBtn);
+    bondsSection.appendChild(addBondRow);
+  }
+  el.appendChild(bondsSection);
+
+  // Live-Vorschau
+  const counts: Record<string, number> = {};
+  for (const a of structureDraft.atoms) counts[a] = (counts[a] ?? 0) + 1;
+  const preview = document.createElement('div');
+  preview.className = 'pse-struct-preview';
+  const formula = structureDraft.atoms.length > 0 ? hillFormula(counts) : '—';
+  const mass = structureDraft.atoms.length > 0 ? computeMolarMass(counts).toFixed(3) : '—';
+  const geo = guessGeometry(
+    structureDraft.atoms.map((e) => ({ element: e })),
+    structureDraft.bonds,
+  );
+  preview.innerHTML =
+    `<strong>Live-Vorschau</strong> &middot; Summenformel <code>${formula}</code> &middot; ` +
+    `Molmasse <code>${mass}</code> g/mol &middot; Geometrie <code>${geo}</code>`;
+  el.appendChild(preview);
+
+  const feedback = document.createElement('div');
+  feedback.className = 'pse-editor-feedback';
+  el.appendChild(feedback);
+
+  const actions = document.createElement('div');
+  actions.className = 'pse-editor-actions';
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'pse-btn';
+  clearBtn.type = 'button';
+  clearBtn.textContent = 'Formular leeren';
+  clearBtn.addEventListener('click', () => {
+    if (!window.confirm('Alle Eingaben verwerfen?')) return;
+    resetStructureDraft();
+    rerender();
+  });
+  actions.appendChild(clearBtn);
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'pse-btn pse-btn-primary';
+  saveBtn.type = 'button';
+  saveBtn.textContent = 'Speichern & neu laden';
+  saveBtn.addEventListener('click', () => {
+    const err = buildAndSaveStructureMolecule();
+    if (err) {
+      feedback.textContent = `✖ ${err}`;
+      feedback.dataset.kind = 'err';
+      return;
+    }
+    feedback.textContent = '✔ Gespeichert — App wird neu geladen …';
+    feedback.dataset.kind = 'ok';
+    setTimeout(() => window.location.reload(), 500);
+  });
+  actions.appendChild(saveBtn);
+  el.appendChild(actions);
+}
+
+/**
+ * Baut aus dem Formular-Entwurf ein vollständiges MoleculeEntity mit
+ * 3D-Koordinaten (Force-directed) und speichert es. Gibt `null` bei
+ * Erfolg zurück, sonst eine Fehlermeldung.
+ */
+function buildAndSaveStructureMolecule(): string | null {
+  const d = structureDraft;
+  if (!d.id) return 'ID fehlt.';
+  if (!/^[a-zA-Z0-9_-]+$/.test(d.id)) return 'ID darf nur a-z, A-Z, 0-9, _ und - enthalten.';
+  if (getEntity(d.id)) return `ID "${d.id}" existiert schon im Katalog.`;
+  if (getCustomMolecules().some((m) => m.id === d.id)) return `ID "${d.id}" existiert schon in deinen Custom-Verbindungen.`;
+  if (!d.nameDE) return 'Name fehlt.';
+  if (!d.symbol) return 'Symbol fehlt.';
+  if (d.atoms.length === 0) return 'Mindestens ein Atom nötig.';
+
+  const counts: Record<string, number> = {};
+  for (const a of d.atoms) counts[a] = (counts[a] ?? 0) + 1;
+
+  const positions = layoutMolecule3D(d.atoms.length, d.bonds);
+  const molecule = {
+    id: d.id,
+    kind: 'molecule' as const,
+    nameDE: d.nameDE,
+    symbol: d.symbol,
+    formula: hillFormula(counts),
+    atomCounts: counts,
+    atoms: d.atoms.map((element, i) => ({ element, position: positions[i]! })),
+    bonds: d.bonds,
+    geometry: guessGeometry(d.atoms.map((e) => ({ element: e })), d.bonds),
+    molarMassGmol: computeMolarMass(counts),
+    categoryDE: d.categoryDE || 'Custom (Nutzer)',
+    color: d.color || '#88ccdd',
+    scienceNoteDE: d.scienceNoteDE || 'Nutzer-definierte Verbindung.',
+    source: d.source || 'Custom',
+  } as unknown as MoleculeEntity;
+
+  const next = [...getCustomMolecules(), molecule];
+  saveCustomMolecules(next);
+  resetStructureDraft();
+  return null;
+}
+
+function renderJsonEditor(el: HTMLElement): void {
   const hint = document.createElement('p');
   hint.className = 'pse-hint';
   hint.innerHTML =
@@ -1397,17 +1807,17 @@ function renderCustomEditor(el: HTMLElement): void {
     `<code>molarMassGmol</code>, <code>categoryDE</code>, <code>color</code>, ` +
     `<code>scienceNoteDE</code>, <code>source</code>. ` +
     `Alle <code>atoms[].element</code> müssen gültige Element-IDs sein (H, C, N, O, Si, …).`;
-  editSection.appendChild(hint);
+  el.appendChild(hint);
 
   const textarea = document.createElement('textarea');
   textarea.className = 'pse-editor-textarea';
   textarea.value = CUSTOM_TEMPLATE;
   textarea.spellcheck = false;
-  editSection.appendChild(textarea);
+  el.appendChild(textarea);
 
   const feedback = document.createElement('div');
   feedback.className = 'pse-editor-feedback';
-  editSection.appendChild(feedback);
+  el.appendChild(feedback);
 
   const actions = document.createElement('div');
   actions.className = 'pse-editor-actions';
@@ -1440,9 +1850,7 @@ function renderCustomEditor(el: HTMLElement): void {
     setTimeout(() => window.location.reload(), 500);
   });
   actions.appendChild(saveBtn);
-
-  editSection.appendChild(actions);
-  el.appendChild(editSection);
+  el.appendChild(actions);
 }
 
 type ValidationResult =
