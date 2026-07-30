@@ -31,7 +31,7 @@ const TOUR_STEPS: TourStep[] = [
     target: '#pse-inventory',
     titleDE: 'Inventar & Reaktionszone',
     bodyDE:
-      'Deine Zutaten stehen links. Klick + / − oder zieh sie in die Reaktionszone (auch unten links). Der Status-Chip darunter zeigt live, ob deine Zusammenstellung stabil, instabil oder reaktionsbereit ist.',
+      'Deine Zutaten stehen links. [+] fügt sie der Reaktionszone hinzu, [−] nimmt sie wieder heraus. Der Status-Chip darunter zeigt live, ob deine Zusammenstellung stabil, instabil oder reaktionsbereit ist.',
   },
   {
     target: '.pse-goal',

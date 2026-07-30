@@ -173,7 +173,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     canvas.style.cursor = 'grab';
   }
 
-  const idleHint = makeTextSprite('Ziehe Zutaten in die Reaktionszone');
+  const idleHint = makeTextSprite('Wähle Zutaten mit [+] und starte die Reaktion');
   idleHint.position.set(0, 0.9, 0);
   idleHint.scale.set(3.2, 0.4, 1);
   scene.add(idleHint);
@@ -825,7 +825,17 @@ function makeTextSprite(text: string): Sprite {
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas-2D-Kontext fehlt.');
-  ctx.font = "500 56px 'JetBrains Mono', 'Fira Code', ui-monospace, monospace";
+  // Auto-fit: schrumpfe die Font-Größe, bis der Text mit etwas Rand
+  // in die Canvas-Breite passt. Verhindert das Abschneiden bei langen
+  // Hinweistexten wie "Ziehe Zutaten in die Reaktionszone".
+  const family = "'JetBrains Mono', 'Fira Code', ui-monospace, monospace";
+  const maxWidth = canvas.width - 40;
+  let fontSize = 56;
+  ctx.font = `500 ${fontSize}px ${family}`;
+  while (ctx.measureText(text).width > maxWidth && fontSize > 20) {
+    fontSize -= 2;
+    ctx.font = `500 ${fontSize}px ${family}`;
+  }
   ctx.fillStyle = 'rgba(139, 160, 168, 0.85)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

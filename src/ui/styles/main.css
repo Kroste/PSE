@@ -304,11 +304,6 @@ body {
     background 120ms,
     border-color 120ms;
 }
-.pse-zone.pse-drop-hover {
-  background: rgba(0, 255, 176, 0.16);
-  border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(0, 255, 176, 0.35) inset;
-}
 .pse-zone-line {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -390,16 +385,6 @@ body {
   height: 100%;
   background: currentColor;
   transition: width 80ms linear;
-}
-
-.pse-draggable {
-  cursor: grab;
-}
-.pse-draggable:active {
-  cursor: grabbing;
-}
-.pse-dragging {
-  opacity: 0.4;
 }
 
 .pse-controls {

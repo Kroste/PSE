@@ -818,16 +818,6 @@ function inventoryRow(
   row.className = 'pse-row';
 
   const canAddMore = availableCount(entity.id) > inZone;
-  if (canAddMore) {
-    row.draggable = true;
-    row.classList.add('pse-draggable');
-    row.addEventListener('dragstart', (e) => {
-      e.dataTransfer?.setData(DND_TYPE, entity.id);
-      e.dataTransfer!.effectAllowed = 'copy';
-      row.classList.add('pse-dragging');
-    });
-    row.addEventListener('dragend', () => row.classList.remove('pse-dragging'));
-  }
 
   const dot = document.createElement('span');
   dot.className = 'pse-dot';
@@ -870,8 +860,6 @@ function inventoryRow(
   return row;
 }
 
-const DND_TYPE = 'application/x-pse-entity-id';
-
 function zonePanel(
   zone: Record<string, number>,
   onStatusEl?: (el: HTMLElement) => void,
@@ -880,28 +868,11 @@ function zonePanel(
   box.className = 'pse-zone';
   box.appendChild(sectionHeader('Reaktionszone'));
 
-  box.addEventListener('dragover', (e) => {
-    if (!e.dataTransfer?.types.includes(DND_TYPE)) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-    box.classList.add('pse-drop-hover');
-  });
-  box.addEventListener('dragleave', (e) => {
-    if (e.target === box) box.classList.remove('pse-drop-hover');
-  });
-  box.addEventListener('drop', (e) => {
-    box.classList.remove('pse-drop-hover');
-    const id = e.dataTransfer?.getData(DND_TYPE);
-    if (!id) return;
-    e.preventDefault();
-    if (addToZone(id, 1)) sfx.tick();
-  });
-
   const entries = Object.entries(zone);
   if (entries.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'pse-hint';
-    empty.textContent = 'Leer — füge Zutaten hinzu oder zieh sie hier hinein.';
+    empty.textContent = 'Leer — nutze die [+]-Knöpfe im Inventar, um Zutaten hinzuzufügen.';
     box.appendChild(empty);
   } else {
     const line = document.createElement('div');
