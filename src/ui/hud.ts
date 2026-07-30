@@ -36,6 +36,7 @@ import { computeMolarMass, guessGeometry, hillFormula } from '../game/chemistry/
 import { layoutMolecule3D } from '../game/chemistry/layout';
 import { parseSmiles } from '../game/chemistry/smiles';
 import { parseMolFile } from '../game/chemistry/mol';
+import { writeMolFile } from '../game/chemistry/mol-writer';
 import {
   MECHANISMS,
   MECHANISM_CATEGORIES,
@@ -641,6 +642,32 @@ function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
   src.className = 'pse-source';
   src.textContent = `Quelle: ${entity.source}`;
   el.appendChild(src);
+
+  if (entity.kind === 'molecule') {
+    const actions = document.createElement('div');
+    actions.className = 'pse-detail-actions';
+    const exportBtn = document.createElement('button');
+    exportBtn.type = 'button';
+    exportBtn.className = 'pse-btn';
+    exportBtn.textContent = '📥 MOL exportieren';
+    exportBtn.title = 'Als .mol-Datei speichern (kompatibel mit PubChem, ChemDraw, RDKit)';
+    exportBtn.addEventListener('click', () => downloadMolFile(entity as MoleculeEntity));
+    actions.appendChild(exportBtn);
+    el.appendChild(actions);
+  }
+}
+
+function downloadMolFile(molecule: MoleculeEntity): void {
+  const text = writeMolFile(molecule);
+  const blob = new Blob([text], { type: 'chemical/x-mdl-molfile' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${molecule.id}.mol`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function sectionHeader(text: string): HTMLElement {

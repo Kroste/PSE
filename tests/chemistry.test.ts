@@ -4,6 +4,8 @@ import { parseSmiles, countAtoms } from '../src/game/chemistry/smiles';
 import { layoutMolecule3D } from '../src/game/chemistry/layout';
 import { parseMolFile } from '../src/game/chemistry/mol';
 import { MECHANISMS, getMechanism } from '../src/game/chemistry/mechanisms';
+import { writeMolFile } from '../src/game/chemistry/mol-writer';
+import type { MoleculeEntity } from '../src/game/content/types';
 
 describe('hillFormula', () => {
   it('gibt C zuerst, dann H, dann Rest alphabetisch aus', () => {
@@ -303,5 +305,76 @@ describe('MECHANISMS', () => {
   it('getMechanism findet by id', () => {
     expect(getMechanism('sn2')?.nameDE).toContain('SN2');
     expect(getMechanism('does-not-exist')).toBeUndefined();
+  });
+});
+
+describe('writeMolFile', () => {
+  const waterMol: MoleculeEntity = {
+    id: 'H2O_test',
+    kind: 'molecule',
+    nameDE: 'Wasser',
+    symbol: 'H₂O',
+    formula: 'H2O',
+    atomCounts: { H: 2, O: 1 },
+    atoms: [
+      { element: 'O', position: [0, 0, 0] },
+      { element: 'H', position: [0.958, 0, 0] },
+      { element: 'H', position: [-0.24, 0.927, 0] },
+    ],
+    bonds: [
+      { from: 0, to: 1, order: 1 },
+      { from: 0, to: 2, order: 1 },
+    ],
+    geometry: 'bent',
+    molarMassGmol: 18.015,
+    categoryDE: 'Test',
+    color: '#ffffff',
+    scienceNoteDE: 'Test-Wassermolekül.',
+    source: 'test',
+  } as MoleculeEntity;
+
+  it('erzeugt V2000-Header mit Titel und Counts-Zeile', () => {
+    const out = writeMolFile(waterMol);
+    const lines = out.split('\n');
+    expect(lines[0]).toBe('Wasser');
+    expect(lines[3]).toMatch(/^\s{2}3\s{2}2\s{2}0/);
+    expect(lines[3]).toContain('V2000');
+  });
+
+  it('endet mit M END', () => {
+    const out = writeMolFile(waterMol);
+    expect(out.trim().endsWith('M  END')).toBe(true);
+  });
+
+  it('Atom-Block hat 10-Zeichen-Fixe-Breite für Koordinaten', () => {
+    const out = writeMolFile(waterMol);
+    const lines = out.split('\n');
+    // Zeile 5 = erstes Atom (Zeile 4 ist Counts)
+    const atomLine = lines[4]!;
+    expect(atomLine.substring(0, 10)).toBe('    0.0000');
+    expect(atomLine.substring(10, 20)).toBe('    0.0000');
+    expect(atomLine.substring(20, 30)).toBe('    0.0000');
+    expect(atomLine.substring(31, 34).trimEnd()).toBe('O');
+  });
+
+  it('Bond-Block nutzt 1-basierte Indizes', () => {
+    const out = writeMolFile(waterMol);
+    const lines = out.split('\n');
+    // Zeile 7 = 4 (counts) + 3 (atoms) = erste Bindung
+    const bondLine = lines[7]!;
+    expect(bondLine.substring(0, 3)).toBe('  1');
+    expect(bondLine.substring(3, 6)).toBe('  2');
+    expect(bondLine.substring(6, 9)).toBe('  1');
+  });
+
+  it('Roundtrip mit parseMolFile stellt Struktur wieder her', async () => {
+    const { parseMolFile } = await import('../src/game/chemistry/mol');
+    const written = writeMolFile(waterMol);
+    const parsed = parseMolFile(written);
+    expect(parsed.atoms).toHaveLength(3);
+    expect(parsed.bonds).toHaveLength(2);
+    expect(parsed.atoms[0]!.element).toBe('O');
+    expect(parsed.atoms[1]!.position[0]).toBeCloseTo(0.958, 3);
+    expect(parsed.bonds[0]).toEqual({ from: 0, to: 1, order: 1 });
   });
 });
