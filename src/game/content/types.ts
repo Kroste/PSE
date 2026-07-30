@@ -94,6 +94,30 @@ export type MoleculeBond = {
   stereo?: 'E' | 'Z';
 };
 
+/** Spektroskopie-Daten (optional pro Molekül) — kuratiert aus Literatur. */
+export type IrPeak = {
+  wavenumber: number; // cm⁻¹
+  intensity: 'strong' | 'medium' | 'weak';
+  assignmentDE: string;
+};
+export type NmrPeak = {
+  shift: number; // ppm (¹H-NMR, TMS = 0)
+  nProtons: number;
+  multiplicity: 's' | 'd' | 't' | 'q' | 'm' | 'dd' | 'br';
+  assignmentDE: string;
+};
+export type UvBand = {
+  lambdaMax: number; // nm
+  epsilon?: number; // L·mol⁻¹·cm⁻¹
+  assignmentDE: string;
+};
+export type Spectra = {
+  ir?: IrPeak[];
+  nmr1h?: NmrPeak[];
+  uvVis?: UvBand[];
+  source?: string;
+};
+
 export type MoleculeEntity = EntityBase & {
   kind: 'molecule';
   formula: string; // z.B. "H2O"
@@ -109,6 +133,11 @@ export type MoleculeEntity = EntityBase & {
    * Wird im Detail-Panel angezeigt.
    */
   stereoNoteDE?: string;
+  /**
+   * Optional: kuratierte Spektroskopie-Daten (IR/NMR/UV) — für die
+   * Detail-Ansicht und den Chemie-Unterricht.
+   */
+  spectra?: Spectra;
 };
 
 export type Entity =

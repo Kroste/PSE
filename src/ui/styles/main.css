@@ -1608,3 +1608,68 @@ body {
   line-height: 1.5;
   color: var(--text);
 }
+
+/* ---------------- Spektroskopie-Ansicht ---------------- */
+
+.pse-spectra {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+}
+.pse-spectra-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.pse-spec-block {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--panel-border);
+}
+.pse-spec-block:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.pse-spec-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.pse-spec-svg {
+  display: block;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+  margin-bottom: 4px;
+  max-width: 100%;
+  height: auto;
+}
+.pse-spec-tick {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  fill: var(--text-dim);
+}
+.pse-spec-peaklist {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.pse-spec-peaklist li {
+  margin-bottom: 2px;
+}
+.pse-spec-source {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.6;
+  text-align: right;
+}

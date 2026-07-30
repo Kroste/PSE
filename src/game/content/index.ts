@@ -5,6 +5,7 @@ import elementsRaw from './elements.json';
 import moleculesRaw from './molecules.json';
 import recipesRaw from './recipes.json';
 import { STEREO_NOTES } from './stereo-annotations';
+import { SPECTRA } from './spectra';
 import type {
   Entity,
   EntityId,
@@ -27,9 +28,12 @@ export const elements: readonly ElementEntity[] = elementsRaw as unknown as Elem
  */
 const baseMolecules: readonly MoleculeEntity[] = (moleculesRaw as unknown as MoleculeEntity[]).map(
   (m) => {
+    let out = m;
     const stereoNote = STEREO_NOTES[m.id];
-    if (stereoNote && !m.stereoNoteDE) return { ...m, stereoNoteDE: stereoNote };
-    return m;
+    if (stereoNote && !out.stereoNoteDE) out = { ...out, stereoNoteDE: stereoNote };
+    const spectra = SPECTRA[m.id];
+    if (spectra && !out.spectra) out = { ...out, spectra };
+    return out;
   },
 );
 

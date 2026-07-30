@@ -37,6 +37,7 @@ import { layoutMolecule3D } from '../game/chemistry/layout';
 import { parseSmiles } from '../game/chemistry/smiles';
 import { parseMolFile } from '../game/chemistry/mol';
 import { writeMolFile } from '../game/chemistry/mol-writer';
+import { renderSpectraSection } from './spectra-chart';
 import {
   MECHANISMS,
   MECHANISM_CATEGORIES,
@@ -650,6 +651,10 @@ function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
     text.textContent = entity.stereoNoteDE;
     stereoBox.appendChild(text);
     el.appendChild(stereoBox);
+  }
+
+  if (entity.kind === 'molecule' && entity.spectra) {
+    el.appendChild(renderSpectraSection(entity.spectra));
   }
 
   const src = document.createElement('p');
