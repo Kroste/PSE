@@ -619,6 +619,360 @@ export const MECHANISMS: Mechanism[] = [
     ],
     source: 'Odian — Principles of Polymerization (4th ed., Ch. 3)',
   },
+  {
+    id: 'e2-elimination',
+    nameDE: 'E2-Eliminierung',
+    categoryDE: 'Eliminierung',
+    summaryDE:
+      'Base zieht anti-periplanares β-H ab, gleichzeitig Abgangsgruppe raus, C=C-Doppelbindung entsteht. Konzertiert.',
+    overallReaction: 'CH₃-CH₂-Br + NaOEt → CH₂=CH₂ + HBr + NaOEt',
+    conditionsDE:
+      'Starke Base (Alkoholat, DBU), sperrig für Selektivität. Anti-periplanare Geometrie am β-C nötig — kontrolliert Zaitsev/Hofmann.',
+    steps: [
+      {
+        titleDE: 'Anti-periplanare Ausrichtung',
+        before: 'H⁻ (Base) und C-Br stehen um 180° auf gegenüberliegenden Seiten',
+        after: 'gleichbleibend, nur räumlich geordnet',
+        electronFlowDE:
+          'Damit E2 konzertiert laufen kann, muss das β-H mit der C-X-Bindung anti-periplanar stehen (Diederwinkel 180°). Bei Cyclohexan heißt das: beide axial. Bei acyclischen Systemen ist die frei rotierbare Konformation meist zugänglich.',
+        observationDE:
+          'Ist keine anti-periplanare Konformation möglich (z. B. sperrige Substituenten), fällt die Reaktion auf E1 oder SN1 zurück.',
+      },
+      {
+        titleDE: 'Konzertierter Übergang',
+        before: 'Base + H-Cβ-Cα-Br',
+        after: '[Base⋯H⋯Cβ=Cα⋯Br]‡',
+        electronFlowDE:
+          'Drei Elektronenpaare wandern GLEICHZEITIG: (1) Freies Paar der Base greift das β-H an, (2) das C-H-Bindungspaar wird zum π-Elektronenpaar der neuen C=C-Doppelbindung, (3) das C-Br-Bindungspaar geht komplett auf Br. Ein Schritt, keine Zwischenstufe.',
+        observationDE:
+          'Rate = k · [Substrat] · [Base] — bimolekular, deshalb "E2". Konzertiert = keine Carbokation-Zwischenstufe, keine Umlagerungen.',
+        viz3d: {
+          atoms: [
+            // Anti-periplanares Setup: Base oben, C-Cβ-H, C-Cα-Br unten
+            { element: 'O', position: [0, 2.5, 0] }, // 0: Base (Alkoholat-O)
+            { element: 'H', position: [0.9, 3.0, 0] }, // 1: Base-Alkyl-Andeutung
+            { element: 'H', position: [0.0, 1.4, 0] }, // 2: β-H (das abgeht)
+            { element: 'C', position: [-0.7, 0.5, 0] }, // 3: Cβ
+            { element: 'C', position: [0.7, -0.5, 0] }, // 4: Cα
+            { element: 'Br', position: [0.7, -2.0, 0] }, // 5: Abgangsgruppe
+            { element: 'H', position: [-1.7, 0.9, 0] }, // 6: Cβ-H
+            { element: 'H', position: [-1.0, 0.0, 0.9] }, // 7: Cβ-H
+            { element: 'H', position: [1.7, -0.1, 0] }, // 8: Cα-H
+            { element: 'H', position: [0.7, -0.6, 0.9] }, // 9: Cα-H
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 2, to: 3, order: 1, style: 'dashed' }, // C-H schwindend
+            { from: 3, to: 4, order: 1 }, // wird zu C=C
+            { from: 4, to: 5, order: 1, style: 'dashed' }, // C-Br schwindend
+            { from: 3, to: 6, order: 1 },
+            { from: 3, to: 7, order: 1 },
+            { from: 4, to: 8, order: 1 },
+            { from: 4, to: 9, order: 1 },
+            { from: 0, to: 2, order: 1, style: 'dashed' }, // neue O-H werdend
+          ],
+          arrows: [
+            // Base greift β-H an
+            { from: [0, 2.2, 0], to: [0, 1.7, 0], curvature: 0.25 },
+            // C-H-Bindung wird zur C=C
+            { from: [-0.35, 1.0, 0], to: [0, 0, 0], curvature: 0.35 },
+            // C-Br-Bindung → Br
+            { from: [0.7, -1.2, 0], to: [0.7, -2.0, 0], curvature: 0.3 },
+          ],
+        },
+      },
+    ],
+    source: 'Clayden — Organische Chemie (2. Aufl., Kap. 17)',
+  },
+  {
+    id: 'diels-alder',
+    nameDE: 'Diels-Alder-Cycloaddition',
+    categoryDE: 'Addition',
+    summaryDE:
+      'Konzertierte [4+2]-Cycloaddition zwischen einem Dien (s-cis) und einem Dienophil. Bildet zwei neue C-C-Bindungen gleichzeitig.',
+    overallReaction: 'H₂C=CH-CH=CH₂ + H₂C=CH₂ → Cyclohexen',
+    conditionsDE:
+      'Thermisch (Erhitzen), keine Katalyse nötig. Dienophil-EWG (Ester, Nitrile) beschleunigt. Diels-Alder mit inverser Elektronenrichtung existiert auch.',
+    steps: [
+      {
+        titleDE: 'Konzertierte Cycloaddition',
+        before: 'Butadien (s-cis) + Ethen',
+        after: 'Cyclohexen',
+        electronFlowDE:
+          'Sechs Elektronen wandern in einem einzigen konzertierten Schritt kreisförmig um: (1) π-Elektronen der C1=C2 des Diens werden zur neuen σ-Bindung C1-Cα des Dienophils, (2) π-Elektronen der C2-C3 des Diens werden zur neuen C2=C3-Doppelbindung im Produkt, (3) π-Elektronen der C3=C4 werden zur neuen σ-Bindung C4-Cβ des Dienophils, (4) π-Elektronen des Dienophils wandern zurück ins Dien-Gerüst. Alle drei Pfeile im Kreis.',
+        observationDE:
+          'Nobelpreis 1950 für Otto Diels & Kurt Alder. Konzertiert bedeutet: EIN Übergangszustand, KEIN Zwischenprodukt, stereospezifisch (cis bleibt cis). "Woodward-Hoffmann-Regel" — thermisch erlaubt für [4+2].',
+        viz3d: {
+          atoms: [
+            // Butadien (in s-cis-Konformation, "U-Form" oben)
+            { element: 'C', position: [-1.4, 0.9, 0] }, // 0: C1
+            { element: 'C', position: [-0.7, 1.7, 0] }, // 1: C2
+            { element: 'C', position: [0.7, 1.7, 0] }, // 2: C3
+            { element: 'C', position: [1.4, 0.9, 0] }, // 3: C4
+            // Dienophil (Ethen, darunter)
+            { element: 'C', position: [-0.7, -0.5, 0] }, // 4: Cα
+            { element: 'C', position: [0.7, -0.5, 0] }, // 5: Cβ
+            // H-Atome der Enden (schematisch)
+            { element: 'H', position: [-2.4, 0.6, 0] },
+            { element: 'H', position: [2.4, 0.6, 0] },
+            { element: 'H', position: [-1.2, 2.5, 0] },
+            { element: 'H', position: [1.2, 2.5, 0] },
+            { element: 'H', position: [-1.4, -0.9, 0] },
+            { element: 'H', position: [-0.7, -0.5, 0.9] },
+            { element: 'H', position: [1.4, -0.9, 0] },
+            { element: 'H', position: [0.7, -0.5, 0.9] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 2 }, // C1=C2 (Dien)
+            { from: 1, to: 2, order: 1 }, // C2-C3
+            { from: 2, to: 3, order: 2 }, // C3=C4
+            { from: 4, to: 5, order: 2 }, // Dienophil
+            { from: 0, to: 4, order: 1, style: 'dashed' }, // neue Bindung 1
+            { from: 3, to: 5, order: 1, style: 'dashed' }, // neue Bindung 2
+            { from: 0, to: 6, order: 1 },
+            { from: 3, to: 7, order: 1 },
+            { from: 1, to: 8, order: 1 },
+            { from: 2, to: 9, order: 1 },
+            { from: 4, to: 10, order: 1 },
+            { from: 4, to: 11, order: 1 },
+            { from: 5, to: 12, order: 1 },
+            { from: 5, to: 13, order: 1 },
+          ],
+          arrows: [
+            // Drei Pfeile im Kreis
+            { from: [-1.0, 1.3, 0], to: [-0.7, -0.1, 0], curvature: 0.3 }, // C1=C2 → neue σ
+            { from: [0, 1.7, 0], to: [0, 0.7, 0], curvature: 0.3 }, // C3-C4-π → C2=C3
+            { from: [1.0, 1.3, 0], to: [0.7, -0.1, 0], curvature: 0.3 }, // C3=C4 → neue σ
+            // Dienophil-π zurück zum Dien
+            { from: [0, -0.5, 0], to: [0, 1.0, 0], curvature: 0.4 },
+          ],
+        },
+      },
+      {
+        titleDE: 'Stereospezifität: cis bleibt cis',
+        before: 'Übergangszustand (schmetterlings-artig, endo/exo)',
+        after: 'Cyclohexen mit erhaltener Stereochemie am Dienophil',
+        electronFlowDE:
+          'Kein weiterer Elektronenfluss — die Cycloaddition ist bereits abgeschlossen. Wichtig aber die räumliche Konsequenz: alle Substituenten am Dienophil, die vor der Reaktion cis (auf derselben Seite der C=C) standen, bleiben cis im Produkt. Trans bleibt trans. Ebenso beim Dien: E/Z-Konfiguration überträgt sich 1:1 in die räumliche Anordnung am neuen Ring.',
+        observationDE:
+          'Endo-Regel: bei Reaktionen mit sekundären orbitalen Wechselwirkungen (elektronenziehende Substituenten im Dienophil) ist das endo-Produkt kinetisch bevorzugt, obwohl das exo-Produkt thermodynamisch stabiler wäre.',
+      },
+    ],
+    source: 'Diels & Alder, Liebigs Ann. Chem. 460, 98 (1928); Clayden Kap. 34',
+  },
+  {
+    id: 'grignard',
+    nameDE: 'Grignard-Addition an Aldehyd',
+    categoryDE: 'Addition',
+    summaryDE:
+      'Grignard-Reagenz (R-MgX) greift Carbonyl-C an, Alkoxid entsteht — nach wässriger Aufarbeitung sekundärer Alkohol.',
+    overallReaction: 'CH₃-MgBr + H-CHO → CH₃-CH(OH)-H (Ethanol)',
+    conditionsDE:
+      'Wasserfrei (!), Ether-Lösemittel (Diethylether oder THF), −78 °C bis Raumtemperatur, Aufarbeitung mit verdünnter Säure.',
+    steps: [
+      {
+        titleDE: 'Nucleophiler Angriff des Carbanions',
+        before: 'CH₃-MgBr + H-CHO',
+        after: 'CH₃-CH(O⁻)-H · MgBr⁺',
+        electronFlowDE:
+          'Die polare C-Mg-Bindung ist so weit auf der C-Seite negativ, dass das C ein waschechtes Nucleophil ist ("Carbanion-Charakter"). Elektronenpaar der C-Mg-Bindung greift den elektrophilen Carbonyl-C an. π-Elektronen der C=O wandern zum O — es entsteht ein Magnesium-Alkoxid.',
+        observationDE:
+          'Grignard war die erste Reaktion, mit der man beliebige C-C-Bindungen aufbauen konnte — Nobelpreis 1912. Vorsicht mit Wasser: Grignard zerfällt sofort zu R-H + Mg(OH)Br.',
+        viz3d: {
+          atoms: [
+            // Grignard links: CH3-MgBr (polar, C nucleophil)
+            { element: 'C', position: [-2.0, 0, 0] }, // 0: Methyl-C (nucleophil)
+            { element: 'H', position: [-2.6, 0.9, 0] },
+            { element: 'H', position: [-2.6, -0.9, 0] },
+            { element: 'H', position: [-2.0, 0.0, 0.9] },
+            // Formaldehyd rechts: H-CHO
+            { element: 'C', position: [0.4, -0.2, 0] }, // 4: Carbonyl-C (elektrophil)
+            { element: 'O', position: [0.4, 1.1, 0] }, // 5: =O
+            { element: 'H', position: [1.4, -0.6, 0] }, // 6
+            { element: 'H', position: [-0.5, -0.6, 0] }, // 7
+            // Magnesium-Bromid (weit rechts, wird nach dem Angriff Gegenion)
+            { element: 'Mg', position: [-2.0, -1.9, 0] }, // 8: Mg (schwach an C gebunden)
+            { element: 'Br', position: [-2.0, -3.4, 0] }, // 9: Br
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 4, to: 5, order: 2 }, // C=O
+            { from: 4, to: 6, order: 1 },
+            { from: 4, to: 7, order: 1 },
+            { from: 0, to: 8, order: 1, style: 'dashed' }, // C-Mg polar/schwindend
+            { from: 8, to: 9, order: 1 },
+            { from: 0, to: 4, order: 1, style: 'dashed' }, // neue C-C werdend
+          ],
+          arrows: [
+            // Elektronenpaar von C-Mg → Carbonyl-C
+            { from: [-1.6, -0.15, 0], to: [0.2, -0.2, 0], curvature: 0.35 },
+            // π-Elektronen der C=O → O
+            { from: [0.4, 0.5, 0], to: [0.4, 1.1, 0], curvature: 0.3 },
+          ],
+        },
+      },
+      {
+        titleDE: 'Wässrige Aufarbeitung',
+        before: 'CH₃-CH(O⁻)-H · MgBr⁺ + H₂O/H⁺',
+        after: 'CH₃-CH(OH)-H (Ethanol) + Mg(OH)Br',
+        electronFlowDE:
+          'Verdünnte Säure (meist NH₄Cl-Lösung) protoniert das Alkoxid — Elektronenpaar am O⁻ nimmt ein Proton auf. Ergebnis: der freie Alkohol.',
+        observationDE:
+          'Diese Aufarbeitung ist so Standard, dass sie oft in Reaktionsgleichungen einfach als "H₃O⁺" oder gar nicht dazugeschrieben wird. Ohne sie hätte man aber nur das Magnesium-Alkoxid.',
+      },
+    ],
+    source: 'Grignard, C. R. Acad. Sci. 130, 1322 (1900); Clayden Kap. 9',
+  },
+  {
+    id: 'friedel-crafts',
+    nameDE: 'Friedel-Crafts-Alkylierung',
+    categoryDE: 'Substitution',
+    summaryDE:
+      'Elektrophile aromatische Substitution: Aromat + Alkylhalogenid unter Lewis-Säure-Katalyse. Alkyl-Kation greift den Aromaten an.',
+    overallReaction: 'C₆H₆ + CH₃-Cl → C₆H₅-CH₃ (Toluol) + HCl (AlCl₃-katalysiert)',
+    conditionsDE:
+      'AlCl₃ (oder FeCl₃) als Lewis-Säure, kaltes Alkylhalogenid, kein Wasser. Umlagerungen möglich (primäres → sekundäres Carbokation).',
+    steps: [
+      {
+        titleDE: 'Bildung des Elektrophils',
+        before: 'CH₃-Cl + AlCl₃',
+        after: 'CH₃⁺ · AlCl₄⁻ (Methylkation als Ionenpaar)',
+        electronFlowDE:
+          'Freies Elektronenpaar am Aluminium (formal an dessen leerem p-Orbital) zieht das Chlor ab; das C-Cl-Bindungselektronenpaar folgt komplett. Zurück bleibt ein Methylkation, das Elektrophil.',
+        observationDE:
+          'Bei primären Halogeniden entsteht oft KEIN freies Kation, sondern nur ein stark polarisiertes Komplex — dennoch ausreichend elektrophil.',
+      },
+      {
+        titleDE: 'Elektrophile aromatische Substitution',
+        before: 'C₆H₆ + CH₃⁺',
+        after: 'Wheland-Zwischenstufe (σ-Komplex) → C₆H₅-CH₃ + H⁺',
+        electronFlowDE:
+          'π-Elektronenpaar des Aromaten greift das Methylkation an — zwei π-Elektronen bilden die neue C-C-Bindung. Aromatizität geht temporär verloren (Wheland-Kation, cyclohexadienyl-Kation). Dann wird das Ring-H (das jetzt sp³ ist) durch AlCl₄⁻ abgezogen — Rückbildung des Aromaten, Rückgewinnung des Katalysators als HCl + AlCl₃.',
+        observationDE:
+          'Alkylgruppen sind aktivierend + ortho/para-dirigierend — Polyalkylierung ist bei Friedel-Crafts ein häufiges Problem. Acylierung (statt Alkylierung) umgeht das, weil die Acylgruppe desaktivierend ist.',
+        viz3d: {
+          atoms: [
+            // Benzol-Ring (6-Eck in xy-Ebene)
+            { element: 'C', position: [1.2, 0, 0] }, // 0
+            { element: 'C', position: [0.6, 1.04, 0] }, // 1
+            { element: 'C', position: [-0.6, 1.04, 0] }, // 2
+            { element: 'C', position: [-1.2, 0, 0] }, // 3
+            { element: 'C', position: [-0.6, -1.04, 0] }, // 4
+            { element: 'C', position: [0.6, -1.04, 0] }, // 5
+            { element: 'H', position: [1.2, 1.9, 0] }, // 6: das reagierende H (ortho zu C1)
+            { element: 'H', position: [-1.2, 1.9, 0] }, // 7
+            { element: 'H', position: [-2.15, 0, 0] }, // 8
+            { element: 'H', position: [-1.2, -1.9, 0] }, // 9
+            { element: 'H', position: [1.2, -1.9, 0] }, // 10
+            // Methyl-Kation kommt von rechts an C1
+            { element: 'C', position: [2.7, 0, 0] }, // 11: CH3⁺
+            { element: 'H', position: [3.4, 0.9, 0] },
+            { element: 'H', position: [3.4, -0.9, 0] },
+            { element: 'H', position: [2.7, 0, 0.9] },
+          ],
+          bonds: [
+            // Benzol: alternierende Doppelbindungen (Kekulé)
+            { from: 0, to: 1, order: 2 },
+            { from: 1, to: 2, order: 1 },
+            { from: 2, to: 3, order: 2 },
+            { from: 3, to: 4, order: 1 },
+            { from: 4, to: 5, order: 2 },
+            { from: 5, to: 0, order: 1 },
+            { from: 0, to: 6, order: 1 },
+            { from: 2, to: 7, order: 1 },
+            { from: 3, to: 8, order: 1 },
+            { from: 4, to: 9, order: 1 },
+            { from: 5, to: 10, order: 1 },
+            { from: 11, to: 12, order: 1 },
+            { from: 11, to: 13, order: 1 },
+            { from: 11, to: 14, order: 1 },
+            { from: 0, to: 11, order: 1, style: 'dashed' }, // werdende C-C
+          ],
+          arrows: [
+            // π-Elektronen des Rings → Methyl-C⁺
+            { from: [0.9, 0.5, 0], to: [2.4, 0.2, 0], curvature: 0.4 },
+          ],
+        },
+      },
+    ],
+    source: 'Friedel & Crafts, Compt. Rend. 84, 1450 (1877); Clayden Kap. 22',
+  },
+  {
+    id: 'wittig',
+    nameDE: 'Wittig-Reaktion',
+    categoryDE: 'Kondensation',
+    summaryDE:
+      'Phosphor-Ylid greift Aldehyd/Keton an. Über Oxaphosphetan-Ring entsteht ein Alken + Ph₃P=O — stereoselektiv.',
+    overallReaction: 'Ph₃P=CH₂ + R₂C=O → R₂C=CH₂ + Ph₃P=O',
+    conditionsDE:
+      'THF oder Ether als Lösemittel, tiefe Temperatur bei stabilisierten Yliden (Z-Selektivität), höhere Temperatur bei nicht-stabilisierten (E-Selektivität nach Schlosser).',
+    steps: [
+      {
+        titleDE: 'Angriff des Ylids auf die Carbonyl-Gruppe',
+        before: 'Ph₃P=CH₂ + H-CHO',
+        after: 'Betain (Ph₃P⁺-CH₂-CH(O⁻)-H)',
+        electronFlowDE:
+          'Das Carbanion-artige C des Ylids (⁻CH₂-PPh₃⁺, Yliden-Form) hat ein freies Elektronenpaar. Dieses greift den elektrophilen Carbonyl-C an. π-Elektronen der C=O wandern zum O — es entsteht ein zwitterionisches Betain mit P⁺ und O⁻ an gegenüberliegenden Enden.',
+        observationDE:
+          'Der Ylid-Kohlenstoff ist ein starkes Nucleophil, weil das benachbarte Phosphor das negative Elektronenpaar durch d-Orbital-Beteiligung stabilisiert.',
+      },
+      {
+        titleDE: 'Oxaphosphetan-Ring und Zerfall',
+        before: 'Betain',
+        after: 'Oxaphosphetan-Ring → Alken + Ph₃P=O',
+        electronFlowDE:
+          'Das O⁻ dreht sich zum P⁺ und schließt einen 4-gliedrigen Oxaphosphetan-Ring. Dann fällt der Ring in einem konzertierten Schritt in zwei Fragmente auseinander: das O bekommt eine neue σ-Bindung zum P (→ P=O), der C bekommt eine neue π-Bindung zum anderen C (→ C=C). Zwei Bindungen brechen simultan, zwei entstehen — perfekte Elektronen-Buchhaltung.',
+        observationDE:
+          'Die extrem starke P=O-Bindung (~544 kJ/mol) ist die eigentliche Triebkraft der Wittig-Reaktion. Ph₃P=O ist ein sehr stabiles Nebenprodukt.',
+        viz3d: {
+          atoms: [
+            // Oxaphosphetan-Ring: 4 Atome (P-C-C-O), 90°-Winkel
+            { element: 'P', position: [-0.9, 0.9, 0] }, // 0
+            { element: 'C', position: [0.9, 0.9, 0] }, // 1
+            { element: 'C', position: [0.9, -0.9, 0] }, // 2
+            { element: 'O', position: [-0.9, -0.9, 0] }, // 3
+            // 3 Phenyl-Andeutungen am P
+            { element: 'C', position: [-2.4, 1.6, 0] },
+            { element: 'C', position: [-1.5, 2.4, 0] },
+            { element: 'C', position: [-2.0, 0.5, 1.2] },
+            // H am C1
+            { element: 'H', position: [1.6, 1.8, 0] },
+            { element: 'H', position: [1.6, 1.8, -0.5] },
+            // H/R am C2
+            { element: 'H', position: [1.6, -1.8, 0] },
+            { element: 'H', position: [1.6, -1.8, -0.5] },
+          ],
+          bonds: [
+            // Ring — 2 zerbrechen, 2 bleiben:
+            { from: 0, to: 1, order: 1 }, // bleibt (wird Teil von P=O? nein, C bricht ab)
+            { from: 1, to: 2, order: 1, style: 'dashed' }, // wird C=C
+            { from: 2, to: 3, order: 1 }, // bleibt
+            { from: 3, to: 0, order: 1, style: 'dashed' }, // wird P=O
+            { from: 0, to: 4, order: 1 },
+            { from: 0, to: 5, order: 1 },
+            { from: 0, to: 6, order: 1 },
+            { from: 1, to: 7, order: 1 },
+            { from: 1, to: 8, order: 1 },
+            { from: 2, to: 9, order: 1 },
+            { from: 2, to: 10, order: 1 },
+          ],
+          arrows: [
+            // C1-C2 σ → π (wird C=C)
+            { from: [0.9, 0.3, 0], to: [0.9, -0.3, 0], curvature: 0.3 },
+            // P-O σ → π (wird P=O)
+            { from: [-0.9, 0.3, 0], to: [-0.9, -0.3, 0], curvature: 0.3 },
+            // C1-P σ bricht (Elektronen zum C)
+            { from: [-0.3, 0.9, 0], to: [0.9, 0.9, 0], curvature: 0.3 },
+            // C2-O σ bricht (Elektronen zum O)
+            { from: [0.3, -0.9, 0], to: [-0.9, -0.9, 0], curvature: 0.3 },
+          ],
+        },
+      },
+    ],
+    source: 'Wittig & Geissler, Liebigs Ann. Chem. 580, 44 (1953); Nobelpreis 1979',
+  },
 ];
 
 /** Alle Kategorien in fester Reihenfolge — für die UI-Sortierung. */
