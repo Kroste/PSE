@@ -167,10 +167,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: 'Alle Reaktoren',
     description: 'Werkbank, Sternkern, AGB-Stern, Supernova und Chemielabor freigeschaltet.',
     icon: '🚀',
-    check: (s) =>
-      ['workbench', 'stellar-core', 'agb-star', 'supernova', 'chem-lab'].every((r) =>
-        s.unlockedReactors.includes(r),
-      ),
+    check: (s) => {
+      const unlocked = new Set<string>(s.unlockedReactors);
+      return ['workbench', 'stellar-core', 'agb-star', 'supernova', 'chem-lab'].every((r) =>
+        unlocked.has(r),
+      );
+    },
   },
   {
     id: 'all-molecules',
