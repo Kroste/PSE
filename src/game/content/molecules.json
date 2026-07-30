@@ -153,5 +153,123 @@
     "color": "#cc7755",
     "scienceNoteDE": "Linear (O=C=O). Endprodukt der Zellatmung und der Verbrennung fossiler Brennstoffe; klimarelevantestes Treibhausgas des anthropogenen Ausstoßes.",
     "source": "NIST WebBook"
+  },
+  {
+    "id": "CH3OH",
+    "kind": "molecule",
+    "nameDE": "Methanol",
+    "symbol": "CH₃OH",
+    "formula": "CH4O",
+    "atomCounts": { "C": 1, "H": 4, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "O", "position": [1.3, 0.28, 0] },
+      { "element": "H", "position": [1.65, -0.62, 0] },
+      { "element": "H", "position": [-0.53, -0.53, 0.9] },
+      { "element": "H", "position": [-0.53, -0.53, -0.9] },
+      { "element": "H", "position": [-0.63, 0.9, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 },
+      { "from": 0, "to": 5, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 32.042,
+    "categoryDE": "Organisch (Alkohol)",
+    "color": "#88aacc",
+    "scienceNoteDE": "Einfachster Alkohol — ein H am Methan durch eine OH-Gruppe ersetzt. Farblose, hochgiftige Flüssigkeit (blind → tot). Grundchemikalie für Formaldehyd, Biodiesel und Direkt-Methanol-Brennstoffzellen.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "C2H5OH",
+    "kind": "molecule",
+    "nameDE": "Ethanol",
+    "symbol": "C₂H₅OH",
+    "formula": "C2H6O",
+    "atomCounts": { "C": 2, "H": 6, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [-0.76, 0, 0] },
+      { "element": "C", "position": [0.76, 0, 0] },
+      { "element": "O", "position": [1.4, 1.3, 0] },
+      { "element": "H", "position": [1.94, 1.94, 0] },
+      { "element": "H", "position": [-1.13, 0.55, 0.9] },
+      { "element": "H", "position": [-1.13, 0.55, -0.9] },
+      { "element": "H", "position": [-1.13, -1.0, 0] },
+      { "element": "H", "position": [1.13, -0.55, 0.9] },
+      { "element": "H", "position": [1.13, -0.55, -0.9] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 1 },
+      { "from": 2, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 },
+      { "from": 0, "to": 5, "order": 1 },
+      { "from": 0, "to": 6, "order": 1 },
+      { "from": 1, "to": 7, "order": 1 },
+      { "from": 1, "to": 8, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 46.068,
+    "categoryDE": "Organisch (Alkohol)",
+    "color": "#77bbdd",
+    "scienceNoteDE": "Trinkbarer Alkohol — CH₃CH₂OH. Entsteht biotechnologisch durch Hefe-Fermentation aus Zucker. Weltweit wichtigste psychoaktive Substanz und ein Grundstoff der chemischen Industrie.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "CH2O",
+    "kind": "molecule",
+    "nameDE": "Formaldehyd",
+    "symbol": "HCHO",
+    "formula": "CH2O",
+    "atomCounts": { "C": 1, "H": 2, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "O", "position": [0, 1.21, 0] },
+      { "element": "H", "position": [0.94, -0.55, 0] },
+      { "element": "H", "position": [-0.94, -0.55, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 30.026,
+    "categoryDE": "Organisch (Aldehyd)",
+    "color": "#ccaa99",
+    "scienceNoteDE": "Einfachstes Aldehyd — flacher, trigonal-planarer Kohlenstoff mit Carbonyl-Doppelbindung. Stechender Geruch, Konservierungs- und Fixiermittel (Formalin); Vorstufe vieler Polymere.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "C2H4",
+    "kind": "molecule",
+    "nameDE": "Ethen (Ethylen)",
+    "symbol": "C₂H₄",
+    "formula": "C2H4",
+    "atomCounts": { "C": 2, "H": 4 },
+    "atoms": [
+      { "element": "C", "position": [-0.67, 0, 0] },
+      { "element": "C", "position": [0.67, 0, 0] },
+      { "element": "H", "position": [-1.24, 0.92, 0] },
+      { "element": "H", "position": [-1.24, -0.92, 0] },
+      { "element": "H", "position": [1.24, 0.92, 0] },
+      { "element": "H", "position": [1.24, -0.92, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 1, "to": 4, "order": 1 },
+      { "from": 1, "to": 5, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 28.054,
+    "categoryDE": "Organisch (Alken)",
+    "color": "#aaddaa",
+    "scienceNoteDE": "Einfachstes Alken — planare Struktur um die C=C-Doppelbindung. Meistproduzierte organische Chemikalie der Welt (Basis von Polyethylen); zugleich ein natürliches Pflanzenhormon, das Fruchtreifung steuert.",
+    "source": "NIST WebBook"
   }
 ]

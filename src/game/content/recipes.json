@@ -482,5 +482,41 @@
     "outputs": { "CO2": 1 },
     "scienceNoteDE": "C + 2 O → CO₂ (linear). Endprodukt der Zellatmung und Verbrennung; dominantes Treibhausgas aus anthropogenen Quellen.",
     "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-methanol",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "C": 1, "H": 4, "O": 1 },
+    "outputs": { "CH3OH": 1 },
+    "scienceNoteDE": "C + 4 H + O → CH₃OH. Industriell aus Synthesegas (CO + 2 H₂ → CH₃OH) an Cu/ZnO-Katalysator bei ~250 °C und 50 bar hergestellt; hier vereinfacht atomar dargestellt.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-ethanol",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "C": 2, "H": 6, "O": 1 },
+    "outputs": { "C2H5OH": 1 },
+    "scienceNoteDE": "2 C + 6 H + O → CH₃CH₂OH. Biologisch durch Hefe (C₆H₁₂O₆ → 2 CH₃CH₂OH + 2 CO₂) oder industriell durch Hydratisierung von Ethen (C₂H₄ + H₂O).",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-formaldehyde",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "C": 1, "H": 2, "O": 1 },
+    "outputs": { "CH2O": 1 },
+    "scienceNoteDE": "C + 2 H + O → HCHO. Wichtiges Zwischenprodukt der organischen Chemie; industriell aus Methanol durch selektive Oxidation.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-ethene",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "C": 2, "H": 4 },
+    "outputs": { "C2H4": 1 },
+    "scienceNoteDE": "2 C + 4 H → C₂H₄. Meistproduzierte organische Chemikalie überhaupt (>200 Mt/Jahr weltweit); Basis für Polyethylen, PVC-Vorstufen, Ethylenoxid.",
+    "source": "NIST WebBook"
   }
 ]
