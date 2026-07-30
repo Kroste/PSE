@@ -134,10 +134,24 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   let autoCraftDeadline: number | null = null;
   const AUTO_CRAFT_DELAY = 2.2;
 
+  // Pointer-Drag: rotiert das aktuelle Atom (atomGroup).
+  let dragActive = false;
+  let dragLastX = 0;
+  let dragLastY = 0;
+  let dragPointerId: number | null = null;
+
+  function resetAtomRotation(): void {
+    atomGroup.rotation.set(0, 0, 0);
+  }
+
   function replaceAtom(entityId: string | null, isFlash: boolean): void {
     while (atomGroup.children.length > 0) atomGroup.remove(atomGroup.children[0]!);
     currentAtom = null;
-    if (!entityId) return;
+    resetAtomRotation();
+    if (!entityId) {
+      canvas.style.cursor = '';
+      return;
+    }
     const entity = getEntity(entityId);
     if (!entity) return;
     let rig: AtomRig;
@@ -152,6 +166,7 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     atomGroup.add(rig.root);
     currentAtom = rig;
     if (isFlash) atomFlashTimer = ATOM_FLASH_SECONDS;
+    canvas.style.cursor = 'grab';
   }
 
   const idleHint = makeTextSprite('Ziehe Zutaten in die Reaktionszone');
@@ -164,6 +179,46 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight, false);
   });
+
+  // Pointer-Drag auf dem Canvas rotiert das aktuelle Atom.
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!currentAtom) return;
+    dragActive = true;
+    dragLastX = e.clientX;
+    dragLastY = e.clientY;
+    dragPointerId = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = 'grabbing';
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragActive) return;
+    const dx = e.clientX - dragLastX;
+    const dy = e.clientY - dragLastY;
+    dragLastX = e.clientX;
+    dragLastY = e.clientY;
+    // 1 rad pro ~200 px
+    atomGroup.rotation.y += dx * 0.007;
+    const nextX = atomGroup.rotation.x + dy * 0.007;
+    // Klippen, damit man nicht auf den Kopf steht
+    atomGroup.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, nextX));
+  });
+  function endDrag(e: PointerEvent): void {
+    if (!dragActive) return;
+    dragActive = false;
+    if (dragPointerId !== null) {
+      try {
+        canvas.releasePointerCapture(dragPointerId);
+      } catch {
+        // ignorieren
+      }
+      dragPointerId = null;
+    }
+    canvas.style.cursor = currentAtom ? 'grab' : '';
+    void e;
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', endDrag);
 
   subscribe((state) => {
     if (fusion) return;
