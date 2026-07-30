@@ -44,6 +44,7 @@ import {
   getMechanism,
   type Mechanism,
 } from '../game/chemistry/mechanisms';
+import { CHALLENGES, CATEGORY_ORDER } from '../game/challenges';
 
 let feedbackTimer: number | undefined;
 
@@ -72,6 +73,8 @@ export function mountHud(opts: HudOptions = {}): void {
   const sandboxBtn = document.getElementById('pse-toggle-sandbox');
   const mechanismsEl = document.getElementById('pse-mechanisms');
   const mechanismsBtn = document.getElementById('pse-toggle-mechanisms');
+  const challengesEl = document.getElementById('pse-challenges');
+  const challengesBtn = document.getElementById('pse-toggle-challenges');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -89,7 +92,9 @@ export function mountHud(opts: HudOptions = {}): void {
     !achievementsBtn ||
     !sandboxBtn ||
     !mechanismsEl ||
-    !mechanismsBtn
+    !mechanismsBtn ||
+    !challengesEl ||
+    !challengesBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -196,7 +201,9 @@ export function mountHud(opts: HudOptions = {}): void {
     renderAchievements(achievementsEl);
   };
 
-  const closeAllOverlays = (except: 'table' | 'kb' | 'editor' | 'achievements' | 'mechanisms'): void => {
+  const closeAllOverlays = (
+    except: 'table' | 'kb' | 'editor' | 'achievements' | 'mechanisms' | 'challenges',
+  ): void => {
     if (except !== 'table') {
       tableEl.hidden = true;
       toggleBtn.classList.remove('pse-btn-primary');
@@ -216,6 +223,10 @@ export function mountHud(opts: HudOptions = {}): void {
     if (except !== 'mechanisms') {
       mechanismsEl.hidden = true;
       mechanismsBtn.classList.remove('pse-btn-primary');
+    }
+    if (except !== 'challenges') {
+      challengesEl.hidden = true;
+      challengesBtn.classList.remove('pse-btn-primary');
     }
   };
 
@@ -288,6 +299,17 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderMechanisms();
   });
 
+  const rerenderChallenges = (): void => {
+    if (challengesEl.hidden) return;
+    renderChallenges(challengesEl);
+  };
+  challengesBtn.addEventListener('click', () => {
+    challengesEl.hidden = !challengesEl.hidden;
+    challengesBtn.classList.toggle('pse-btn-primary', !challengesEl.hidden);
+    if (!challengesEl.hidden) closeAllOverlays('challenges');
+    rerenderChallenges();
+  });
+
   const syncExpertBtn = (): void => {
     const active = getState().expertMode;
     expertBtn.classList.toggle('pse-btn-primary', active);
@@ -349,6 +371,7 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderTable();
     rerenderKb();
     rerenderAchievements();
+    rerenderChallenges();
     syncExpertBtn();
     syncSandboxBtn();
   });
@@ -2499,4 +2522,84 @@ function escapeHtml(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/** ------------------- Aufgaben-Modus-Overlay ------------------- */
+
+function renderChallenges(el: HTMLElement): void {
+  const state = getState();
+  el.innerHTML = '';
+
+  const done = CHALLENGES.filter((c) => c.check(state)).length;
+  const total = CHALLENGES.length;
+  const pct = Math.round((done / total) * 100);
+
+  const header = document.createElement('div');
+  header.className = 'pse-mech-header';
+  header.innerHTML =
+    `<strong>Aufgaben & Lernpfade</strong> &middot; ` +
+    `<span class="pse-stats-strong">${done}</span> von ` +
+    `<span class="pse-stats-strong">${total}</span> abgeschlossen (${pct}%)`;
+  el.appendChild(header);
+
+  const bar = document.createElement('div');
+  bar.className = 'pse-progress-bar';
+  const fill = document.createElement('div');
+  fill.className = 'pse-progress-fill';
+  fill.style.width = `${pct}%`;
+  bar.appendChild(fill);
+  el.appendChild(bar);
+
+  for (const category of CATEGORY_ORDER) {
+    const items = CHALLENGES.filter((c) => c.category === category);
+    if (items.length === 0) continue;
+    const catHeader = document.createElement('h3');
+    catHeader.className = 'pse-section';
+    catHeader.textContent = category;
+    el.appendChild(catHeader);
+
+    const grid = document.createElement('div');
+    grid.className = 'pse-challenges-grid';
+    for (const c of items) {
+      const doneCheck = c.check(state);
+      const prog = c.progress ? c.progress(state) : doneCheck ? 1 : 0;
+      const card = document.createElement('div');
+      card.className = 'pse-challenge-card';
+      if (doneCheck) card.classList.add('pse-challenge-done');
+
+      const title = document.createElement('div');
+      title.className = 'pse-challenge-title';
+      title.textContent = `${doneCheck ? '✓ ' : ''}${c.titleDE}`;
+      card.appendChild(title);
+
+      const desc = document.createElement('div');
+      desc.className = 'pse-challenge-desc';
+      desc.textContent = c.descriptionDE;
+      card.appendChild(desc);
+
+      // Fortschritts-Bar bei mehrstufigen Zielen (progress-Fkt vorhanden)
+      if (c.progress) {
+        const pWrap = document.createElement('div');
+        pWrap.className = 'pse-challenge-progress';
+        const pFill = document.createElement('div');
+        pFill.className = 'pse-challenge-progress-fill';
+        pFill.style.width = `${Math.round(prog * 100)}%`;
+        pWrap.appendChild(pFill);
+        card.appendChild(pWrap);
+        const pText = document.createElement('div');
+        pText.className = 'pse-challenge-progress-text';
+        pText.textContent = `${Math.round(prog * 100)}%`;
+        card.appendChild(pText);
+      }
+
+      if (!doneCheck) {
+        const hint = document.createElement('div');
+        hint.className = 'pse-challenge-hint';
+        hint.innerHTML = `<span class="pse-challenge-hint-label">💡 Hinweis:</span> ${escapeHtml(c.hintDE)}`;
+        card.appendChild(hint);
+      }
+      grid.appendChild(card);
+    }
+    el.appendChild(grid);
+  }
 }

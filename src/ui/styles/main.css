@@ -1673,3 +1673,91 @@ body {
   opacity: 0.6;
   text-align: right;
 }
+
+/* ---------------- Aufgaben-Modus-Overlay ---------------- */
+
+.pse-challenges-overlay {
+  position: fixed;
+  inset: 60px 16px 16px 16px;
+  z-index: 20;
+  padding: 14px 18px;
+  background: rgba(6, 10, 14, 0.96);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pse-challenges-overlay[hidden] {
+  display: none;
+}
+
+.pse-challenges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.pse-challenge-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--panel-border);
+  border-left-width: 3px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+.pse-challenge-done {
+  border-left-color: var(--accent);
+  background: rgba(0, 255, 176, 0.06);
+}
+.pse-challenge-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pse-challenge-done .pse-challenge-title {
+  color: var(--accent);
+}
+.pse-challenge-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.pse-challenge-progress {
+  margin-top: 4px;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.pse-challenge-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a8ffdc);
+  transition: width 300ms;
+}
+.pse-challenge-progress-text {
+  align-self: flex-end;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.pse-challenge-hint {
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: rgba(255, 221, 102, 0.08);
+  border-left: 2px solid #ffdd66;
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.pse-challenge-hint-label {
+  color: #ffdd66;
+  font-weight: 700;
+  margin-right: 4px;
+}
