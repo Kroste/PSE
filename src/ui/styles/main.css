@@ -533,7 +533,12 @@ body {
 
 .pse-table-overlay {
   position: fixed;
-  inset: 60px 16px 16px 76px;
+  top: 60px;
+  bottom: 16px;
+  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
+     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
+  left: max(76px, calc(50vw - 670px));
+  right: max(16px, calc(50vw - 730px));
   z-index: 20;
   padding: 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -696,7 +701,12 @@ body {
 
 .pse-kb-overlay {
   position: fixed;
-  inset: 60px 16px 16px 76px;
+  top: 60px;
+  bottom: 16px;
+  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
+     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
+  left: max(76px, calc(50vw - 670px));
+  right: max(16px, calc(50vw - 730px));
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -786,7 +796,7 @@ body {
 
 .pse-kb-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 8px;
   padding-top: 4px;
 }
@@ -840,7 +850,12 @@ body {
 
 .pse-editor-overlay {
   position: fixed;
-  inset: 60px 16px 16px 76px;
+  top: 60px;
+  bottom: 16px;
+  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
+     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
+  left: max(76px, calc(50vw - 670px));
+  right: max(16px, calc(50vw - 730px));
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -941,7 +956,12 @@ body {
 
 .pse-achievements-overlay {
   position: fixed;
-  inset: 60px 16px 16px 76px;
+  top: 60px;
+  bottom: 16px;
+  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
+     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
+  left: max(76px, calc(50vw - 670px));
+  right: max(16px, calc(50vw - 730px));
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -1316,7 +1336,12 @@ body {
 
 .pse-mechanisms-overlay {
   position: fixed;
-  inset: 60px 16px 16px 76px;
+  top: 60px;
+  bottom: 16px;
+  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
+     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
+  left: max(76px, calc(50vw - 670px));
+  right: max(16px, calc(50vw - 730px));
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -2512,7 +2537,12 @@ body {
 
 .pse-challenges-overlay {
   position: fixed;
-  inset: 60px 16px 16px 76px;
+  top: 60px;
+  bottom: 16px;
+  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
+     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
+  left: max(76px, calc(50vw - 670px));
+  right: max(16px, calc(50vw - 730px));
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
