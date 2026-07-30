@@ -220,6 +220,25 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   canvas.addEventListener('pointercancel', endDrag);
   canvas.addEventListener('pointerleave', endDrag);
 
+  // Mausrad-Zoom: verschiebt die Kamera radial zum Look-Target.
+  const ZOOM_TARGET = new Vector3(0, 0.2, 0);
+  const ZOOM_MIN = 1.6;
+  const ZOOM_MAX = 14;
+  canvas.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      const dir = camera.position.clone().sub(ZOOM_TARGET);
+      const dist = dir.length();
+      // deltaY positiv = scroll runter = raus zoomen (Faktor > 1)
+      const factor = 1 + e.deltaY * 0.0012;
+      const clamped = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, dist * factor));
+      dir.normalize().multiplyScalar(clamped);
+      camera.position.copy(ZOOM_TARGET).add(dir);
+    },
+    { passive: false },
+  );
+
   subscribe((state) => {
     if (fusion) return;
     syncChamber(state.reactionZone);
