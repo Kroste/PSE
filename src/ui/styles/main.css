@@ -1637,12 +1637,15 @@ body {
   margin-bottom: 6px;
 }
 .pse-plan-list {
-  margin: 0;
+  margin: 8px 0 0;
   padding-left: 22px;
   font-size: 11px;
   color: var(--text);
   max-height: 320px;
   overflow-y: auto;
+}
+.pse-plan .pse-btn {
+  margin-bottom: 4px;
 }
 .pse-plan-step {
   padding: 4px 0;

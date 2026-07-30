@@ -759,6 +759,26 @@ function renderBuildPlan(targetId: string, plan: BuildPlan | null, expertMode: b
   meta.textContent = `${plan.steps.length} Rezept-Schritt(e) · Reaktoren: ${plan.reactors.map((r) => reactorMeta[r as keyof typeof reactorMeta]?.nameDE ?? r).join(' + ')} · verbraucht ${plan.freeSupplyCount} freie Zutaten`;
   wrap.appendChild(meta);
 
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'pse-btn';
+  copyBtn.textContent = '📋 Kopieren';
+  copyBtn.title = 'Bauplan als Text in die Zwischenablage kopieren';
+  copyBtn.addEventListener('click', () => {
+    const text = buildPlanAsText(targetId, plan, expertMode);
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        copyBtn.textContent = '✓ Kopiert';
+        setTimeout(() => (copyBtn.textContent = '📋 Kopieren'), 1500);
+      })
+      .catch(() => {
+        copyBtn.textContent = '✖ Fehler';
+        setTimeout(() => (copyBtn.textContent = '📋 Kopieren'), 1500);
+      });
+  });
+  wrap.appendChild(copyBtn);
+
   const list = document.createElement('ol');
   list.className = 'pse-plan-list';
   for (const step of plan.steps) {
@@ -786,6 +806,34 @@ function renderBuildPlan(targetId: string, plan: BuildPlan | null, expertMode: b
   }
   wrap.appendChild(list);
   return wrap;
+}
+
+/** Formatiert einen BuildPlan als menschenlesbaren Klartext für die Zwischenablage. */
+function buildPlanAsText(targetId: string, plan: BuildPlan, expertMode: boolean): string {
+  const target = getEntity(targetId);
+  const targetLabel = target ? `${target.symbol ?? target.id} (${target.nameDE})` : targetId;
+  const lines: string[] = [];
+  lines.push(`# Bauplan: ${targetLabel}`);
+  lines.push(`# Modus: ${expertMode ? 'Experten-Modus' : 'Normal-Modus'}`);
+  lines.push(
+    `# ${plan.steps.length} Schritte · Reaktoren: ${plan.reactors
+      .map((r) => reactorMeta[r as keyof typeof reactorMeta]?.nameDE ?? r)
+      .join(' + ')} · ${plan.freeSupplyCount} freie Zutaten`,
+  );
+  lines.push('');
+  for (const [i, step] of plan.steps.entries()) {
+    const left = Object.entries(step.inputs)
+      .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+      .join(' + ');
+    const right = Object.entries(step.outputs)
+      .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+      .join(' + ');
+    const arrow = step.reversible ? '⇌' : '→';
+    const reactorLbl = reactorMeta[step.reactor]?.nameDE ?? step.reactor;
+    lines.push(`${i + 1}. [${reactorLbl}] ${left}  ${arrow}  ${right}`);
+    if (step.scienceNoteDE) lines.push(`   ${step.scienceNoteDE}`);
+  }
+  return lines.join('\n');
 }
 
 function downloadMolFile(molecule: MoleculeEntity): void {
