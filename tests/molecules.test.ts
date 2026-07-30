@@ -91,4 +91,13 @@ describe('chem-lab recipes', () => {
     const r = recipes.find((x) => x.id === 'assemble-hydrogen');
     expect(r?.unlocksReactors).toEqual(expect.arrayContaining(['stellar-core', 'chem-lab']));
   });
+
+  it('Stereo-Annotationen sind in Katalog-Moleküle gemergt', async () => {
+    const { STEREO_NOTES } = await import('../src/game/content/stereo-annotations');
+    for (const [id, note] of Object.entries(STEREO_NOTES)) {
+      const mol = molecules.find((m) => m.id === id);
+      if (!mol) continue; // Annotation für optionalen Eintrag — kein Fehler
+      expect(mol.stereoNoteDE, `${id}.stereoNoteDE`).toBe(note);
+    }
+  });
 });

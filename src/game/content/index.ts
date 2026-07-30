@@ -4,6 +4,7 @@ import nucleiRaw from './nuclei.json';
 import elementsRaw from './elements.json';
 import moleculesRaw from './molecules.json';
 import recipesRaw from './recipes.json';
+import { STEREO_NOTES } from './stereo-annotations';
 import type {
   Entity,
   EntityId,
@@ -20,7 +21,17 @@ export const hadrons: readonly HadronEntity[] = hadronsRaw as unknown as HadronE
 export const nuclei: readonly NucleusEntity[] = nucleiRaw as unknown as NucleusEntity[];
 export const elements: readonly ElementEntity[] = elementsRaw as unknown as ElementEntity[];
 
-const baseMolecules: readonly MoleculeEntity[] = moleculesRaw as unknown as MoleculeEntity[];
+/**
+ * Basis-Moleküle mit Runtime-Overlay der Stereo-Annotationen.
+ * Molekül-JSON bleibt unangetastet, Notiz wird zur Ladezeit gemergt.
+ */
+const baseMolecules: readonly MoleculeEntity[] = (moleculesRaw as unknown as MoleculeEntity[]).map(
+  (m) => {
+    const stereoNote = STEREO_NOTES[m.id];
+    if (stereoNote && !m.stereoNoteDE) return { ...m, stereoNoteDE: stereoNote };
+    return m;
+  },
+);
 
 // Custom-Moleküle aus LocalStorage (Nutzer-Eingaben)
 const CUSTOM_MOL_KEY = 'pse.custom.molecules';

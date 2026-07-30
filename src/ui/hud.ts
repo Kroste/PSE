@@ -638,6 +638,20 @@ function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
   note.textContent = entity.scienceNoteDE;
   el.appendChild(note);
 
+  if (entity.kind === 'molecule' && entity.stereoNoteDE) {
+    const stereoBox = document.createElement('div');
+    stereoBox.className = 'pse-stereo-note';
+    const label = document.createElement('div');
+    label.className = 'pse-stereo-label';
+    label.textContent = '⧗ Stereochemie';
+    stereoBox.appendChild(label);
+    const text = document.createElement('p');
+    text.className = 'pse-stereo-text';
+    text.textContent = entity.stereoNoteDE;
+    stereoBox.appendChild(text);
+    el.appendChild(stereoBox);
+  }
+
   const src = document.createElement('p');
   src.className = 'pse-source';
   src.textContent = `Quelle: ${entity.source}`;
@@ -1046,6 +1060,11 @@ function detailAttributes(entity: Entity): HTMLElement {
     push('Atome', String(entity.atoms.length));
     push('Bindungen', String(entity.bonds.length));
     push('Kategorie', entity.categoryDE);
+    // Stereo-Auszählung aus atom.stereo / bond.stereo — nur zeigen wenn > 0
+    const stereoCenters = entity.atoms.filter((a) => a.stereo).length;
+    const ezBonds = entity.bonds.filter((b) => b.stereo).length;
+    if (stereoCenters > 0) push('Stereozentren', String(stereoCenters));
+    if (ezBonds > 0) push('E/Z-Doppelbindungen', String(ezBonds));
   } else {
     push('Ordnungszahl Z', String(entity.z));
     push('Atommasse', `${entity.atomicMassU} u`);

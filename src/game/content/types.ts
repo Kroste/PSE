@@ -74,12 +74,24 @@ export type MoleculeAtom = {
   element: EntityId; // z.B. "H", "O"
   /** Position im Molekül-lokalen Koordinatensystem (Å-artig, aber unitless). */
   position: [number, number, number];
+  /**
+   * Optional: CIP-Stereo-Deskriptor an einem Stereozentrum (chirales
+   * C-Atom). "R" = rectus, "S" = sinister. Wird im Detail-Panel als
+   * Markierung angezeigt.
+   */
+  stereo?: 'R' | 'S';
 };
 
 export type MoleculeBond = {
   from: number; // Index in atoms[]
   to: number;
   order: 1 | 2 | 3;
+  /**
+   * Optional: E/Z-Isomerie an einer Doppelbindung.
+   * "E" = entgegen (früher trans), "Z" = zusammen (früher cis).
+   * Nur sinnvoll bei order === 2.
+   */
+  stereo?: 'E' | 'Z';
 };
 
 export type MoleculeEntity = EntityBase & {
@@ -91,6 +103,12 @@ export type MoleculeEntity = EntityBase & {
   geometry: MoleculeGeometry;
   molarMassGmol: number;
   categoryDE: string; // z.B. "Anorganisch", "Organisch (klein)"
+  /**
+   * Optional: menschenlesbare Notiz zur Stereochemie. Z. B.
+   * "chirales C-2 (R-Konfiguration)", "cis-Doppelbindung C=C".
+   * Wird im Detail-Panel angezeigt.
+   */
+  stereoNoteDE?: string;
 };
 
 export type Entity =

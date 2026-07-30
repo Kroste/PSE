@@ -1586,3 +1586,25 @@ body {
   gap: 6px;
   flex-wrap: wrap;
 }
+
+.pse-stereo-note {
+  margin: 8px 0;
+  padding: 8px 10px;
+  background: rgba(200, 130, 255, 0.08);
+  border-left: 3px solid #cc88ff;
+  border-radius: 3px;
+}
+.pse-stereo-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #cc88ff;
+  margin-bottom: 4px;
+}
+.pse-stereo-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+}
