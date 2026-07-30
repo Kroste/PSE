@@ -139,11 +139,29 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
     currentRig = null;
   }
 
+  // Resize-Observer: sobald der Canvas anders skaliert wird (Modal-
+  // Layout, Window-Resize), die interne Renderer-Auflösung anpassen —
+  // sonst wird das WebGL-Bild verschwommen.
+  let currentCanvasW = size;
+  let currentCanvasH = size;
+  function maybeResize(): void {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (w > 0 && h > 0 && (w !== currentCanvasW || h !== currentCanvasH)) {
+      currentCanvasW = w;
+      currentCanvasH = h;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+  }
+
   function tick(now: number): void {
     if (!running) return;
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     if (visible && currentRig) {
+      maybeResize();
       currentRig.update(dt);
       if (userInteracting) {
         interactionIdleFrames++;

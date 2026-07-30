@@ -82,8 +82,10 @@ export function openCompare(opts: CompareOptions = {}): void {
   rightPane.className = 'pse-compare-pane';
   grid.appendChild(rightPane);
 
-  const leftPreview = createOrbitalPreview(480);
-  const rightPreview = createOrbitalPreview(480);
+  // Hochauflösend, damit auch auf 2K/4K-Displays scharf bleibt — CSS
+  // skaliert den Canvas dann responsiv in die Pane-Größe.
+  const leftPreview = createOrbitalPreview(900);
+  const rightPreview = createOrbitalPreview(900);
 
   function renderPane(pane: HTMLElement, side: 'left' | 'right'): void {
     pane.innerHTML = '';

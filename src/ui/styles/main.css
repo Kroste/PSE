@@ -1950,17 +1950,19 @@ body {
 }
 .pse-compare-modal {
   position: relative;
-  width: min(1400px, 98vw);
-  max-height: 96vh;
+  /* Passt sich an die Bildschirmbreite an — bis 2400 px auf Ultra-Wide. */
+  width: min(2400px, 96vw);
+  height: min(1600px, 92vh);
   background: rgba(10, 15, 20, 0.98);
   border: 1px solid var(--accent);
   border-radius: 6px;
   padding: 18px 22px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 .pse-compare-header {
   font-family: var(--font-mono);
@@ -1987,16 +1989,22 @@ body {
   padding: 4px 10px;
 }
 .pse-compare-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  overflow: hidden;
 }
 @media (max-width: 720px) {
   .pse-compare-grid {
     grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 }
 .pse-compare-pane {
+  min-width: 0; /* verhindert Grid-Track-Overflow durch canvas + attrs */
+  min-height: 0;
   padding: 12px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--panel-border);
@@ -2004,6 +2012,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
 }
 .pse-compare-select {
   padding: 8px 10px;
@@ -2015,22 +2024,31 @@ body {
   font-size: 13px;
 }
 .pse-compare-preview {
+  flex: 1;
+  min-height: 0;
   background: rgba(0, 0, 0, 0.35);
   border-radius: 3px;
   padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .pse-compare-preview canvas {
   width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 1 / 1;
+  object-fit: contain;
 }
 .pse-compare-attrs {
   margin: 0;
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 4px 12px;
   font-family: var(--font-mono);
   font-size: 12px;
+  min-width: 0;
 }
 .pse-compare-attrs dt {
   color: var(--text-dim);
