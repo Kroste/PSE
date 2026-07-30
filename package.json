@@ -1,7 +1,7 @@
 {
   "name": "pse",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "PSE — Browser-Puzzle-Spiel: Materie von Elementarteilchen bis Molekülen craften.",
   "author": "Lars Oste",

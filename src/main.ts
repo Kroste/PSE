@@ -28,7 +28,7 @@ mountHud({ showAtom: scene.showAtom, setStatusElement: scene.setStatusElement })
 const versionEl = document.getElementById('pse-version');
 if (versionEl) {
   subscribe((state) => {
-    versionEl.textContent = `v0.0.0 · entdeckt: ${state.discovered.length}`;
+    versionEl.textContent = `v1.0.0 · entdeckt: ${state.discovered.length}`;
   });
 }
 
