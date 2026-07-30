@@ -1404,16 +1404,14 @@ function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
 
   el.innerHTML = '';
 
-  // Statistik-Kopfzeile: Wie viele der 118 sind entdeckt / im Katalog
-  const totalKnown = elements.length;
   const totalDiscovered = elements.filter((e) => discovered.has(e.id)).length;
-  const statsBar = document.createElement('div');
-  statsBar.className = 'pse-table-stats';
-  statsBar.innerHTML =
-    `<span class="pse-stats-strong">${totalDiscovered}</span> / 118 entdeckt` +
-    ` &middot; <span class="pse-stats-strong">${totalKnown}</span> im Katalog` +
-    ` &middot; ${118 - totalKnown} noch nicht angelegt`;
-  el.appendChild(statsBar);
+  el.appendChild(
+    overlayHeader(
+      'Periodensystem der Elemente',
+      `Alle 118 Elemente, kategorien-farbcodiert. Entdeckte hervorgehoben, klick öffnet das Detail-Panel.`,
+      `<strong>${totalDiscovered} / 118</strong>entdeckt`,
+    ),
+  );
 
   const grid = document.createElement('div');
   grid.className = 'pse-table-grid';
@@ -1561,14 +1559,13 @@ function renderKnowledgeBase(el: HTMLElement, state: KbFilterState, opts: KbOpti
   const discovered = new Set(getState().discovered);
   el.innerHTML = '';
 
-  // Kopfzeile mit Statistik
-  const header = document.createElement('div');
-  header.className = 'pse-kb-header';
-  header.innerHTML =
-    `<strong>Wissensdatenbank</strong>` +
-    ` &middot; <span class="pse-stats-strong">${discovered.size}</span> von ` +
-    `<span class="pse-stats-strong">${allEntities.length}</span> Einträgen entdeckt`;
-  el.appendChild(header);
+  el.appendChild(
+    overlayHeader(
+      'Wissensdatenbank',
+      'Suchbare Übersicht aller Elementarteilchen, Kerne, Elemente und Moleküle.',
+      `<strong>${discovered.size} / ${allEntities.length}</strong>entdeckt`,
+    ),
+  );
 
   // Filter-Bar
   const filterBar = document.createElement('div');
@@ -1782,13 +1779,12 @@ function resetStructureDraft(): void {
 function renderCustomEditor(el: HTMLElement): void {
   el.innerHTML = '';
 
-  const header = document.createElement('div');
-  header.className = 'pse-editor-header';
-  header.innerHTML =
-    `<strong>Eigene Verbindungen</strong> &middot; ` +
-    `Verbindungen werden im Browser gespeichert und beim Neustart geladen. ` +
-    `Sie erscheinen im Chemielabor und in der Wissensdatenbank.`;
-  el.appendChild(header);
+  el.appendChild(
+    overlayHeader(
+      'Eigene Verbindungen',
+      'Struktur-Formular, SMILES-Import oder MOL/SDF-Import (PubChem, ChemDraw, RDKit). Speicherung im Browser.',
+    ),
+  );
 
   // Bestehende Custom-Moleküle mit Delete
   const existing = getCustomMolecules();
@@ -2489,14 +2485,13 @@ function renderAchievements(el: HTMLElement): void {
   const total = totalAchievements();
   const pct = Math.round((achieved / total) * 100);
 
-  const header = document.createElement('div');
-  header.className = 'pse-achievements-header';
-  header.innerHTML =
-    `<strong>Ziele & Fortschritt</strong> &middot; ` +
-    `<span class="pse-stats-strong">${achieved}</span> von ` +
-    `<span class="pse-stats-strong">${total}</span> Zielen erreicht ` +
-    `(${pct}%)`;
-  el.appendChild(header);
+  el.appendChild(
+    overlayHeader(
+      'Ziele & Fortschritt',
+      `Meilensteine vom ersten Baryon bis zum kompletten PSE. Sortiert: Erreichte zuerst.`,
+      `<strong>${achieved} / ${total}</strong>${pct}% erreicht`,
+    ),
+  );
 
   if (state.sandboxMode) {
     const notice = document.createElement('div');
@@ -2621,18 +2616,13 @@ function renderMechanisms(
 }
 
 function renderMechanismList(el: HTMLElement, opts: MechanismsUiOptions): void {
-  const header = document.createElement('div');
-  header.className = 'pse-mech-header';
-  header.innerHTML =
-    `<strong>Reaktions-Mechanismen</strong> &middot; ` +
-    `${MECHANISMS.length} klassische Mechanismen mit Elektronenfluss-Erklärung.`;
-  el.appendChild(header);
-
-  const hint = document.createElement('p');
-  hint.className = 'pse-hint';
-  hint.textContent =
-    'Wähle einen Mechanismus, um Schritt für Schritt durchzugehen — Vorher/Nachher-Formeln, Elektronenwanderung und Beobachtungshinweise.';
-  el.appendChild(hint);
+  el.appendChild(
+    overlayHeader(
+      'Reaktions-Mechanismen',
+      'Wähle einen Mechanismus für Schritt-für-Schritt-Elektronenfluss mit animierter 3D-Visualisierung.',
+      `<strong>${MECHANISMS.length}</strong>mit 3D-Fluss`,
+    ),
+  );
 
   // Gruppiert nach Kategorie
   for (const category of MECHANISM_CATEGORIES) {
@@ -2785,6 +2775,36 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * Einheitlicher Overlay-Header: grüner Akzent-Bar links, uppercase Titel,
+ * optionale Sub-Zeile, optional rechts eine Stat-Angabe ("42 / 118" o.ä.).
+ * Löst die früher pro Overlay unterschiedlichen Header-Klassen ab.
+ */
+function overlayHeader(titleDE: string, subtitleDE?: string, statHtml?: string): HTMLElement {
+  const head = document.createElement('header');
+  head.className = 'pse-overlay-head';
+  const bar = document.createElement('div');
+  bar.className = 'pse-overlay-head-bar';
+  head.appendChild(bar);
+  const title = document.createElement('div');
+  title.className = 'pse-overlay-head-title';
+  title.textContent = titleDE;
+  head.appendChild(title);
+  if (subtitleDE) {
+    const sub = document.createElement('div');
+    sub.className = 'pse-overlay-head-subtitle';
+    sub.textContent = subtitleDE;
+    head.appendChild(sub);
+  }
+  if (statHtml) {
+    const stat = document.createElement('div');
+    stat.className = 'pse-overlay-head-stat';
+    stat.innerHTML = statHtml;
+    head.appendChild(stat);
+  }
+  return head;
+}
+
 /** ------------------- Aufgaben-Modus-Overlay ------------------- */
 
 function renderChallenges(el: HTMLElement): void {
@@ -2795,13 +2815,13 @@ function renderChallenges(el: HTMLElement): void {
   const total = CHALLENGES.length;
   const pct = Math.round((done / total) * 100);
 
-  const header = document.createElement('div');
-  header.className = 'pse-mech-header';
-  header.innerHTML =
-    `<strong>Aufgaben & Lernpfade</strong> &middot; ` +
-    `<span class="pse-stats-strong">${done}</span> von ` +
-    `<span class="pse-stats-strong">${total}</span> abgeschlossen (${pct}%)`;
-  el.appendChild(header);
+  el.appendChild(
+    overlayHeader(
+      'Aufgaben & Lernpfade',
+      'Konkrete Ziele mit Hinweisen und Fortschrittsbalken. Klick nichts an — sie prüfen live deinen Fortschritt.',
+      `<strong>${done} / ${total}</strong>${pct}% abgeschlossen`,
+    ),
+  );
 
   const bar = document.createElement('div');
   bar.className = 'pse-progress-bar';
