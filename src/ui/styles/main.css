@@ -131,6 +131,26 @@ body {
   overflow-y: auto;
 }
 
+/* Wenn irgendein Overlay offen ist, verbergen wir Inventar + Detail —
+   der Nutzer browst gerade das Overlay, die Seitenpanels sind da nicht
+   relevant und würden nur überdeckt werden. Nutzt :has() (Chrome/FF/
+   Safari 2023+); Fallback: die Overlays haben z-index 20 und würden
+   sie ohnehin verdecken. */
+body:has(#pse-table:not([hidden])) #pse-inventory,
+body:has(#pse-table:not([hidden])) #pse-detail,
+body:has(#pse-kb:not([hidden])) #pse-inventory,
+body:has(#pse-kb:not([hidden])) #pse-detail,
+body:has(#pse-editor:not([hidden])) #pse-inventory,
+body:has(#pse-editor:not([hidden])) #pse-detail,
+body:has(#pse-achievements:not([hidden])) #pse-inventory,
+body:has(#pse-achievements:not([hidden])) #pse-detail,
+body:has(#pse-mechanisms:not([hidden])) #pse-inventory,
+body:has(#pse-mechanisms:not([hidden])) #pse-detail,
+body:has(#pse-challenges:not([hidden])) #pse-inventory,
+body:has(#pse-challenges:not([hidden])) #pse-detail {
+  display: none;
+}
+
 #pse-inventory h2,
 #pse-detail h2 {
   margin: 0 0 8px;
@@ -535,12 +555,16 @@ body {
   position: fixed;
   top: 60px;
   bottom: 16px;
-  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
-     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
-  left: max(76px, calc(50vw - 670px));
-  right: max(16px, calc(50vw - 730px));
+  /* Overlay-Backdrop erstreckt sich edge-to-edge zwischen Sidebar
+     und Screen-Rand — kein sichtbarer Streifen daneben. Der Content
+     im Inneren wird via padding-max auf 1400 px zentriert. */
+  left: 76px;
+  right: 16px;
   z-index: 20;
-  padding: 18px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  padding-left: max(18px, calc(50% - 700px));
+  padding-right: max(18px, calc(50% - 700px));
   background: rgba(6, 10, 14, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -703,12 +727,16 @@ body {
   position: fixed;
   top: 60px;
   bottom: 16px;
-  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
-     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
-  left: max(76px, calc(50vw - 670px));
-  right: max(16px, calc(50vw - 730px));
+  /* Overlay-Backdrop erstreckt sich edge-to-edge zwischen Sidebar
+     und Screen-Rand — kein sichtbarer Streifen daneben. Der Content
+     im Inneren wird via padding-max auf 1400 px zentriert. */
+  left: 76px;
+  right: 16px;
   z-index: 20;
-  padding: 14px 18px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: max(18px, calc(50% - 700px));
+  padding-right: max(18px, calc(50% - 700px));
   background: rgba(6, 10, 14, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -852,12 +880,16 @@ body {
   position: fixed;
   top: 60px;
   bottom: 16px;
-  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
-     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
-  left: max(76px, calc(50vw - 670px));
-  right: max(16px, calc(50vw - 730px));
+  /* Overlay-Backdrop erstreckt sich edge-to-edge zwischen Sidebar
+     und Screen-Rand — kein sichtbarer Streifen daneben. Der Content
+     im Inneren wird via padding-max auf 1400 px zentriert. */
+  left: 76px;
+  right: 16px;
   z-index: 20;
-  padding: 14px 18px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: max(18px, calc(50% - 700px));
+  padding-right: max(18px, calc(50% - 700px));
   background: rgba(6, 10, 14, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -958,12 +990,16 @@ body {
   position: fixed;
   top: 60px;
   bottom: 16px;
-  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
-     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
-  left: max(76px, calc(50vw - 670px));
-  right: max(16px, calc(50vw - 730px));
+  /* Overlay-Backdrop erstreckt sich edge-to-edge zwischen Sidebar
+     und Screen-Rand — kein sichtbarer Streifen daneben. Der Content
+     im Inneren wird via padding-max auf 1400 px zentriert. */
+  left: 76px;
+  right: 16px;
   z-index: 20;
-  padding: 14px 18px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: max(18px, calc(50% - 700px));
+  padding-right: max(18px, calc(50% - 700px));
   background: rgba(6, 10, 14, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -1338,12 +1374,16 @@ body {
   position: fixed;
   top: 60px;
   bottom: 16px;
-  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
-     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
-  left: max(76px, calc(50vw - 670px));
-  right: max(16px, calc(50vw - 730px));
+  /* Overlay-Backdrop erstreckt sich edge-to-edge zwischen Sidebar
+     und Screen-Rand — kein sichtbarer Streifen daneben. Der Content
+     im Inneren wird via padding-max auf 1400 px zentriert. */
+  left: 76px;
+  right: 16px;
   z-index: 20;
-  padding: 14px 18px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: max(18px, calc(50% - 700px));
+  padding-right: max(18px, calc(50% - 700px));
   background: rgba(6, 10, 14, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -1931,11 +1971,12 @@ body {
   margin-bottom: 2px;
 }
 
-/* Schließen-X oben rechts in jedem Overlay */
+/* Schließen-X oben rechts im Overlay-Content (nicht am Overlay-Rand,
+   sonst wandert er auf 2K weit ab vom Content weg) */
 .pse-overlay-close-x {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: max(10px, calc(50% - 700px + 4px));
   z-index: 5;
   width: 32px;
   height: 32px;
@@ -2539,12 +2580,16 @@ body {
   position: fixed;
   top: 60px;
   bottom: 16px;
-  /* Auf 2K+/4K bleibt der Content auf max 1400 px zentriert im
-     verfügbaren Bereich (rechts der Sidebar), sonst normale Ränder. */
-  left: max(76px, calc(50vw - 670px));
-  right: max(16px, calc(50vw - 730px));
+  /* Overlay-Backdrop erstreckt sich edge-to-edge zwischen Sidebar
+     und Screen-Rand — kein sichtbarer Streifen daneben. Der Content
+     im Inneren wird via padding-max auf 1400 px zentriert. */
+  left: 76px;
+  right: 16px;
   z-index: 20;
-  padding: 14px 18px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-left: max(18px, calc(50% - 700px));
+  padding-right: max(18px, calc(50% - 700px));
   background: rgba(6, 10, 14, 0.96);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
