@@ -82,13 +82,15 @@ function elementColor(sym: string): string {
   return CPK_FALLBACK[sym] ?? '#aaaaaa';
 }
 
-export function createMechanism3d(size = 260): Mechanism3dPreview {
+export function createMechanism3d(size = 420): Mechanism3dPreview {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   canvas.style.width = '100%';
   canvas.style.aspectRatio = '1 / 1';
   canvas.style.display = 'block';
+  canvas.style.cursor = 'grab';
+  canvas.style.touchAction = 'none';
 
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -98,9 +100,11 @@ export function createMechanism3d(size = 260): Mechanism3dPreview {
   const scene = new Scene();
   scene.background = null;
 
-  const camera = new PerspectiveCamera(45, 1, 0.1, 30);
-  camera.position.set(3.2, 2.4, 3.6);
-  camera.lookAt(0, 0, 0);
+  const camera = new PerspectiveCamera(45, 1, 0.1, 100);
+  const cameraTarget = new Vector3(0, 0, 0);
+  const initialCameraOffset = new Vector3(3.2, 2.4, 3.6);
+  camera.position.copy(initialCameraOffset);
+  camera.lookAt(cameraTarget);
 
   scene.add(new HemisphereLight(new Color(0x88ffee), new Color(0x0a0f14), 0.7));
   const key = new DirectionalLight(0xffffff, 1.3);
@@ -113,6 +117,76 @@ export function createMechanism3d(size = 260): Mechanism3dPreview {
   let running = true;
   let visible = false;
   let last = performance.now();
+  let userInteracting = false;
+  let interactionIdleFrames = 0;
+
+  // Pointer-Drag: rotiert die Gruppe manuell (bis autorotate wieder greift).
+  let dragActive = false;
+  let dragLastX = 0;
+  let dragLastY = 0;
+  let dragPointerId: number | null = null;
+
+  canvas.addEventListener('pointerdown', (e) => {
+    dragActive = true;
+    dragLastX = e.clientX;
+    dragLastY = e.clientY;
+    dragPointerId = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = 'grabbing';
+    userInteracting = true;
+    interactionIdleFrames = 0;
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragActive) return;
+    const dx = e.clientX - dragLastX;
+    const dy = e.clientY - dragLastY;
+    dragLastX = e.clientX;
+    dragLastY = e.clientY;
+    stepGroup.rotation.y += dx * 0.008;
+    const nextX = stepGroup.rotation.x + dy * 0.008;
+    stepGroup.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, nextX));
+    interactionIdleFrames = 0;
+  });
+  function endDrag(): void {
+    if (!dragActive) return;
+    dragActive = false;
+    if (dragPointerId !== null) {
+      try {
+        canvas.releasePointerCapture(dragPointerId);
+      } catch {
+        // ignore
+      }
+      dragPointerId = null;
+    }
+    canvas.style.cursor = 'grab';
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', endDrag);
+
+  // Mausrad: zoomt die Kamera zum Target.
+  canvas.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      const dir = camera.position.clone().sub(cameraTarget);
+      const dist = dir.length();
+      const factor = e.deltaY > 0 ? 1.12 : 1 / 1.12;
+      const nextDist = Math.max(1.2, Math.min(20, dist * factor));
+      dir.normalize().multiplyScalar(nextDist);
+      camera.position.copy(cameraTarget).add(dir);
+      userInteracting = true;
+      interactionIdleFrames = 0;
+    },
+    { passive: false },
+  );
+
+  function resetCamera(): void {
+    camera.position.copy(initialCameraOffset);
+    camera.lookAt(cameraTarget);
+    stepGroup.rotation.set(0, 0, 0);
+    userInteracting = false;
+  }
 
   function clearStep(): void {
     while (stepGroup.children.length > 0) stepGroup.remove(stepGroup.children[0]!);
@@ -123,7 +197,15 @@ export function createMechanism3d(size = 260): Mechanism3dPreview {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     if (visible) {
-      stepGroup.rotation.y += dt * 0.35;
+      // Auto-Rotation nur wenn Nutzer gerade nicht interagiert und ~2s
+      // nach letzter Interaktion wieder anspringt.
+      if (userInteracting) {
+        interactionIdleFrames++;
+        if (interactionIdleFrames > 120) userInteracting = false;
+      }
+      if (!userInteracting && !dragActive) {
+        stepGroup.rotation.y += dt * 0.35;
+      }
       renderer.render(scene, camera);
     }
     requestAnimationFrame(tick);
@@ -134,7 +216,7 @@ export function createMechanism3d(size = 260): Mechanism3dPreview {
     canvas,
     showStep(step) {
       clearStep();
-      stepGroup.rotation.set(0, 0, 0);
+      resetCamera();
       if (!step) {
         visible = false;
         return;

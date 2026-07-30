@@ -2527,7 +2527,7 @@ function renderMechanismDetail(
     vizWrap.className = 'pse-mech-viz3d';
     const vizLabel = document.createElement('div');
     vizLabel.className = 'pse-mech-viz3d-label';
-    vizLabel.textContent = '3D — Atome + Elektronenfluss (rotierend, ziehen zum Drehen)';
+    vizLabel.textContent = '3D — Ziehen zum Drehen · Mausrad zum Zoomen';
     vizWrap.appendChild(vizLabel);
     vizWrap.appendChild(viz.canvas);
     el.appendChild(vizWrap);
