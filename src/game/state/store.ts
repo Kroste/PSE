@@ -1,5 +1,5 @@
-import { saveToStorage } from './save';
-import { freeSupplyIds, recipes as allRecipes } from '../content';
+import { loadFromStorage, saveToStorage, type SaveSlot } from './save';
+import { elements, freeSupplyIds, molecules, recipes as allRecipes } from '../content';
 import type { EntityId, Multiset, Recipe } from '../content/types';
 import { isRecipeAvailableInMode, matchRecipe } from '../physics/recipes';
 
@@ -29,6 +29,8 @@ export type PersistedState = {
 export type GameState = PersistedState & {
   readonly reactionZone: Multiset;
   readonly expertMode: boolean;
+  /** true = Sandbox aktiv (alle Elemente entdeckt, alle Reaktoren offen). */
+  readonly sandboxMode: boolean;
 };
 
 const initialState: GameState = {
@@ -38,7 +40,35 @@ const initialState: GameState = {
   inventory: {},
   reactionZone: {},
   expertMode: false,
+  sandboxMode: false,
 };
+
+const ALL_REACTORS: readonly ReactorId[] = [
+  'workbench',
+  'stellar-core',
+  'agb-star',
+  'supernova',
+  'cyclotron',
+  'chem-lab',
+];
+
+/**
+ * Sandbox-Start: alle Elemente (und Katalog-Moleküle) entdeckt, alle Reaktoren
+ * offen, Chemielabor aktiv. So kann direkt gebaut werden ohne Grind.
+ */
+function buildSandboxInitialState(): PersistedState {
+  const discovered: EntityId[] = [
+    ...elements.map((e) => e.id),
+    ...molecules.map((m) => m.id),
+  ];
+  return {
+    discovered,
+    unlockedReactors: [...ALL_REACTORS],
+    activeReactor: 'chem-lab',
+    inventory: {},
+    expertMode: false,
+  };
+}
 
 type Listener = (state: GameState) => void;
 type CraftListener = (event: CraftEvent) => void;
@@ -52,14 +82,19 @@ const listeners = new Set<Listener>();
 const craftListeners = new Set<CraftListener>();
 let persist = true;
 
+function currentSlot(): SaveSlot {
+  return state.sandboxMode ? 'sandbox' : 'normal';
+}
+
 function emit(): void {
   for (const listener of listeners) listener(state);
-  if (persist) saveToStorage(toPersisted(state));
+  if (persist) saveToStorage(toPersisted(state), currentSlot());
 }
 
 function toPersisted(s: GameState): PersistedState {
-  const { reactionZone: _zone, ...persisted } = s;
+  const { reactionZone: _zone, sandboxMode: _sb, ...persisted } = s;
   void _zone;
+  void _sb;
   return persisted;
 }
 
@@ -67,12 +102,35 @@ export function getState(): GameState {
   return state;
 }
 
-export function loadState(persisted: PersistedState): void {
+export function loadState(persisted: PersistedState, sandboxMode = false): void {
   const reconciled = reconcileUnlockedReactors(persisted);
   state = {
     ...reconciled,
     reactionZone: {},
     expertMode: reconciled.expertMode ?? false,
+    sandboxMode,
+  };
+  emit();
+}
+
+/**
+ * Wechselt zwischen normalem Fortschritt und Sandbox. Speichert den aktuellen
+ * Slot vorher, lädt den anderen Slot (oder legt ihn beim ersten Mal an).
+ */
+export function toggleSandboxMode(): void {
+  // Aktuellen Slot sichern, damit nichts verloren geht.
+  if (persist) saveToStorage(toPersisted(state), currentSlot());
+
+  const nextSandbox = !state.sandboxMode;
+  const nextSlot: SaveSlot = nextSandbox ? 'sandbox' : 'normal';
+  const loaded = loadFromStorage(nextSlot);
+  const base = loaded ?? (nextSandbox ? buildSandboxInitialState() : toPersisted(initialState));
+  const reconciled = reconcileUnlockedReactors(base);
+  state = {
+    ...reconciled,
+    reactionZone: {},
+    expertMode: reconciled.expertMode ?? false,
+    sandboxMode: nextSandbox,
   };
   emit();
 }
@@ -116,7 +174,17 @@ export function reconcileUnlockedReactors(persisted: PersistedState): PersistedS
 }
 
 export function resetState(): void {
-  state = initialState;
+  if (state.sandboxMode) {
+    const base = buildSandboxInitialState();
+    state = {
+      ...base,
+      reactionZone: {},
+      expertMode: base.expertMode ?? false,
+      sandboxMode: true,
+    };
+  } else {
+    state = initialState;
+  }
   emit();
 }
 

@@ -1029,3 +1029,47 @@ body {
 .pse-achievement-unlocked .pse-achievement-status {
   color: var(--accent);
 }
+
+/* ---------------- Sandbox-Modus ---------------- */
+
+.pse-btn-sandbox {
+  background: #ff8a3d;
+  color: #1a0d00;
+  border-color: #ff8a3d;
+  font-weight: 700;
+}
+.pse-btn-sandbox:hover:not(:disabled) {
+  background: #ffa060;
+}
+
+.pse-sandbox-active #pse-toolbar {
+  border-bottom: 2px solid #ff8a3d;
+  box-shadow: 0 2px 20px rgba(255, 138, 61, 0.35);
+}
+.pse-sandbox-active #pse-toolbar::before {
+  content: 'SANDBOX';
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  transform: translateX(-50%);
+  background: #ff8a3d;
+  color: #1a0d00;
+  padding: 2px 12px;
+  border-radius: 0 0 4px 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.pse-sandbox-notice {
+  padding: 8px 12px;
+  background: rgba(255, 138, 61, 0.12);
+  border-left: 3px solid #ff8a3d;
+  color: #ffb488;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-radius: 3px;
+}

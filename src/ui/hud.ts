@@ -12,6 +12,7 @@ import {
   setActiveReactor,
   setExpertMode,
   subscribe,
+  toggleSandboxMode,
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
 import { isAudioEnabled, setAudioEnabled, sfx } from '../engine/audio';
@@ -54,6 +55,7 @@ export function mountHud(opts: HudOptions = {}): void {
   const editorBtn = document.getElementById('pse-toggle-editor');
   const achievementsEl = document.getElementById('pse-achievements');
   const achievementsBtn = document.getElementById('pse-toggle-achievements');
+  const sandboxBtn = document.getElementById('pse-toggle-sandbox');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -68,7 +70,8 @@ export function mountHud(opts: HudOptions = {}): void {
     !editorEl ||
     !editorBtn ||
     !achievementsEl ||
-    !achievementsBtn
+    !achievementsBtn ||
+    !sandboxBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -233,6 +236,22 @@ export function mountHud(opts: HudOptions = {}): void {
   });
   syncExpertBtn();
 
+  const syncSandboxBtn = (): void => {
+    const active = getState().sandboxMode;
+    sandboxBtn.classList.toggle('pse-btn-sandbox', active);
+    sandboxBtn.textContent = active ? '🎨 Sandbox  ✓' : '🎨 Sandbox';
+    document.body.classList.toggle('pse-sandbox-active', active);
+  };
+  sandboxBtn.addEventListener('click', () => {
+    toggleSandboxMode();
+    closeAllOverlays('table');
+    tableEl.hidden = true;
+    toggleBtn.classList.remove('pse-btn-primary');
+    selectedEntityId = null;
+    rerenderDetail();
+  });
+  syncSandboxBtn();
+
   const syncAudioBtn = (): void => {
     const on = isAudioEnabled();
     audioBtn.textContent = on ? '🔊 Sound' : '🔇 Sound';
@@ -246,11 +265,13 @@ export function mountHud(opts: HudOptions = {}): void {
   syncAudioBtn();
 
   resetBtn.addEventListener('click', () => {
+    const sandbox = getState().sandboxMode;
+    const scope = sandbox ? 'Sandbox-Slot' : 'Fortschritt';
     const confirmed = window.confirm(
-      'Kompletten Fortschritt löschen und neu starten? Diese Aktion lässt sich nicht rückgängig machen.',
+      `Kompletten ${scope} löschen und neu starten? Diese Aktion lässt sich nicht rückgängig machen.`,
     );
     if (!confirmed) return;
-    clearStorage();
+    clearStorage(sandbox ? 'sandbox' : 'normal');
     resetState();
     tableEl.hidden = true;
     toggleBtn.classList.remove('pse-btn-primary');
@@ -267,6 +288,7 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderKb();
     rerenderAchievements();
     syncExpertBtn();
+    syncSandboxBtn();
   });
 
   onCraft((event) => {
@@ -1574,6 +1596,14 @@ function renderAchievements(el: HTMLElement): void {
     `<span class="pse-stats-strong">${total}</span> Zielen erreicht ` +
     `(${pct}%)`;
   el.appendChild(header);
+
+  if (state.sandboxMode) {
+    const notice = document.createElement('div');
+    notice.className = 'pse-sandbox-notice';
+    notice.textContent =
+      '🎨 Sandbox aktiv — Fortschritt zählt hier nicht für den echten Save-Slot.';
+    el.appendChild(notice);
+  }
 
   const bar = document.createElement('div');
   bar.className = 'pse-progress-bar';

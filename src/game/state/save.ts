@@ -1,7 +1,10 @@
 import type { PersistedState } from './store';
 
-const STORAGE_KEY = 'pse.save.v1';
+const NORMAL_KEY = 'pse.save.v1';
+const SANDBOX_KEY = 'pse.sandbox.save.v1';
 const CURRENT_VERSION = 1 as const;
+
+export type SaveSlot = 'normal' | 'sandbox';
 
 type SaveEnvelope = {
   version: number;
@@ -16,21 +19,25 @@ const migrations: Record<number, Migration> = {
   // 1: (data) => ({ ...(data as object), state: { ...(data as SaveEnvelope).state, foo: [] } }),
 };
 
-export function saveToStorage(state: PersistedState): void {
+function keyFor(slot: SaveSlot): string {
+  return slot === 'sandbox' ? SANDBOX_KEY : NORMAL_KEY;
+}
+
+export function saveToStorage(state: PersistedState, slot: SaveSlot = 'normal'): void {
   try {
     const envelope: SaveEnvelope = {
       version: CURRENT_VERSION,
       savedAt: new Date().toISOString(),
       state,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
+    localStorage.setItem(keyFor(slot), JSON.stringify(envelope));
   } catch {
     // localStorage kann in Privatmodi/Quota-voll fehlschlagen — dann kein Save
   }
 }
 
-export function loadFromStorage(): PersistedState | null {
-  const raw = tryReadRaw();
+export function loadFromStorage(slot: SaveSlot = 'normal'): PersistedState | null {
+  const raw = tryReadRaw(slot);
   if (raw === null) return null;
 
   let parsed: unknown;
@@ -43,17 +50,17 @@ export function loadFromStorage(): PersistedState | null {
   return migrateAndValidate(parsed);
 }
 
-export function clearStorage(): void {
+export function clearStorage(slot: SaveSlot = 'normal'): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(keyFor(slot));
   } catch {
     // ignorieren
   }
 }
 
-function tryReadRaw(): string | null {
+function tryReadRaw(slot: SaveSlot): string | null {
   try {
-    return localStorage.getItem(STORAGE_KEY);
+    return localStorage.getItem(keyFor(slot));
   } catch {
     return null;
   }
