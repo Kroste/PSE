@@ -82,6 +82,12 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     target: null,
+    titleDE: 'Keyboard-Shortcuts',
+    bodyDE:
+      'Ein paar Tasten sparen Klicks: [Space] = Reaktion ausführen · [C] = Zone leeren · [/] = Fokus im Suchfeld · [1]–[6] = Reaktor-Wechsel in der Reihenfolge der Toolbar · [Esc] = alle Overlays schließen.',
+  },
+  {
+    target: null,
     titleDE: 'Fertig!',
     bodyDE:
       'Alles Wichtige gesehen. Diese Tour kannst du jederzeit über den "❔ Tour"-Button unten rechts neu starten. Viel Spaß beim Bauen des Universums.',

@@ -401,6 +401,72 @@ export function mountHud(opts: HudOptions = {}): void {
       if (event.reason === 'no-match') sfx.decay();
     }
   });
+
+  // Globale Keyboard-Shortcuts. Bewusst NICHT feuern, wenn der Nutzer
+  // in einem input/textarea tippt oder eine Tour läuft.
+  document.addEventListener('keydown', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement ||
+      target?.isContentEditable
+    ) {
+      // Ausnahme: Ctrl/Cmd+K und Escape sollen trotzdem gehen.
+      if (!((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') && e.key !== 'Escape') {
+        return;
+      }
+    }
+    // Wenn eine Tour läuft, keine Shortcuts (die Tour hat ihre eigenen).
+    if (document.querySelector('.pse-tour-root')) return;
+
+    // Esc schließt Overlays
+    if (e.key === 'Escape') {
+      if (!tableEl.hidden || !kbEl.hidden || !editorEl.hidden || !achievementsEl.hidden ||
+          !mechanismsEl.hidden || !challengesEl.hidden) {
+        closeAllOverlays('table');
+        tableEl.hidden = true;
+        toggleBtn.classList.remove('pse-btn-primary');
+        e.preventDefault();
+      }
+      return;
+    }
+    // Space = Craft
+    if (e.key === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      sfx.reactor();
+      craft();
+      return;
+    }
+    // C = Zone leeren
+    if (e.key === 'c' || e.key === 'C') {
+      e.preventDefault();
+      sfx.tickDown();
+      clearZone();
+      return;
+    }
+    // 1-6 = Reaktor-Wechsel in unlockedReactors-Reihenfolge
+    const num = parseInt(e.key, 10);
+    if (!Number.isNaN(num) && num >= 1 && num <= 9) {
+      const s = getState();
+      const reactors = s.unlockedReactors.filter((r) => hasRecipesInReactor(r));
+      const target = reactors[num - 1];
+      if (target) {
+        e.preventDefault();
+        sfx.reactor();
+        setActiveReactor(target);
+      }
+    }
+    // ? oder / = Fokus im Inventar-Suchfeld
+    if (e.key === '/' || (e.key === '?' && e.shiftKey)) {
+      const searchInput = inventoryEl.querySelector<HTMLInputElement>('.pse-search-input');
+      if (searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  });
 }
 
 type InventoryOptions = {
