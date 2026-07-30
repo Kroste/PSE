@@ -114,11 +114,23 @@ export function createMechanism3d(size = 420): Mechanism3dPreview {
   const stepGroup = new Group();
   scene.add(stepGroup);
 
+  let currentStep: MechanismStep3d | null = null;
   let running = true;
   let visible = false;
   let last = performance.now();
   let userInteracting = false;
   let interactionIdleFrames = 0;
+
+  // Übergangs-Zustand: wenn zwei aufeinanderfolgende Schritte die gleiche
+  // Atom-Sequenz haben (gleiches Element pro Index), animieren wir die
+  // Positionen über 0.8 s. Sonst hartes Ersetzen.
+  type Transition = {
+    from: MechanismStep3d;
+    to: MechanismStep3d;
+    elapsed: number;
+    duration: number;
+  };
+  let transition: Transition | null = null;
 
   // Pointer-Drag: rotiert die Gruppe manuell (bis autorotate wieder greift).
   let dragActive = false;
@@ -192,19 +204,82 @@ export function createMechanism3d(size = 420): Mechanism3dPreview {
     while (stepGroup.children.length > 0) stepGroup.remove(stepGroup.children[0]!);
   }
 
+  function transitionCompatible(a: MechanismStep3d, b: MechanismStep3d): boolean {
+    if (a.atoms.length !== b.atoms.length) return false;
+    return a.atoms.every((atom, i) => atom.element === b.atoms[i]?.element);
+  }
+
+  function easeInOut(t: number): number {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  }
+
+  function interpolatedStep(from: MechanismStep3d, to: MechanismStep3d, eased: number): MechanismStep3d {
+    // Positionen linear zwischen from und to interpolieren.
+    const atoms = from.atoms.map((a, i) => {
+      const b = to.atoms[i]!;
+      return {
+        element: a.element,
+        position: [
+          a.position[0] + (b.position[0] - a.position[0]) * eased,
+          a.position[1] + (b.position[1] - a.position[1]) * eased,
+          a.position[2] + (b.position[2] - a.position[2]) * eased,
+        ] as [number, number, number],
+      };
+    });
+    // Bond-Ordnung ändert sich manchmal (z. B. C=O → C-O). Wir nehmen
+    // die Union aller Bonds; wechselnde Ordnungen behalten die From-
+    // Ordnung bis Halbzeit, dann To-Ordnung. Dashed bleibt bestehen.
+    const bondKey = (b: { from: number; to: number }): string =>
+      b.from < b.to ? `${b.from}-${b.to}` : `${b.to}-${b.from}`;
+    const fromMap = new Map<string, MechanismBond3d>();
+    const toMap = new Map<string, MechanismBond3d>();
+    for (const b of from.bonds) fromMap.set(bondKey(b), b);
+    for (const b of to.bonds) toMap.set(bondKey(b), b);
+    const allKeys = new Set([...fromMap.keys(), ...toMap.keys()]);
+    const bonds: MechanismBond3d[] = [];
+    for (const k of allKeys) {
+      const f = fromMap.get(k);
+      const t = toMap.get(k);
+      const chosen = eased < 0.5 ? f ?? t : t ?? f;
+      if (!chosen) continue;
+      // Bonds, die nur in einem von beiden vorkommen, werden dashed dargestellt
+      // — das ist ohnehin das "werdend/schwindend"-Signal.
+      const style = f && t ? chosen.style : 'dashed';
+      bonds.push({ from: chosen.from, to: chosen.to, order: chosen.order, style });
+    }
+    // Arrows nur bei "vorher"-Seite (bis Halbzeit), danach ausblenden.
+    // Sie sind an einen Moment gebunden, nicht an eine Zwischenposition.
+    const arrows = eased < 0.6 ? from.arrows : [];
+    return { atoms, bonds, arrows };
+  }
+
+  function rebuildStepGroup(step: MechanismStep3d): void {
+    clearStep();
+    addStructure(stepGroup, step);
+    for (const a of step.arrows) addCurlyArrow(stepGroup, a);
+  }
+
   function tick(now: number): void {
     if (!running) return;
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     if (visible) {
-      // Auto-Rotation nur wenn Nutzer gerade nicht interagiert und ~2s
-      // nach letzter Interaktion wieder anspringt.
       if (userInteracting) {
         interactionIdleFrames++;
         if (interactionIdleFrames > 120) userInteracting = false;
       }
       if (!userInteracting && !dragActive) {
         stepGroup.rotation.y += dt * 0.35;
+      }
+      if (transition) {
+        transition.elapsed += dt;
+        const t = Math.min(1, transition.elapsed / transition.duration);
+        const eased = easeInOut(t);
+        rebuildStepGroup(interpolatedStep(transition.from, transition.to, eased));
+        if (t >= 1) {
+          currentStep = transition.to;
+          transition = null;
+        }
       }
       renderer.render(scene, camera);
     }
@@ -215,14 +290,24 @@ export function createMechanism3d(size = 420): Mechanism3dPreview {
   return {
     canvas,
     showStep(step) {
-      clearStep();
-      resetCamera();
       if (!step) {
+        clearStep();
+        transition = null;
+        currentStep = null;
         visible = false;
         return;
       }
-      addStructure(stepGroup, step);
-      for (const a of step.arrows) addCurlyArrow(stepGroup, a);
+      // Wenn wir schon einen Schritt zeigen und der neue "kompatibel" ist:
+      // sanfte 0.8-s-Positions-Animation. Sonst hart ersetzen.
+      if (currentStep && transitionCompatible(currentStep, step)) {
+        transition = { from: currentStep, to: step, elapsed: 0, duration: 0.8 };
+        rebuildStepGroup(currentStep); // Startpose zeigen; tick übernimmt.
+      } else {
+        transition = null;
+        resetCamera();
+        rebuildStepGroup(step);
+        currentStep = step;
+      }
       visible = true;
       renderer.render(scene, camera);
     },
