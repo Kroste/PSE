@@ -11,6 +11,8 @@
  * fassen, funktioniert mit Screen-Reader und bleibt änderungsfreundlich.
  */
 
+import type { MechanismStep3d } from './mechanism-3d';
+
 export type MechanismStep = {
   /** Kurzer Titel des Schritts, z. B. "Nucleophiler Angriff". */
   titleDE: string;
@@ -25,6 +27,12 @@ export type MechanismStep = {
    * Triebkraft? Warum funktioniert der Schritt hier?
    */
   observationDE?: string;
+  /**
+   * Optional: 3D-Visualisierung des Schritts mit Atomen, Bindungen und
+   * curly arrows. Wird im Detail-Overlay neben dem Text-Panel gerendert,
+   * wenn vorhanden.
+   */
+  viz3d?: MechanismStep3d;
 };
 
 export type Mechanism = {
@@ -69,6 +77,27 @@ export const MECHANISMS: Mechanism[] = [
           'Nucleophil (OH⁻) nähert sich dem C-Atom auf der der Abgangsgruppe (Br) gegenüberliegenden Seite. Noch kein Elektronenfluss — nur räumliche Annäherung.',
         observationDE:
           'Rückseitenangriff ist zwingend: die drei H-Atome bilden mit dem C-Br-Zentrum eine Ebene, das OH⁻ muss von der Seite kommen, die sterisch offen ist.',
+        viz3d: {
+          // 0: OH-Sauerstoff (links, weit weg), 1: OH-H, 2: C (Mitte),
+          // 3: Br (rechts), 4-6: die 3 H am C (nach vorn/hinten/oben)
+          atoms: [
+            { element: 'O', position: [-2.6, 0, 0] },
+            { element: 'H', position: [-3.2, 0.55, 0] },
+            { element: 'C', position: [0, 0, 0] },
+            { element: 'Br', position: [1.9, 0, 0] },
+            { element: 'H', position: [-0.35, 0.9, 0] },
+            { element: 'H', position: [-0.35, -0.45, 0.78] },
+            { element: 'H', position: [-0.35, -0.45, -0.78] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 2, to: 3, order: 1 },
+            { from: 2, to: 4, order: 1 },
+            { from: 2, to: 5, order: 1 },
+            { from: 2, to: 6, order: 1 },
+          ],
+          arrows: [],
+        },
       },
       {
         titleDE: 'Konzertierter Übergangszustand',
@@ -78,6 +107,33 @@ export const MECHANISMS: Mechanism[] = [
           'Ein Elektronenpaar wandert vom OH⁻ zum C-Atom (bildet neue C-O-Bindung). Gleichzeitig wandert das Elektronenpaar der C-Br-Bindung komplett auf das Br (heterolytische Spaltung). Die drei H-Atome klappen wie ein Regenschirm im Sturm um — Walden-Umkehr.',
         observationDE:
           'Der Übergangszustand ist trigonal-bipyramidal am C. Das ist der geschwindigkeitsbestimmende Schritt.',
+        viz3d: {
+          atoms: [
+            { element: 'O', position: [-1.4, 0, 0] },
+            { element: 'H', position: [-2.0, 0.55, 0] },
+            { element: 'C', position: [0, 0, 0] },
+            { element: 'Br', position: [1.4, 0, 0] },
+            // H-Atome jetzt planar (trigonal-bipyramidal)
+            { element: 'H', position: [0, 1.05, 0] },
+            { element: 'H', position: [0, -0.52, 0.9] },
+            { element: 'H', position: [0, -0.52, -0.9] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            // Werdende C-O und schwindende C-Br als dashed:
+            { from: 0, to: 2, order: 1, style: 'dashed' },
+            { from: 2, to: 3, order: 1, style: 'dashed' },
+            { from: 2, to: 4, order: 1 },
+            { from: 2, to: 5, order: 1 },
+            { from: 2, to: 6, order: 1 },
+          ],
+          arrows: [
+            // OH-Elektronenpaar → C
+            { from: [-1.4, 0.4, 0], to: [-0.2, 0.15, 0], curvature: 0.5 },
+            // C-Br-Elektronenpaar → Br
+            { from: [0.5, 0.15, 0], to: [1.4, 0.4, 0], curvature: 0.5 },
+          ],
+        },
       },
       {
         titleDE: 'Produkte',
@@ -87,6 +143,26 @@ export const MECHANISMS: Mechanism[] = [
           'Neue C-O-Bindung vollständig geformt, Bromid-Anion trennt sich mit Elektronenpaar. Konfiguration am C ist gegenüber dem Ausgangsstoff invertiert.',
         observationDE:
           'Bei chiralem Kohlenstoff-Zentrum kehrt sich die Konfiguration exakt einmal um — deshalb heißt SN2 "stereospezifisch". Reaktionsordnung 2: v = k · [OH⁻] · [CH₃Br].',
+        viz3d: {
+          atoms: [
+            { element: 'O', position: [-1.3, 0, 0] },
+            { element: 'H', position: [-1.9, 0.55, 0] },
+            { element: 'C', position: [0, 0, 0] },
+            { element: 'Br', position: [2.6, 0, 0] },
+            // H-Atome jetzt inverted (spiegelverkehrt zur Ausgangslage — Walden-Umkehr)
+            { element: 'H', position: [0.35, 0.9, 0] },
+            { element: 'H', position: [0.35, -0.45, 0.78] },
+            { element: 'H', position: [0.35, -0.45, -0.78] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 2, to: 4, order: 1 },
+            { from: 2, to: 5, order: 1 },
+            { from: 2, to: 6, order: 1 },
+          ],
+          arrows: [],
+        },
       },
     ],
     source: 'Clayden, Greeves, Warren — Organische Chemie (2. Aufl., Kap. 15)',

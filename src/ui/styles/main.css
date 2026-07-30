@@ -1580,6 +1580,30 @@ body {
   text-align: right;
 }
 
+.pse-mech-viz3d {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.pse-mech-viz3d canvas {
+  border-radius: 3px;
+  width: 260px !important;
+  max-width: 100%;
+}
+.pse-mech-viz3d-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
 .pse-detail-actions {
   margin-top: 10px;
   display: flex;

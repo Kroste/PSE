@@ -44,6 +44,7 @@ import {
   getMechanism,
   type Mechanism,
 } from '../game/chemistry/mechanisms';
+import { createMechanism3d, type Mechanism3dPreview } from '../game/chemistry/mechanism-3d';
 import { CHALLENGES, CATEGORY_ORDER } from '../game/challenges';
 
 let feedbackTimer: number | undefined;
@@ -267,9 +268,12 @@ export function mountHud(opts: HudOptions = {}): void {
     selectedId: null,
     stepIndex: 0,
   };
+  // Persistenter WebGL-Kontext für die 3D-Visualisierung — nur einmal
+  // erzeugen, Canvas bleibt stabil zwischen Rerenders.
+  const mechanism3d: Mechanism3dPreview = createMechanism3d(280);
   const rerenderMechanisms = (): void => {
     if (mechanismsEl.hidden) return;
-    renderMechanisms(mechanismsEl, mechanismsState, {
+    renderMechanisms(mechanismsEl, mechanismsState, mechanism3d, {
       onSelect: (id) => {
         mechanismsState.selectedId = id;
         mechanismsState.stepIndex = 0;
@@ -2359,21 +2363,24 @@ type MechanismsUiOptions = {
 function renderMechanisms(
   el: HTMLElement,
   state: MechanismsUiState,
+  viz: Mechanism3dPreview,
   opts: MechanismsUiOptions,
 ): void {
   el.innerHTML = '';
 
   if (state.selectedId === null) {
+    viz.showStep(null);
     renderMechanismList(el, opts);
     return;
   }
   const mechanism = getMechanism(state.selectedId);
   if (!mechanism) {
     // Fallback: unbekannte ID → zur Liste zurück
+    viz.showStep(null);
     opts.onBack();
     return;
   }
-  renderMechanismDetail(el, mechanism, state.stepIndex, opts);
+  renderMechanismDetail(el, mechanism, state.stepIndex, viz, opts);
 }
 
 function renderMechanismList(el: HTMLElement, opts: MechanismsUiOptions): void {
@@ -2433,6 +2440,7 @@ function renderMechanismDetail(
   el: HTMLElement,
   mechanism: Mechanism,
   stepIndex: number,
+  viz: Mechanism3dPreview,
   opts: MechanismsUiOptions,
 ): void {
   const backBar = document.createElement('div');
@@ -2490,6 +2498,22 @@ function renderMechanismDetail(
   el.appendChild(dots);
 
   const step = mechanism.steps[stepIndex]!;
+
+  // 3D-Visualisierung (falls Schritt viz3d hat)
+  if (step.viz3d) {
+    const vizWrap = document.createElement('div');
+    vizWrap.className = 'pse-mech-viz3d';
+    const vizLabel = document.createElement('div');
+    vizLabel.className = 'pse-mech-viz3d-label';
+    vizLabel.textContent = '3D — Atome + Elektronenfluss (rotierend, ziehen zum Drehen)';
+    vizWrap.appendChild(vizLabel);
+    vizWrap.appendChild(viz.canvas);
+    el.appendChild(vizWrap);
+    viz.showStep(step.viz3d);
+  } else {
+    viz.showStep(null);
+  }
+
   const card = document.createElement('div');
   card.className = 'pse-mech-step';
   card.innerHTML =
