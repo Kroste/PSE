@@ -326,6 +326,25 @@ export function mountHud(opts: HudOptions = {}): void {
     openCompare({ leftId });
   });
 
+  // Quick-Search-Trigger — wird sowohl von Ctrl+K als auch vom Sidebar-Button
+  // aufgerufen. Öffnet die Palette mit den Callbacks für Entity/Mechanismus.
+  const triggerQuickSearch = (): void => {
+    openQuickSearch({
+      onSelectEntity: (id) => {
+        selectEntity(id);
+      },
+      onSelectMechanism: (id) => {
+        mechanismsState.selectedId = id;
+        mechanismsState.stepIndex = 0;
+        mechanismsEl.hidden = false;
+        mechanismsBtn.classList.add('pse-btn-primary');
+        closeAllOverlays('mechanisms');
+        rerenderMechanisms();
+      },
+    });
+  };
+  document.getElementById('pse-sidebar-search')?.addEventListener('click', () => triggerQuickSearch());
+
   const syncExpertBtn = (): void => {
     const active = getState().expertMode;
     expertBtn.classList.toggle('pse-btn-primary', active);
@@ -434,19 +453,7 @@ export function mountHud(opts: HudOptions = {}): void {
     // Cmd/Ctrl+K = Quick-Search-Palette
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      openQuickSearch({
-        onSelectEntity: (id) => {
-          selectEntity(id);
-        },
-        onSelectMechanism: (id) => {
-          mechanismsState.selectedId = id;
-          mechanismsState.stepIndex = 0;
-          mechanismsEl.hidden = false;
-          mechanismsBtn.classList.add('pse-btn-primary');
-          closeAllOverlays('mechanisms');
-          rerenderMechanisms();
-        },
-      });
+      triggerQuickSearch();
       return;
     }
 

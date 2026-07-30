@@ -32,26 +32,9 @@ if (versionEl) {
   });
 }
 
-// Corner-Buttons unten rechts: About und Tour-Restart.
-const cornerBar = document.createElement('div');
-cornerBar.id = 'pse-corner-bar';
-document.body.appendChild(cornerBar);
-
-const aboutBtn = document.createElement('button');
-aboutBtn.type = 'button';
-aboutBtn.className = 'pse-btn';
-aboutBtn.textContent = 'ℹ About';
-aboutBtn.title = 'Info, GitHub, Buy me a coffee';
-aboutBtn.addEventListener('click', () => openAbout());
-cornerBar.appendChild(aboutBtn);
-
-const tourBtn = document.createElement('button');
-tourBtn.type = 'button';
-tourBtn.className = 'pse-btn';
-tourBtn.textContent = '❔ Tour';
-tourBtn.title = 'Onboarding-Tour neu starten';
-tourBtn.addEventListener('click', () => startTour());
-cornerBar.appendChild(tourBtn);
+// Sidebar-Buttons für About und Tour (die HTML-Elemente kommen aus index.html)
+document.getElementById('pse-sidebar-about')?.addEventListener('click', () => openAbout());
+document.getElementById('pse-sidebar-tour')?.addEventListener('click', () => startTour());
 
 // Achievement-Toasts feuern lassen wenn Nutzer live etwas freischaltet.
 initAchievementToasts();

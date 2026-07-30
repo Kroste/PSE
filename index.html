@@ -31,57 +31,6 @@
       >
         Experten-Modus
       </button>
-      <button id="pse-toggle-table" class="pse-btn" type="button" title="Periodensystem-Übersicht">
-        Periodensystem
-      </button>
-      <button
-        id="pse-toggle-kb"
-        class="pse-btn"
-        type="button"
-        title="Wissensdatenbank — alles durchsuchbar"
-      >
-        📚 Wissen
-      </button>
-      <button
-        id="pse-toggle-editor"
-        class="pse-btn"
-        type="button"
-        title="Eigene Verbindungen anlegen"
-      >
-        ➕ Neu
-      </button>
-      <button
-        id="pse-toggle-achievements"
-        class="pse-btn"
-        type="button"
-        title="Ziele & Fortschritt"
-      >
-        🏆 Ziele
-      </button>
-      <button
-        id="pse-toggle-mechanisms"
-        class="pse-btn"
-        type="button"
-        title="Klassische Reaktions-Mechanismen mit Elektronenfluss"
-      >
-        ⚛ Mechanismen
-      </button>
-      <button
-        id="pse-toggle-challenges"
-        class="pse-btn"
-        type="button"
-        title="Aufgaben-Modus: konkrete Challenges mit Hinweisen"
-      >
-        🎯 Aufgaben
-      </button>
-      <button
-        id="pse-toggle-compare"
-        class="pse-btn"
-        type="button"
-        title="Zwei Moleküle Seite-an-Seite vergleichen"
-      >
-        ⚖ Vergleich
-      </button>
       <button
         id="pse-toggle-sandbox"
         class="pse-btn"
@@ -100,6 +49,50 @@
       </button>
       <span class="pse-version" id="pse-version">v1.0.0</span>
     </header>
+
+    <nav id="pse-sidebar" aria-label="Panels und Werkzeuge">
+      <button id="pse-sidebar-search" class="pse-sidebar-btn" type="button" title="Suche (Ctrl/Cmd + K)">
+        <span class="pse-sidebar-icon">🔍</span>
+        <span class="pse-sidebar-tooltip">Suche</span>
+      </button>
+      <button id="pse-toggle-table" class="pse-sidebar-btn" type="button" title="Periodensystem-Übersicht">
+        <span class="pse-sidebar-icon">📊</span>
+        <span class="pse-sidebar-tooltip">Periodensystem</span>
+      </button>
+      <button id="pse-toggle-kb" class="pse-sidebar-btn" type="button" title="Wissensdatenbank — alles durchsuchbar">
+        <span class="pse-sidebar-icon">📚</span>
+        <span class="pse-sidebar-tooltip">Wissen</span>
+      </button>
+      <button id="pse-toggle-mechanisms" class="pse-sidebar-btn" type="button" title="Klassische Reaktions-Mechanismen">
+        <span class="pse-sidebar-icon">⚛</span>
+        <span class="pse-sidebar-tooltip">Mechanismen</span>
+      </button>
+      <button id="pse-toggle-challenges" class="pse-sidebar-btn" type="button" title="Aufgaben-Modus">
+        <span class="pse-sidebar-icon">🎯</span>
+        <span class="pse-sidebar-tooltip">Aufgaben</span>
+      </button>
+      <button id="pse-toggle-achievements" class="pse-sidebar-btn" type="button" title="Ziele & Fortschritt">
+        <span class="pse-sidebar-icon">🏆</span>
+        <span class="pse-sidebar-tooltip">Ziele</span>
+      </button>
+      <button id="pse-toggle-compare" class="pse-sidebar-btn" type="button" title="Molekül-Vergleich">
+        <span class="pse-sidebar-icon">⚖</span>
+        <span class="pse-sidebar-tooltip">Vergleich</span>
+      </button>
+      <button id="pse-toggle-editor" class="pse-sidebar-btn" type="button" title="Eigene Verbindungen anlegen">
+        <span class="pse-sidebar-icon">🧪</span>
+        <span class="pse-sidebar-tooltip">Neu</span>
+      </button>
+      <div class="pse-sidebar-sep"></div>
+      <button id="pse-sidebar-tour" class="pse-sidebar-btn" type="button" title="Onboarding-Tour neu starten">
+        <span class="pse-sidebar-icon">❔</span>
+        <span class="pse-sidebar-tooltip">Tour</span>
+      </button>
+      <button id="pse-sidebar-about" class="pse-sidebar-btn" type="button" title="Info, GitHub, Buy me a coffee">
+        <span class="pse-sidebar-icon">ℹ</span>
+        <span class="pse-sidebar-tooltip">About</span>
+      </button>
+    </nav>
 
     <section id="pse-table" class="pse-table-overlay" aria-label="Periodensystem" hidden></section>
     <section id="pse-kb" class="pse-kb-overlay" aria-label="Wissensdatenbank" hidden></section>
