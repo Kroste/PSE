@@ -36,6 +36,7 @@ import { computeMolarMass, guessGeometry, hillFormula } from '../game/chemistry/
 import { layoutMolecule3D } from '../game/chemistry/layout';
 import { parseSmiles } from '../game/chemistry/smiles';
 import { parseMolFile } from '../game/chemistry/mol';
+import { planFor, type BuildPlan } from '../game/pathfinding';
 import { writeMolFile } from '../game/chemistry/mol-writer';
 import { renderSpectraSection } from './spectra-chart';
 import {
@@ -689,18 +690,102 @@ function renderDetail(el: HTMLElement, selectedEntityId: string | null): void {
   src.textContent = `Quelle: ${entity.source}`;
   el.appendChild(src);
 
-  if (entity.kind === 'molecule') {
+  if (entity.kind === 'element' || entity.kind === 'molecule' || entity.kind === 'nucleus') {
     const actions = document.createElement('div');
     actions.className = 'pse-detail-actions';
-    const exportBtn = document.createElement('button');
-    exportBtn.type = 'button';
-    exportBtn.className = 'pse-btn';
-    exportBtn.textContent = '📥 MOL exportieren';
-    exportBtn.title = 'Als .mol-Datei speichern (kompatibel mit PubChem, ChemDraw, RDKit)';
-    exportBtn.addEventListener('click', () => downloadMolFile(entity as MoleculeEntity));
-    actions.appendChild(exportBtn);
+
+    if (entity.kind === 'molecule') {
+      const exportBtn = document.createElement('button');
+      exportBtn.type = 'button';
+      exportBtn.className = 'pse-btn';
+      exportBtn.textContent = '📥 MOL exportieren';
+      exportBtn.title = 'Als .mol-Datei speichern (kompatibel mit PubChem, ChemDraw, RDKit)';
+      exportBtn.addEventListener('click', () => downloadMolFile(entity as MoleculeEntity));
+      actions.appendChild(exportBtn);
+    }
+
+    const planBtn = document.createElement('button');
+    planBtn.type = 'button';
+    planBtn.className = 'pse-btn';
+    planBtn.textContent = '🧭 Bauplan';
+    planBtn.title = 'Zeige die minimale Rezept-Kette, um diese Entity zu bauen';
+    actions.appendChild(planBtn);
     el.appendChild(actions);
+
+    // Container für Ausklappbare Bauplan-Ansicht
+    const planContainer = document.createElement('div');
+    el.appendChild(planContainer);
+    let planShown = false;
+    planBtn.addEventListener('click', () => {
+      planShown = !planShown;
+      planContainer.innerHTML = '';
+      if (planShown) {
+        planBtn.textContent = '🧭 Bauplan verbergen';
+        const state = getState();
+        const plan = planFor(entity.id, state.expertMode);
+        planContainer.appendChild(renderBuildPlan(entity.id, plan, state.expertMode));
+      } else {
+        planBtn.textContent = '🧭 Bauplan';
+      }
+    });
   }
+}
+
+function renderBuildPlan(targetId: string, plan: BuildPlan | null, expertMode: boolean): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'pse-plan';
+  const header = document.createElement('div');
+  header.className = 'pse-plan-header';
+  header.textContent = `🧭 Bauplan (${expertMode ? 'Experten-Modus' : 'Normal-Modus'})`;
+  wrap.appendChild(header);
+
+  if (!plan) {
+    const err = document.createElement('div');
+    err.className = 'pse-plan-empty';
+    err.textContent = `✖ Kein Bauplan für "${targetId}" im aktuellen Modus gefunden.`;
+    wrap.appendChild(err);
+    return wrap;
+  }
+  if (plan.steps.length === 0) {
+    const info = document.createElement('div');
+    info.className = 'pse-plan-empty';
+    info.textContent = '✓ Diese Entity ist eine freie Zutat (Quark, Elektron, Gluon oder Photon) — nichts zu bauen.';
+    wrap.appendChild(info);
+    return wrap;
+  }
+
+  const meta = document.createElement('div');
+  meta.className = 'pse-plan-meta';
+  meta.textContent = `${plan.steps.length} Rezept-Schritt(e) · Reaktoren: ${plan.reactors.map((r) => reactorMeta[r as keyof typeof reactorMeta]?.nameDE ?? r).join(' + ')} · verbraucht ${plan.freeSupplyCount} freie Zutaten`;
+  wrap.appendChild(meta);
+
+  const list = document.createElement('ol');
+  list.className = 'pse-plan-list';
+  for (const step of plan.steps) {
+    const li = document.createElement('li');
+    li.className = 'pse-plan-step';
+    const left = Object.entries(step.inputs)
+      .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+      .join(' + ');
+    const right = Object.entries(step.outputs)
+      .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
+      .join(' + ');
+    const arrow = step.reversible ? '⇌' : '→';
+    const reactorLbl = reactorMeta[step.reactor]?.nameDE ?? step.reactor;
+    const line = document.createElement('div');
+    line.className = 'pse-plan-line';
+    line.innerHTML = `<span class="pse-plan-reactor">${reactorLbl}</span> <code>${left}  ${arrow}  ${right}</code>`;
+    li.appendChild(line);
+    if (step.scienceNoteDE) {
+      const note = document.createElement('div');
+      note.className = 'pse-plan-note';
+      note.textContent = step.scienceNoteDE;
+      li.appendChild(note);
+    }
+    list.appendChild(li);
+  }
+  wrap.appendChild(list);
+  return wrap;
 }
 
 function downloadMolFile(molecule: MoleculeEntity): void {
