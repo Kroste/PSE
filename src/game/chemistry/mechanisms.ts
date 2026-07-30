@@ -236,6 +236,44 @@ export const MECHANISMS: Mechanism[] = [
     source: 'Clayden — Organische Chemie (2. Aufl., Kap. 26)',
   },
   {
+    id: 'peptidbindung',
+    nameDE: 'Peptidbindung (Kondensation zweier Aminosäuren)',
+    categoryDE: 'Kondensation',
+    summaryDE:
+      'Amino-Gruppe einer AS greift Carboxyl-C der zweiten an. Wasserabspaltung. In der Zelle enzymkatalysiert am Ribosom.',
+    overallReaction: 'H₂N-CHR¹-COOH + H₂N-CHR²-COOH → H₂N-CHR¹-CO-NH-CHR²-COOH + H₂O',
+    conditionsDE:
+      'In vitro: DCC-Aktivierung oder Säurechlorid. In vivo: Ribosom mit Peptidyl-Transferase, GTP-getrieben.',
+    steps: [
+      {
+        titleDE: 'Aktivierung der Carbonyl-Gruppe',
+        before: 'H₂N-CHR¹-COOH',
+        after: 'H₂N-CHR¹-CO-Aktivierung (z. B. Ester an tRNA)',
+        electronFlowDE:
+          'Nucleophiler Sauerstoff wird durch Kopplungs­reagenz oder tRNA-Anhang aktiviert. Am Ribosom: die COOH wird als Ester an das 3\'-OH der tRNA gebunden.',
+        observationDE:
+          'Ohne Aktivierung wäre die Reaktion viel zu langsam — Carboxylat und Amin bilden bevorzugt ein Salz statt eine Bindung.',
+      },
+      {
+        titleDE: 'Nucleophiler Angriff der Amino-Gruppe',
+        before: 'H₂N-CHR²-COOH + aktivierter Carbonyl-C',
+        after: 'Tetrahedral-Intermediat (C-OH, C-NHR²)',
+        electronFlowDE:
+          'Freies Elektronenpaar am Amin-N greift den aktivierten Carbonyl-C an. π-Elektronen der C=O wandern zum O. Neue C-N-Bindung.',
+      },
+      {
+        titleDE: 'Abspaltung + Peptidbindung',
+        before: 'Tetrahedral-Intermediat',
+        after: 'H₂N-CHR¹-CO-NH-CHR²-COOH + H₂O (oder tRNA)',
+        electronFlowDE:
+          'Elektronenpaar der C-O-Bindung wandert zum abgehenden O (Hydroxyl bzw. tRNA-Ester). Neue C=O rebildet sich. Peptidbindung ist planar (partieller Doppelbindungscharakter durch N-Lone-Pair).',
+        observationDE:
+          'Die Peptidbindung ist wegen Resonanz planar und nur eingeschränkt drehbar — Grundlage der Sekundärstruktur (α-Helix, β-Faltblatt).',
+      },
+    ],
+    source: 'Voet & Voet — Biochemistry (4th ed., Ch. 4-5)',
+  },
+  {
     id: 'radikal-polymerisation',
     nameDE: 'Radikalische Polymerisation (PE aus Ethen)',
     categoryDE: 'Radikalreaktion',
