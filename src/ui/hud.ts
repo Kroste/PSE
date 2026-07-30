@@ -15,7 +15,7 @@ import {
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
 import { isAudioEnabled, setAudioEnabled, sfx } from '../engine/audio';
-import { elements, freeSupplyIds, getEntity, recipes as allRecipes } from '../game/content';
+import { elements, freeSupplyIds, getEntity, molecules, recipes as allRecipes } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
 import { isRecipeAvailableInMode } from '../game/physics/recipes';
@@ -613,9 +613,49 @@ function craftControls(): HTMLElement {
   return box;
 }
 
-function findNextGoal(): { element: ElementEntity; recipe: Recipe } | null {
+type NextGoal = {
+  entity: ElementEntity | MoleculeEntity;
+  recipe: Recipe;
+  headline: string;
+  subtitle: string;
+  emptyMessage: string;
+};
+
+function findNextGoal(): NextGoal | null {
   const state = getState();
   const discovered = new Set(state.discovered);
+
+  // Im Chemielabor sucht der Spieler Reaktionen zu neuen Verbindungen — nicht neue Elemente.
+  if (state.activeReactor === 'chem-lab') {
+    const nextMol = molecules
+      .filter((m) => !discovered.has(m.id))
+      .sort((a, b) => a.molarMassGmol - b.molarMassGmol)[0];
+    if (nextMol) {
+      const recipe = allRecipes.find(
+        (r) =>
+          (r.outputs[nextMol.id] ?? 0) === 1 &&
+          isRecipeAvailableInMode(r, state.expertMode),
+      );
+      if (recipe) {
+        return {
+          entity: nextMol,
+          recipe,
+          headline: 'Nächste Reaktion',
+          subtitle: `${nextMol.symbol}  ·  ${nextMol.nameDE}`,
+          emptyMessage: '✓ Alle Verbindungen in diesem Modus entdeckt',
+        };
+      }
+    }
+    return {
+      entity: null as never,
+      recipe: null as never,
+      headline: '',
+      subtitle: '',
+      emptyMessage: '✓ Alle Verbindungen in diesem Modus entdeckt',
+    };
+  }
+
+  // Andere Reaktoren: nächstes noch nicht entdecktes Element (nach Z sortiert).
   const nextEl = elements
     .filter((e) => !discovered.has(e.id))
     .sort((a, b) => a.z - b.z)[0];
@@ -626,7 +666,13 @@ function findNextGoal(): { element: ElementEntity; recipe: Recipe } | null {
       isRecipeAvailableInMode(r, state.expertMode),
   );
   if (!recipe) return null;
-  return { element: nextEl, recipe };
+  return {
+    entity: nextEl,
+    recipe,
+    headline: 'Nächstes Element',
+    subtitle: `${nextEl.symbol}  ·  ${nextEl.nameDE}  (Z=${nextEl.z})`,
+    emptyMessage: '✓ Alle Elemente in diesem Modus entdeckt',
+  };
 }
 
 function goalBox(onSelect: (id: string) => void): HTMLElement {
@@ -634,36 +680,38 @@ function goalBox(onSelect: (id: string) => void): HTMLElement {
   box.className = 'pse-goal';
 
   const goal = findNextGoal();
-  if (!goal) {
+  if (!goal || !goal.entity) {
     box.classList.add('pse-goal-done');
-    box.textContent = '✓ Alle Elemente in diesem Modus entdeckt';
+    box.textContent = goal?.emptyMessage ?? '✓ Alle Ziele in diesem Modus entdeckt';
     return box;
   }
 
   const header = document.createElement('div');
   header.className = 'pse-goal-header';
-  header.textContent = 'Nächstes Ziel';
+  header.textContent = goal.headline;
   box.appendChild(header);
 
   const title = document.createElement('button');
   title.className = 'pse-goal-title';
   title.type = 'button';
-  title.textContent = `${goal.element.symbol}  ·  ${goal.element.nameDE}  (Z=${goal.element.z})`;
-  title.style.color = goal.element.cpkColor;
-  title.addEventListener('click', () => onSelect(goal.element.id));
+  title.textContent = goal.subtitle;
+  title.style.color = goal.entity.color;
+  title.addEventListener('click', () => onSelect(goal.entity.id));
   box.appendChild(title);
 
   const reactorMetaInfo = reactorMeta[goal.recipe.reactor];
   const inputsText = Object.entries(goal.recipe.inputs)
     .map(([id, n]) => `${n}·${getEntity(id)?.symbol ?? id}`)
     .join(' + ');
+  const outputSym = goal.entity.symbol ?? goal.entity.id;
   const recipeLine = document.createElement('div');
   recipeLine.className = 'pse-goal-recipe';
-  recipeLine.textContent = `${inputsText} → ${goal.element.symbol}  @ ${reactorMetaInfo.nameDE}`;
+  recipeLine.textContent = `${inputsText} → ${outputSym}  @ ${reactorMetaInfo.nameDE}`;
   box.appendChild(recipeLine);
 
   return box;
 }
+
 
 function feedbackBox(): HTMLElement {
   const box = document.createElement('div');
