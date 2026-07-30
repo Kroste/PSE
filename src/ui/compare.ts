@@ -59,7 +59,8 @@ export function openCompare(opts: CompareOptions = {}): void {
   header.className = 'pse-compare-header';
   header.innerHTML =
     `<strong>⚖ Molekül-Vergleich</strong> &middot; ` +
-    `Wähle zwei Moleküle für Seite-an-Seite-Vergleich (3D, Attribute, Spektroskopie).`;
+    `Wähle zwei Moleküle für Seite-an-Seite-Vergleich (3D, Attribute, Spektroskopie). ` +
+    `<em>Ziehen zum Drehen · Mausrad zum Zoomen</em>`;
   modal.appendChild(header);
 
   const closeBtn = document.createElement('button');
@@ -81,8 +82,8 @@ export function openCompare(opts: CompareOptions = {}): void {
   rightPane.className = 'pse-compare-pane';
   grid.appendChild(rightPane);
 
-  const leftPreview = createOrbitalPreview(280);
-  const rightPreview = createOrbitalPreview(280);
+  const leftPreview = createOrbitalPreview(480);
+  const rightPreview = createOrbitalPreview(480);
 
   function renderPane(pane: HTMLElement, side: 'left' | 'right'): void {
     pane.innerHTML = '';

@@ -1950,8 +1950,8 @@ body {
 }
 .pse-compare-modal {
   position: relative;
-  width: min(1080px, 96vw);
-  max-height: 92vh;
+  width: min(1400px, 98vw);
+  max-height: 96vh;
   background: rgba(10, 15, 20, 0.98);
   border: 1px solid var(--accent);
   border-radius: 6px;
@@ -1974,6 +1974,11 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin-right: 6px;
+}
+.pse-compare-header em {
+  color: var(--text-dim);
+  font-style: normal;
+  font-size: 11px;
 }
 .pse-compare-close {
   position: absolute;

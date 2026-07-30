@@ -5,6 +5,7 @@ import {
   HemisphereLight,
   PerspectiveCamera,
   Scene,
+  Vector3,
   WebGLRenderer,
 } from 'three';
 import type { ElementEntity, MoleculeEntity } from '../content/types';
@@ -19,8 +20,12 @@ export type OrbitalPreview = {
 
 /**
  * Kleines eigenständiges 3D-Preview für das Quanten-Orbitalmodell —
- * gedacht als Widget im Detail-Panel. Nutzt einen eigenen WebGLRenderer,
- * damit es unabhängig von der Haupt-Bühne lebt.
+ * gedacht als Widget im Detail-Panel und im Vergleichs-Modus.
+ * Nutzt einen eigenen WebGLRenderer, damit es unabhängig von der
+ * Haupt-Bühne lebt. Interaktion:
+ * - Pointer-Drag rotiert das Modell (x + y-Achsen)
+ * - Mausrad zoomt die Kamera
+ * - Auto-Rotation setzt ~2 s nach Interaktion wieder ein
  */
 export function createOrbitalPreview(size = 240): OrbitalPreview {
   const canvas = document.createElement('canvas');
@@ -29,6 +34,8 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
   canvas.style.width = '100%';
   canvas.style.aspectRatio = '1 / 1';
   canvas.style.display = 'block';
+  canvas.style.cursor = 'grab';
+  canvas.style.touchAction = 'none';
 
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -38,9 +45,11 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
   const scene = new Scene();
   scene.background = null;
 
-  const camera = new PerspectiveCamera(45, 1, 0.1, 20);
-  camera.position.set(2.0, 1.6, 2.6);
-  camera.lookAt(0, 0, 0);
+  const camera = new PerspectiveCamera(45, 1, 0.1, 60);
+  const cameraTarget = new Vector3(0, 0, 0);
+  const initialCameraOffset = new Vector3(2.0, 1.6, 2.6);
+  camera.position.copy(initialCameraOffset);
+  camera.lookAt(cameraTarget);
 
   scene.add(new HemisphereLight(new Color(0x88ffee), new Color(0x0a0f14), 0.7));
   const key = new DirectionalLight(0xffffff, 1.2);
@@ -55,6 +64,75 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
   let last = performance.now();
   let running = true;
   let visible = false;
+  let userInteracting = false;
+  let interactionIdleFrames = 0;
+
+  // Pointer-Drag: rotiert das Atom/Molekül manuell.
+  let dragActive = false;
+  let dragLastX = 0;
+  let dragLastY = 0;
+  let dragPointerId: number | null = null;
+  canvas.addEventListener('pointerdown', (e) => {
+    dragActive = true;
+    dragLastX = e.clientX;
+    dragLastY = e.clientY;
+    dragPointerId = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = 'grabbing';
+    userInteracting = true;
+    interactionIdleFrames = 0;
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragActive) return;
+    const dx = e.clientX - dragLastX;
+    const dy = e.clientY - dragLastY;
+    dragLastX = e.clientX;
+    dragLastY = e.clientY;
+    atomHost.rotation.y += dx * 0.008;
+    const nextX = atomHost.rotation.x + dy * 0.008;
+    atomHost.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, nextX));
+    interactionIdleFrames = 0;
+  });
+  function endDrag(): void {
+    if (!dragActive) return;
+    dragActive = false;
+    if (dragPointerId !== null) {
+      try {
+        canvas.releasePointerCapture(dragPointerId);
+      } catch {
+        // ignore
+      }
+      dragPointerId = null;
+    }
+    canvas.style.cursor = 'grab';
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', endDrag);
+
+  // Mausrad: zoomt die Kamera zum Target.
+  canvas.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      const dir = camera.position.clone().sub(cameraTarget);
+      const dist = dir.length();
+      const factor = e.deltaY > 0 ? 1.12 : 1 / 1.12;
+      const nextDist = Math.max(0.8, Math.min(15, dist * factor));
+      dir.normalize().multiplyScalar(nextDist);
+      camera.position.copy(cameraTarget).add(dir);
+      userInteracting = true;
+      interactionIdleFrames = 0;
+    },
+    { passive: false },
+  );
+
+  function resetCamera(): void {
+    camera.position.copy(initialCameraOffset);
+    camera.lookAt(cameraTarget);
+    atomHost.rotation.set(0, 0, 0);
+    userInteracting = false;
+  }
 
   function clearAtom(): void {
     while (atomHost.children.length > 0) atomHost.remove(atomHost.children[0]!);
@@ -67,7 +145,13 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
     last = now;
     if (visible && currentRig) {
       currentRig.update(dt);
-      atomHost.rotation.y += dt * 0.25;
+      if (userInteracting) {
+        interactionIdleFrames++;
+        if (interactionIdleFrames > 120) userInteracting = false;
+      }
+      if (!userInteracting && !dragActive) {
+        atomHost.rotation.y += dt * 0.25;
+      }
       renderer.render(scene, camera);
     }
     requestAnimationFrame(tick);
@@ -83,7 +167,7 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
       }
       currentId = entity ? entity.id : null;
       clearAtom();
-      atomHost.rotation.set(0, 0, 0);
+      resetCamera();
       if (!entity) {
         visible = false;
         return;
