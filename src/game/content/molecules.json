@@ -271,5 +271,635 @@
     "color": "#aaddaa",
     "scienceNoteDE": "Einfachstes Alken — planare Struktur um die C=C-Doppelbindung. Meistproduzierte organische Chemikalie der Welt (Basis von Polyethylen); zugleich ein natürliches Pflanzenhormon, das Fruchtreifung steuert.",
     "source": "NIST WebBook"
+  },
+
+  {
+    "id": "CO",
+    "kind": "molecule",
+    "nameDE": "Kohlenstoffmonoxid",
+    "symbol": "CO",
+    "formula": "CO",
+    "atomCounts": { "C": 1, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [-0.56, 0, 0] },
+      { "element": "O", "position": [0.56, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 3 }],
+    "geometry": "linear",
+    "molarMassGmol": 28.01,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#aa7766",
+    "scienceNoteDE": "Farbloses, geruchloses Gas mit Dreifachbindung (extrem stark, ~1072 kJ/mol). Bindet 200-fach stärker als O₂ an Hämoglobin — bei unvollständiger Verbrennung ein tödliches Atemgift.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "H2O2",
+    "kind": "molecule",
+    "nameDE": "Wasserstoffperoxid",
+    "symbol": "H₂O₂",
+    "formula": "H2O2",
+    "atomCounts": { "H": 2, "O": 2 },
+    "atoms": [
+      { "element": "O", "position": [-0.74, 0, 0] },
+      { "element": "O", "position": [0.74, 0, 0] },
+      { "element": "H", "position": [-1.06, 0.82, 0.5] },
+      { "element": "H", "position": [1.06, -0.82, 0.5] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 1, "to": 3, "order": 1 }
+    ],
+    "geometry": "bent",
+    "molarMassGmol": 34.015,
+    "categoryDE": "Anorganisch (Peroxid)",
+    "color": "#aaccff",
+    "scienceNoteDE": "Verdrehte H-O-O-H-Struktur (Diederwinkel ~111°). Starkes Oxidationsmittel; verdünnt als Desinfektionsmittel, konzentriert als Raketentreibstoff.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "O3",
+    "kind": "molecule",
+    "nameDE": "Ozon",
+    "symbol": "O₃",
+    "formula": "O3",
+    "atomCounts": { "O": 3 },
+    "atoms": [
+      { "element": "O", "position": [0, 0, 0] },
+      { "element": "O", "position": [1.09, 0.62, 0] },
+      { "element": "O", "position": [-1.09, 0.62, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 }
+    ],
+    "geometry": "bent",
+    "molarMassGmol": 47.997,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#4477cc",
+    "scienceNoteDE": "Gewinkelt (~116,8°), delokalisierte Bindung zwischen Einfach und Doppel. In der Stratosphäre schützt die Ozonschicht vor UV-Strahlung; bodennah ist Ozon ein Reizgas und Schadstoff.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "SO2",
+    "kind": "molecule",
+    "nameDE": "Schwefeldioxid",
+    "symbol": "SO₂",
+    "formula": "SO2",
+    "atomCounts": { "S": 1, "O": 2 },
+    "atoms": [
+      { "element": "S", "position": [0, 0, 0] },
+      { "element": "O", "position": [1.28, 0.6, 0] },
+      { "element": "O", "position": [-1.28, 0.6, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 2 }
+    ],
+    "geometry": "bent",
+    "molarMassGmol": 64.066,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#ffdd33",
+    "scienceNoteDE": "Farbloses, stechend riechendes Gas. Entsteht bei Verbrennung schwefelhaltiger Brennstoffe; Hauptverursacher des sauren Regens und Vorstufe zu H₂SO₄.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "SO3",
+    "kind": "molecule",
+    "nameDE": "Schwefeltrioxid",
+    "symbol": "SO₃",
+    "formula": "SO3",
+    "atomCounts": { "S": 1, "O": 3 },
+    "atoms": [
+      { "element": "S", "position": [0, 0, 0] },
+      { "element": "O", "position": [1.42, 0, 0] },
+      { "element": "O", "position": [-0.71, 1.23, 0] },
+      { "element": "O", "position": [-0.71, -1.23, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 2 },
+      { "from": 0, "to": 3, "order": 2 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 80.06,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#ffcc22",
+    "scienceNoteDE": "Planare trigonale Struktur. Direktes Anhydrid der Schwefelsäure — SO₃ + H₂O → H₂SO₄. Entsteht beim Kontaktverfahren; Schlüsselzwischenprodukt der Schwefelsäure-Produktion.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "H2S",
+    "kind": "molecule",
+    "nameDE": "Schwefelwasserstoff",
+    "symbol": "H₂S",
+    "formula": "H2S",
+    "atomCounts": { "H": 2, "S": 1 },
+    "atoms": [
+      { "element": "S", "position": [0, 0, 0] },
+      { "element": "H", "position": [0.97, 0.94, 0] },
+      { "element": "H", "position": [-0.97, 0.94, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 }
+    ],
+    "geometry": "bent",
+    "molarMassGmol": 34.081,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#ffee55",
+    "scienceNoteDE": "Gewinkelt wie Wasser (~92°). Stinkt nach faulen Eiern; extrem giftig (paralysiert Geruchssinn). Entsteht in Sümpfen und aus vulkanischen Quellen.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "HCl",
+    "kind": "molecule",
+    "nameDE": "Chlorwasserstoff",
+    "symbol": "HCl",
+    "formula": "HCl",
+    "atomCounts": { "H": 1, "Cl": 1 },
+    "atoms": [
+      { "element": "H", "position": [-0.64, 0, 0] },
+      { "element": "Cl", "position": [0.64, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 1 }],
+    "geometry": "linear",
+    "molarMassGmol": 36.458,
+    "categoryDE": "Anorganisch (Säure)",
+    "color": "#88dd44",
+    "scienceNoteDE": "Farbloses, stechend riechendes Gas. In Wasser gelöst = Salzsäure. Zweitwichtigste Industriesäure nach H₂SO₄; auch Bestandteil der menschlichen Magensäure.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "HNO3",
+    "kind": "molecule",
+    "nameDE": "Salpetersäure",
+    "symbol": "HNO₃",
+    "formula": "HNO3",
+    "atomCounts": { "H": 1, "N": 1, "O": 3 },
+    "atoms": [
+      { "element": "N", "position": [0, 0, 0] },
+      { "element": "O", "position": [1.2, 0.4, 0] },
+      { "element": "O", "position": [-0.72, 1.05, 0] },
+      { "element": "O", "position": [-0.72, -1.05, 0] },
+      { "element": "H", "position": [-1.6, 1.05, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 2 },
+      { "from": 2, "to": 4, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 63.013,
+    "categoryDE": "Anorganisch (Säure)",
+    "color": "#ff8844",
+    "scienceNoteDE": "Starke, oxidierende Säure. Basis für Düngemittel (Ammoniumnitrat), Sprengstoffe (TNT, Nitroglycerin) und Metallverarbeitung.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "H2SO4",
+    "kind": "molecule",
+    "nameDE": "Schwefelsäure",
+    "symbol": "H₂SO₄",
+    "formula": "H2SO4",
+    "atomCounts": { "H": 2, "S": 1, "O": 4 },
+    "atoms": [
+      { "element": "S", "position": [0, 0, 0] },
+      { "element": "O", "position": [0.8, 0.8, 0.8] },
+      { "element": "O", "position": [-0.8, -0.8, 0.8] },
+      { "element": "O", "position": [0.8, -0.8, -0.8] },
+      { "element": "O", "position": [-0.8, 0.8, -0.8] },
+      { "element": "H", "position": [1.6, -1.5, -0.5] },
+      { "element": "H", "position": [-1.6, 1.5, -0.5] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 2 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 },
+      { "from": 3, "to": 5, "order": 1 },
+      { "from": 4, "to": 6, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 98.079,
+    "categoryDE": "Anorganisch (Säure)",
+    "color": "#ffbb44",
+    "scienceNoteDE": "Weltweit meistproduzierte Industriechemikalie (~250 Mt/Jahr). Tetraedrisch um den Schwefel. Grundstoff für Düngemittel, Autobatterien, Erdölraffinerien und die Chlor-Alkali-Elektrolyse.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "NaCl",
+    "kind": "molecule",
+    "nameDE": "Natriumchlorid (Kochsalz)",
+    "symbol": "NaCl",
+    "formula": "NaCl",
+    "atomCounts": { "Na": 1, "Cl": 1 },
+    "atoms": [
+      { "element": "Na", "position": [-1.18, 0, 0] },
+      { "element": "Cl", "position": [1.18, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 1 }],
+    "geometry": "linear",
+    "molarMassGmol": 58.44,
+    "categoryDE": "Anorganisch (Salz)",
+    "color": "#ddccbb",
+    "scienceNoteDE": "Ionische Verbindung — im Festkörper ein kubisch-flächenzentriertes Gitter aus Na⁺ und Cl⁻. Speisesalz, Elektrolyt in Körperflüssigkeiten und Ausgangsstoff der Chlor-Alkali-Elektrolyse.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "NaOH",
+    "kind": "molecule",
+    "nameDE": "Natriumhydroxid",
+    "symbol": "NaOH",
+    "formula": "NaOH",
+    "atomCounts": { "Na": 1, "O": 1, "H": 1 },
+    "atoms": [
+      { "element": "Na", "position": [-1.2, 0, 0] },
+      { "element": "O", "position": [0.3, 0, 0] },
+      { "element": "H", "position": [1.25, 0, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 1 }
+    ],
+    "geometry": "linear",
+    "molarMassGmol": 39.997,
+    "categoryDE": "Anorganisch (Base)",
+    "color": "#bbaaee",
+    "scienceNoteDE": "Ätznatron — starke Base. Grundstoff für Seifenherstellung (Verseifung), Zellstoffgewinnung und Reinigungsmittel; in Wasser stark exotherm gelöst.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "CaCO3",
+    "kind": "molecule",
+    "nameDE": "Calciumcarbonat (Kalk)",
+    "symbol": "CaCO₃",
+    "formula": "CaCO3",
+    "atomCounts": { "Ca": 1, "C": 1, "O": 3 },
+    "atoms": [
+      { "element": "Ca", "position": [-2.0, 0, 0] },
+      { "element": "C", "position": [0.4, 0, 0] },
+      { "element": "O", "position": [1.65, 0, 0] },
+      { "element": "O", "position": [-0.2, 1.09, 0] },
+      { "element": "O", "position": [-0.2, -1.09, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 1, "to": 2, "order": 2 },
+      { "from": 1, "to": 3, "order": 1 },
+      { "from": 1, "to": 4, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 100.087,
+    "categoryDE": "Anorganisch (Salz)",
+    "color": "#e0e0d8",
+    "scienceNoteDE": "Kalkstein, Marmor, Muschel- und Eierschalen. Wichtigster Bestandteil des globalen Kohlenstoffkreislaufs (Kalziumcarbonat-Silikat-Kreislauf); Rohstoff für Zement und Baukalk.",
+    "source": "NIST WebBook"
+  },
+
+  {
+    "id": "C2H2",
+    "kind": "molecule",
+    "nameDE": "Acetylen (Ethin)",
+    "symbol": "C₂H₂",
+    "formula": "C2H2",
+    "atomCounts": { "C": 2, "H": 2 },
+    "atoms": [
+      { "element": "H", "position": [-1.66, 0, 0] },
+      { "element": "C", "position": [-0.6, 0, 0] },
+      { "element": "C", "position": [0.6, 0, 0] },
+      { "element": "H", "position": [1.66, 0, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 3 },
+      { "from": 2, "to": 3, "order": 1 }
+    ],
+    "geometry": "linear",
+    "molarMassGmol": 26.038,
+    "categoryDE": "Organisch (Alkin)",
+    "color": "#77bb77",
+    "scienceNoteDE": "Einfachstes Alkin mit C≡C-Dreifachbindung. Verbrennt bei ~3300 °C — Basis des autogenen Schweißens. Vorstufe für PVC und Acrylate.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "C2H6",
+    "kind": "molecule",
+    "nameDE": "Ethan",
+    "symbol": "C₂H₆",
+    "formula": "C2H6",
+    "atomCounts": { "C": 2, "H": 6 },
+    "atoms": [
+      { "element": "C", "position": [-0.77, 0, 0] },
+      { "element": "C", "position": [0.77, 0, 0] },
+      { "element": "H", "position": [-1.16, 0.55, 0.9] },
+      { "element": "H", "position": [-1.16, 0.55, -0.9] },
+      { "element": "H", "position": [-1.16, -1.02, 0] },
+      { "element": "H", "position": [1.16, -0.55, 0.9] },
+      { "element": "H", "position": [1.16, -0.55, -0.9] },
+      { "element": "H", "position": [1.16, 1.02, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 },
+      { "from": 1, "to": 5, "order": 1 },
+      { "from": 1, "to": 6, "order": 1 },
+      { "from": 1, "to": 7, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 30.069,
+    "categoryDE": "Organisch (Alkan)",
+    "color": "#99cc99",
+    "scienceNoteDE": "Zweitleichtestes Alkan. Zusammen mit Methan Hauptbestandteil von Erdgas; wichtige Vorstufe für Ethen (Steamcracking).",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "C3H8",
+    "kind": "molecule",
+    "nameDE": "Propan",
+    "symbol": "C₃H₈",
+    "formula": "C3H8",
+    "atomCounts": { "C": 3, "H": 8 },
+    "atoms": [
+      { "element": "C", "position": [-1.54, 0, 0] },
+      { "element": "C", "position": [0, 0.5, 0] },
+      { "element": "C", "position": [1.54, 0, 0] },
+      { "element": "H", "position": [-1.9, 0.55, 0.9] },
+      { "element": "H", "position": [-1.9, 0.55, -0.9] },
+      { "element": "H", "position": [-1.9, -1.02, 0] },
+      { "element": "H", "position": [0, 1.6, 0.9] },
+      { "element": "H", "position": [0, 1.6, -0.9] },
+      { "element": "H", "position": [1.9, -0.55, 0.9] },
+      { "element": "H", "position": [1.9, -0.55, -0.9] },
+      { "element": "H", "position": [1.9, 1.02, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 },
+      { "from": 0, "to": 5, "order": 1 },
+      { "from": 1, "to": 6, "order": 1 },
+      { "from": 1, "to": 7, "order": 1 },
+      { "from": 2, "to": 8, "order": 1 },
+      { "from": 2, "to": 9, "order": 1 },
+      { "from": 2, "to": 10, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 44.096,
+    "categoryDE": "Organisch (Alkan)",
+    "color": "#99cc88",
+    "scienceNoteDE": "Bei Zimmertemperatur gasförmig, unter geringem Druck flüssig. Hauptbestandteil von Flüssiggas (LPG) für Camping-Kocher, Gasgrills und Autogas.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "C6H6",
+    "kind": "molecule",
+    "nameDE": "Benzol",
+    "symbol": "C₆H₆",
+    "formula": "C6H6",
+    "atomCounts": { "C": 6, "H": 6 },
+    "atoms": [
+      { "element": "C", "position": [1.4, 0, 0] },
+      { "element": "C", "position": [0.7, 1.212, 0] },
+      { "element": "C", "position": [-0.7, 1.212, 0] },
+      { "element": "C", "position": [-1.4, 0, 0] },
+      { "element": "C", "position": [-0.7, -1.212, 0] },
+      { "element": "C", "position": [0.7, -1.212, 0] },
+      { "element": "H", "position": [2.49, 0, 0] },
+      { "element": "H", "position": [1.245, 2.156, 0] },
+      { "element": "H", "position": [-1.245, 2.156, 0] },
+      { "element": "H", "position": [-2.49, 0, 0] },
+      { "element": "H", "position": [-1.245, -2.156, 0] },
+      { "element": "H", "position": [1.245, -2.156, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 1, "to": 2, "order": 1 },
+      { "from": 2, "to": 3, "order": 2 },
+      { "from": 3, "to": 4, "order": 1 },
+      { "from": 4, "to": 5, "order": 2 },
+      { "from": 5, "to": 0, "order": 1 },
+      { "from": 0, "to": 6, "order": 1 },
+      { "from": 1, "to": 7, "order": 1 },
+      { "from": 2, "to": 8, "order": 1 },
+      { "from": 3, "to": 9, "order": 1 },
+      { "from": 4, "to": 10, "order": 1 },
+      { "from": 5, "to": 11, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 78.114,
+    "categoryDE": "Organisch (Aromat)",
+    "color": "#66aa66",
+    "scienceNoteDE": "Prototyp der aromatischen Verbindungen — planarer 6-Ring mit delokalisierten π-Elektronen (Kekulé-Struktur nur ein Grenzfall). Krebserregend, aber Grundgerüst tausender Industrie- und Pharmazie-Chemikalien.",
+    "source": "NIST WebBook"
+  },
+
+  {
+    "id": "CH3CHO",
+    "kind": "molecule",
+    "nameDE": "Acetaldehyd",
+    "symbol": "CH₃CHO",
+    "formula": "C2H4O",
+    "atomCounts": { "C": 2, "H": 4, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [-0.75, 0, 0] },
+      { "element": "C", "position": [0.75, 0.3, 0] },
+      { "element": "O", "position": [1.35, 1.4, 0] },
+      { "element": "H", "position": [1.35, -0.7, 0] },
+      { "element": "H", "position": [-1.15, 0.55, 0.9] },
+      { "element": "H", "position": [-1.15, 0.55, -0.9] },
+      { "element": "H", "position": [-1.15, -1.02, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 2 },
+      { "from": 1, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 },
+      { "from": 0, "to": 5, "order": 1 },
+      { "from": 0, "to": 6, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 44.053,
+    "categoryDE": "Organisch (Aldehyd)",
+    "color": "#bbaa99",
+    "scienceNoteDE": "Zwischenprodukt im Alkohol-Abbau des Menschen (Ethanol → Acetaldehyd → Acetat). Verantwortlich für den Kater und Zellschäden bei Alkoholkonsum.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "C3H6O",
+    "kind": "molecule",
+    "nameDE": "Aceton",
+    "symbol": "(CH₃)₂CO",
+    "formula": "C3H6O",
+    "atomCounts": { "C": 3, "H": 6, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "O", "position": [0, 1.22, 0] },
+      { "element": "C", "position": [-1.35, -0.75, 0] },
+      { "element": "C", "position": [1.35, -0.75, 0] },
+      { "element": "H", "position": [-2.05, -0.2, 0.9] },
+      { "element": "H", "position": [-2.05, -0.2, -0.9] },
+      { "element": "H", "position": [-1.35, -1.85, 0] },
+      { "element": "H", "position": [2.05, -0.2, 0.9] },
+      { "element": "H", "position": [2.05, -0.2, -0.9] },
+      { "element": "H", "position": [1.35, -1.85, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 2, "to": 4, "order": 1 },
+      { "from": 2, "to": 5, "order": 1 },
+      { "from": 2, "to": 6, "order": 1 },
+      { "from": 3, "to": 7, "order": 1 },
+      { "from": 3, "to": 8, "order": 1 },
+      { "from": 3, "to": 9, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 58.08,
+    "categoryDE": "Organisch (Keton)",
+    "color": "#bbbb88",
+    "scienceNoteDE": "Einfachstes Keton — Zentralkohlenstoff mit zwei Methylgruppen und einer Carbonyl-Doppelbindung. Verbreitetes Lösemittel (Nagellackentferner) und Ausgangsstoff für Plexiglas.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "HCOOH",
+    "kind": "molecule",
+    "nameDE": "Ameisensäure",
+    "symbol": "HCOOH",
+    "formula": "CH2O2",
+    "atomCounts": { "C": 1, "H": 2, "O": 2 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "O", "position": [0, 1.2, 0] },
+      { "element": "O", "position": [1.1, -0.72, 0] },
+      { "element": "H", "position": [1.95, -0.25, 0] },
+      { "element": "H", "position": [-1.0, -0.55, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 2, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 46.025,
+    "categoryDE": "Organisch (Carbonsäure)",
+    "color": "#cc9977",
+    "scienceNoteDE": "Einfachste Carbonsäure. Namensgeber weil sie im Ameisen-Gift vorkommt; in der Industrie als Konservierungsmittel und Reduktionsmittel eingesetzt.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "CH3COOH",
+    "kind": "molecule",
+    "nameDE": "Essigsäure",
+    "symbol": "CH₃COOH",
+    "formula": "C2H4O2",
+    "atomCounts": { "C": 2, "H": 4, "O": 2 },
+    "atoms": [
+      { "element": "C", "position": [-0.75, 0, 0] },
+      { "element": "C", "position": [0.75, 0.25, 0] },
+      { "element": "O", "position": [1.35, 1.4, 0] },
+      { "element": "O", "position": [1.4, -0.85, 0] },
+      { "element": "H", "position": [2.3, -0.45, 0] },
+      { "element": "H", "position": [-1.15, 0.55, 0.9] },
+      { "element": "H", "position": [-1.15, 0.55, -0.9] },
+      { "element": "H", "position": [-1.15, -1.02, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 1, "to": 2, "order": 2 },
+      { "from": 1, "to": 3, "order": 1 },
+      { "from": 3, "to": 4, "order": 1 },
+      { "from": 0, "to": 5, "order": 1 },
+      { "from": 0, "to": 6, "order": 1 },
+      { "from": 0, "to": 7, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 60.052,
+    "categoryDE": "Organisch (Carbonsäure)",
+    "color": "#bb8866",
+    "scienceNoteDE": "Charakteristische Säure des Essigs (~5 %). Entsteht biotechnologisch aus Ethanol durch Essigsäurebakterien. Basis der Acetat-Chemie (PET, Aspirin, Zellulose-Acetat).",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "urea",
+    "kind": "molecule",
+    "nameDE": "Harnstoff",
+    "symbol": "CO(NH₂)₂",
+    "formula": "CH4N2O",
+    "atomCounts": { "C": 1, "H": 4, "N": 2, "O": 1 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "O", "position": [0, 1.22, 0] },
+      { "element": "N", "position": [-1.32, -0.7, 0] },
+      { "element": "N", "position": [1.32, -0.7, 0] },
+      { "element": "H", "position": [-2.15, -0.15, 0] },
+      { "element": "H", "position": [-1.32, -1.7, 0] },
+      { "element": "H", "position": [2.15, -0.15, 0] },
+      { "element": "H", "position": [1.32, -1.7, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 2, "to": 4, "order": 1 },
+      { "from": 2, "to": 5, "order": 1 },
+      { "from": 3, "to": 6, "order": 1 },
+      { "from": 3, "to": 7, "order": 1 }
+    ],
+    "geometry": "trigonal-planar",
+    "molarMassGmol": 60.056,
+    "categoryDE": "Organisch (Amid)",
+    "color": "#dda877",
+    "scienceNoteDE": "Endprodukt des Protein-Stoffwechsels der Säugetiere — 1828 von Wöhler erstmals aus anorganischen Stoffen synthetisiert (Wöhler-Synthese, Bruch der Vitalismus-Doktrin). Heute meistproduzierter Stickstoffdünger weltweit.",
+    "source": "NIST WebBook"
+  },
+
+  {
+    "id": "NO",
+    "kind": "molecule",
+    "nameDE": "Stickstoffmonoxid",
+    "symbol": "NO",
+    "formula": "NO",
+    "atomCounts": { "N": 1, "O": 1 },
+    "atoms": [
+      { "element": "N", "position": [-0.58, 0, 0] },
+      { "element": "O", "position": [0.58, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 2 }],
+    "geometry": "linear",
+    "molarMassGmol": 30.006,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#557788",
+    "scienceNoteDE": "Radikalisches Molekül mit ungepaartem Elektron. Wichtiger Signalstoff im Körper (Gefäßerweiterung, Neurotransmitter — Nobelpreis 1998). Zugleich Luftschadstoff aus Verbrennungsmotoren.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "NO2",
+    "kind": "molecule",
+    "nameDE": "Stickstoffdioxid",
+    "symbol": "NO₂",
+    "formula": "NO2",
+    "atomCounts": { "N": 1, "O": 2 },
+    "atoms": [
+      { "element": "N", "position": [0, 0, 0] },
+      { "element": "O", "position": [1.14, 0.65, 0] },
+      { "element": "O", "position": [-1.14, 0.65, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 1 }
+    ],
+    "geometry": "bent",
+    "molarMassGmol": 46.006,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#886644",
+    "scienceNoteDE": "Braunes, giftiges Gas — dominant im Sommer-Smog. Reagiert mit Wasser zu Salpetersäure (saurer Regen). Reizt Atemwege und trägt zum bodennahen Ozon bei.",
+    "source": "NIST WebBook"
   }
 ]
