@@ -228,10 +228,36 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   + Zerfall-Animation nach Valley of Stability), Fusion-Animation, Auto-Fusion nach
   2.2 s bei Rezept-Match. Ziel-Panel im HUD ("Nächstes Element", Klick öffnet Detail).
   Sound-Cues via Web Audio (Klick, Reactor, Fusion, Zerfall, Discovery), umschaltbar.
-- **M5** ✅ — Chemielabor freigeschaltet durch H-Craft, erste Molekül-Klasse
-  (MoleculeEntity mit Formel, Atomen, Bonds, Geometrie, Molmasse). Startpaket:
-  H₂, O₂, N₂ (Einfach-/Doppel-/Dreifachbindung), H₂O, NH₃, CH₄, CO₂. 3D-Ball-Stick-
-  Rendering in der Hauptbühne und als Preview im Detail-Panel. Konsistenzcheck
-  prüft, dass atomCounts zur atoms-Liste passen und Bond-Indices gültig sind.
-- **M6+** — Weitere Moleküle (Alkohole, Zucker, Aminosäuren), Polymere,
-  Astrochemie, Endgame.
+- **M5** ✅ — Chemielabor freigeschaltet durch H-Craft, MoleculeEntity mit
+  Formel, Atomen, Bonds, Geometrie, Molmasse; 3D-Ball-Stick-Rendering in der
+  Hauptbühne und als Preview im Detail-Panel.
+- **M5+** ✅ — Content-Ausbau auf ~55 Moleküle in mehreren Wellen:
+  - Anorganische Gase, Oxide, Säuren, Basen, Salze (CO, H₂O₂, O₃, SO₂/SO₃, H₂S,
+    HCl, HNO₃, H₂SO₄, NaCl, NaOH, CaCO₃, NO, NO₂ …).
+  - Kohlenwasserstoffe (Alkane C₂/C₃, Alken C₂H₄, Alkin C₂H₂, Aromat C₆H₆) und
+    Sauerstoff-Funktionalitäten (Methanol, Ethanol, Formaldehyd, Acetaldehyd,
+    Aceton, Ameisen-/Essigsäure, Harnstoff).
+  - **Silikone (21 Vertreter)**: Silane (SiH₄, SiMe₄), Chlorsilane (SiCl₄,
+    M-/D-/T-Cl, PhSiCl₃), Silanole (M-OH, D-diol), Silazan (HMDS),
+    Alkoxysilane (TMOS, TEOS, MTMS, VinylTMOS, APTES), Cyclosiloxane
+    (D3, D4, D5), lineares PDMS (HMDSO, MDM), POSS-Käfig (T8H).
+- **M5-UX** ✅ — Live-Reaktionskammer mit Physik (Nukleon-Cluster, Elektron-Wolke,
+  Instabilitäts-Wackeln, Zerfall nach Valley of Stability), Auto-Fusion nach
+  2.2 s bei Rezept-Match. Bohr-Atom mit sauber rotierenden Elektronen als
+  Hauptbühne, Quanten-Orbitalmodell als Preview im Detail-Panel.
+  Maus-Drag rotiert das Atom/Molekül, Mausrad zoomt die Kamera. Sound-Cues
+  via Web Audio (Klick, Reactor, Fusion, Zerfall, Discovery). Inventar filtert
+  reaktor-abhängig (Chemielabor zeigt nur Atome + Moleküle), enthält
+  Suchfeld, kollapsible Sektionen und Molekül-Untergruppen nach `categoryDE`.
+  Ziel-Panel im HUD wählt reaktor-abhängig: "Nächstes Element" (Werkbank/
+  Sternfusion) oder "Nächste Reaktion" (Chemielabor).
+  PSE-Overlay zeigt Atommasse, Kategorien-Farbrand, Statistik-Kopfzeile und
+  vollständige Legende.
+- **M6** — Biomoleküle: Zucker (Glukose, Fructose, Saccharose), Aminosäuren
+  (Glycin, Alanin), Peptide, DNA-Basen (Adenin, Thymin, Guanin, Cytosin).
+- **M7** — Polymere: Polyethylen, PET, Nylon, längere PDMS-Ketten, Kevlar.
+- **M8** — Astrochemie: interstellare Ionen und Radikale (H₃⁺, HCO⁺, CN·),
+  komplexere organische Moleküle im Weltraum (Methylamin, PAHs, Aminosäuren-
+  Vorstufen).
+- **M9** — Endgame: Prestige-System nach Discovery-Vollendung, Story-Modus,
+  vielleicht Wiederholungsspiel mit anderen Startbedingungen.
