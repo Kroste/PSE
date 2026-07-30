@@ -183,6 +183,26 @@ export const MECHANISMS: Mechanism[] = [
           'Das Elektronenpaar der C-Br-Bindung wandert komplett auf das Bromid. Zurück bleibt ein tertiäres Carbokation — planar, sp²-hybridisiert.',
         observationDE:
           'Langsamster Schritt, geschwindigkeitsbestimmend. Nur ein Reaktand beteiligt → v = k · [(CH₃)₃C-Br]. Deshalb SN1.',
+        viz3d: {
+          // Zentraler C mit 3 Methyl-C und einer C-Br-Bindung, die gerade bricht.
+          atoms: [
+            { element: 'C', position: [0, 0, 0] }, // 0: zentraler C
+            { element: 'C', position: [1.4, 0.8, 0] }, // 1: Me
+            { element: 'C', position: [-1.4, 0.8, 0] }, // 2: Me
+            { element: 'C', position: [0, -1.5, 0] }, // 3: Me
+            { element: 'Br', position: [1.6, -0.8, 0] }, // 4: Br (rausbrechend)
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1, style: 'dashed' }, // schwindend
+          ],
+          arrows: [
+            // Elektronenpaar der C-Br → Br
+            { from: [0.6, -0.35, 0], to: [1.6, -0.7, 0], curvature: 0.4 },
+          ],
+        },
       },
       {
         titleDE: 'Nucleophiler Angriff',
@@ -190,6 +210,30 @@ export const MECHANISMS: Mechanism[] = [
         after: '(CH₃)₃C—OH₂⁺',
         electronFlowDE:
           'Freies Elektronenpaar am Sauerstoff des Wassers greift das leere p-Orbital des Carbokations an. Kann von beiden Seiten passieren — daher Racemisierung.',
+        viz3d: {
+          // Planares Carbokation + Wasser das von unten angreift
+          atoms: [
+            { element: 'C', position: [0, 0, 0] }, // 0: C⁺ (planar sp²)
+            { element: 'C', position: [1.4, 0.7, 0] },
+            { element: 'C', position: [-1.4, 0.7, 0] },
+            { element: 'C', position: [0, 1.5, 0] },
+            { element: 'O', position: [0, -1.7, 0] }, // 4: Wasser-O
+            { element: 'H', position: [-0.7, -2.3, 0] },
+            { element: 'H', position: [0.7, -2.3, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 4, to: 5, order: 1 },
+            { from: 4, to: 6, order: 1 },
+            { from: 0, to: 4, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Lone-Pair vom O zum C
+            { from: [0, -1.4, 0], to: [0, -0.2, 0], curvature: 0.3 },
+          ],
+        },
       },
       {
         titleDE: 'Deprotonierung',
@@ -218,6 +262,32 @@ export const MECHANISMS: Mechanism[] = [
           'Das π-Elektronenpaar der C=C-Doppelbindung greift das partiell positive H⁺ des HBr an. Gleichzeitig geht das Elektronenpaar der H-Br-Bindung vollständig auf das Br. Ergebnis: primäres Carbokation + Bromid.',
         observationDE:
           'Bei Propen entstünde hier ein sekundäres Carbokation (stabiler) statt eines primären — daher Markownikow.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-0.7, 0, 0] }, // 0: C1
+            { element: 'C', position: [0.7, 0, 0] }, // 1: C2
+            { element: 'H', position: [-1.4, 0.9, 0] }, // 2
+            { element: 'H', position: [-1.4, -0.9, 0] }, // 3
+            { element: 'H', position: [1.4, 0.9, 0] }, // 4
+            { element: 'H', position: [1.4, -0.9, 0] }, // 5
+            { element: 'H', position: [0, 2.0, 0] }, // 6: H von HBr (kommt von oben)
+            { element: 'Br', position: [0.6, 2.9, 0] }, // 7: Br
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 2 }, // C=C
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 1, to: 4, order: 1 },
+            { from: 1, to: 5, order: 1 },
+            { from: 6, to: 7, order: 1, style: 'dashed' }, // H-Br werdend/schwindend
+          ],
+          arrows: [
+            // π-Elektronen von C=C → H
+            { from: [0, 0.15, 0], to: [0, 1.7, 0], curvature: 0.35 },
+            // H-Br-Bindungselektronen → Br
+            { from: [0.3, 2.4, 0], to: [0.6, 2.9, 0], curvature: 0.35 },
+          ],
+        },
       },
       {
         titleDE: 'Angriff des Bromids',
@@ -225,6 +295,30 @@ export const MECHANISMS: Mechanism[] = [
         after: 'H₃C—CH₂—Br',
         electronFlowDE:
           'Ein Elektronenpaar des Bromids füllt das leere p-Orbital des Carbokations. Neue C-Br-Bindung, Produkt Ethylbromid.',
+        viz3d: {
+          atoms: [
+            { element: 'C', position: [-1.0, 0, 0] }, // 0: CH3
+            { element: 'C', position: [0.4, 0, 0] }, // 1: CH2⁺ (planar sp²)
+            { element: 'H', position: [-1.6, 0.9, 0] },
+            { element: 'H', position: [-1.6, -0.9, 0] },
+            { element: 'H', position: [-1.0, 0.0, 0.9] },
+            { element: 'H', position: [0.4, 0.9, 0] },
+            { element: 'H', position: [0.4, -0.9, 0] },
+            { element: 'Br', position: [2.5, 0, 0] }, // 7: Br⁻
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1 },
+            { from: 1, to: 5, order: 1 },
+            { from: 1, to: 6, order: 1 },
+            { from: 1, to: 7, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            { from: [2.2, 0, 0], to: [0.6, 0, 0], curvature: 0.3 },
+          ],
+        },
       },
     ],
     source: 'Vollhardt & Schore — Organische Chemie (5. Aufl., Kap. 12)',
@@ -251,6 +345,38 @@ export const MECHANISMS: Mechanism[] = [
         after: 'CH₃-C(-OH)(-OCH₂CH₃H⁺)-OH (tetraedrisch)',
         electronFlowDE:
           'Freies Elektronenpaar am O des Ethanols greift den elektrophilen C an. Die C=O-Doppelbindung wird zur C-O-Einfachbindung — π-Elektronen wandern zum O.',
+        viz3d: {
+          // Vereinfachte Darstellung: nur die kritischen Atome
+          atoms: [
+            { element: 'C', position: [-1.5, 0, 0] }, // 0: Methyl-C
+            { element: 'C', position: [0, 0, 0] }, // 1: Carbonyl-C (elektrophil)
+            { element: 'O', position: [0, 1.3, 0] }, // 2: protonierter Carbonyl-O
+            { element: 'H', position: [0.6, 2.1, 0] }, // 3: Proton am O
+            { element: 'O', position: [1.3, -0.7, 0] }, // 4: -OH
+            { element: 'H', position: [2.2, -0.4, 0] }, // 5: H am OH
+            { element: 'O', position: [0, -1.7, 0] }, // 6: Ethanol-O (Nucleophil, kommt von unten)
+            { element: 'C', position: [1.2, -2.4, 0] }, // 7: -CH2-
+            { element: 'C', position: [2.5, -1.8, 0] }, // 8: -CH3
+            { element: 'H', position: [-0.6, -2.1, 0] }, // 9: H am Ethanol-O
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 2 }, // C=OH⁺
+            { from: 2, to: 3, order: 1 },
+            { from: 1, to: 4, order: 1 },
+            { from: 4, to: 5, order: 1 },
+            { from: 6, to: 7, order: 1 },
+            { from: 7, to: 8, order: 1 },
+            { from: 6, to: 9, order: 1 },
+            { from: 1, to: 6, order: 1, style: 'dashed' }, // werdend
+          ],
+          arrows: [
+            // Lone pair am Ethanol-O → Carbonyl-C
+            { from: [0, -1.4, 0], to: [0, -0.2, 0], curvature: 0.4 },
+            // π-Elektronen der C=O → O (wird zur Einfachbindung)
+            { from: [0, 0.7, 0], to: [0, 1.3, 0], curvature: 0.3 },
+          ],
+        },
       },
       {
         titleDE: 'Protonen-Wanderung und Wasserabspaltung',
@@ -292,6 +418,39 @@ export const MECHANISMS: Mechanism[] = [
         after: 'CH₃-CH(O⁻)-CH₂-CHO (Aldol)',
         electronFlowDE:
           'Enolat-Kohlenstoff greift Carbonyl-C des zweiten Aldehyds an. Neue C-C-Bindung. π-Elektronen der neuen C=O-Bindung wandern zum O — es entsteht ein Alkoxid.',
+        viz3d: {
+          atoms: [
+            // Enolat links: ⁻CH2-CHO
+            { element: 'C', position: [-2.5, 0, 0] }, // 0: Enolat-C (nucleophil)
+            { element: 'C', position: [-1.4, 0.7, 0] }, // 1: Aldehyd-C
+            { element: 'O', position: [-1.4, 2.0, 0] }, // 2: =O
+            { element: 'H', position: [-0.6, 0.4, 0] }, // 3: H am Aldehyd
+            { element: 'H', position: [-3.2, 0.6, 0] }, // 4: H am Enolat-C
+            { element: 'H', position: [-3.0, -0.9, 0] }, // 5: H am Enolat-C
+            // Zweiter Aldehyd rechts: CH3-CHO
+            { element: 'C', position: [0, -0.5, 0] }, // 6: Carbonyl-C (Elektrophil)
+            { element: 'O', position: [0.7, -1.7, 0] }, // 7: =O (wird Alkoxid)
+            { element: 'H', position: [0.3, 0.5, 0] }, // 8: H am Aldehyd
+            { element: 'C', position: [-1.3, -1.2, 0] }, // 9: Methyl-C
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 1, to: 2, order: 2 },
+            { from: 1, to: 3, order: 1 },
+            { from: 0, to: 4, order: 1 },
+            { from: 0, to: 5, order: 1 },
+            { from: 6, to: 7, order: 2 }, // C=O (wird zu Alkoxid)
+            { from: 6, to: 8, order: 1 },
+            { from: 6, to: 9, order: 1 },
+            { from: 0, to: 6, order: 1, style: 'dashed' }, // neue C-C-Bindung
+          ],
+          arrows: [
+            // Lone pair am Enolat-C → Elektrophiler C
+            { from: [-2.3, -0.05, 0], to: [-0.2, -0.4, 0], curvature: 0.35 },
+            // π-Elektronen von C=O → O
+            { from: [0.4, -1.0, 0], to: [0.7, -1.7, 0], curvature: 0.35 },
+          ],
+        },
       },
       {
         titleDE: 'Protonierung zum β-Hydroxyaldehyd',
@@ -336,6 +495,37 @@ export const MECHANISMS: Mechanism[] = [
         after: 'Tetrahedral-Intermediat (C-OH, C-NHR²)',
         electronFlowDE:
           'Freies Elektronenpaar am Amin-N greift den aktivierten Carbonyl-C an. π-Elektronen der C=O wandern zum O. Neue C-N-Bindung.',
+        viz3d: {
+          atoms: [
+            // Linke AS: aktivierter Carbonyl-C mit Abgangsgruppe
+            { element: 'C', position: [-1.5, 0.7, 0] }, // 0: Carbonyl-C
+            { element: 'O', position: [-1.5, 2.0, 0] }, // 1: =O
+            { element: 'O', position: [-0.4, 0.1, 0] }, // 2: Abgangsgruppe (-O-Ester/tRNA)
+            { element: 'C', position: [-2.7, 0.1, 0] }, // 3: Cα der linken AS
+            { element: 'N', position: [-2.7, -1.3, 0] }, // 4: NH2 der linken AS
+            // Rechte AS: Amino-Gruppe (Nucleophil)
+            { element: 'N', position: [0.6, -0.7, 0] }, // 5: Amin-N (Nucleophil)
+            { element: 'H', position: [1.1, -1.7, 0] }, // 6
+            { element: 'H', position: [0.0, -1.5, 0] }, // 7
+            { element: 'C', position: [1.9, -0.3, 0] }, // 8: Cα der rechten AS
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 2 }, // C=O
+            { from: 0, to: 2, order: 1, style: 'dashed' }, // Abgangsgruppe schwindend
+            { from: 0, to: 3, order: 1 },
+            { from: 3, to: 4, order: 1 },
+            { from: 5, to: 6, order: 1 },
+            { from: 5, to: 7, order: 1 },
+            { from: 5, to: 8, order: 1 },
+            { from: 0, to: 5, order: 1, style: 'dashed' }, // neue C-N werdend
+          ],
+          arrows: [
+            // Lone pair am Amin-N → Carbonyl-C
+            { from: [0.5, -0.4, 0], to: [-1.3, 0.5, 0], curvature: 0.4 },
+            // π-Elektronen der C=O → O
+            { from: [-1.5, 1.3, 0], to: [-1.5, 2.0, 0], curvature: 0.3 },
+          ],
+        },
       },
       {
         titleDE: 'Abspaltung + Peptidbindung',
@@ -380,6 +570,43 @@ export const MECHANISMS: Mechanism[] = [
           'Selber Mechanismus wie beim Kettenstart — nur immer wieder. Jeder Schritt hängt zwei -CH₂- ans Kettenende. In Massenkunststoffen tausendfach.',
         observationDE:
           'Bei PE tausende Wiederholungen. Bei Vinylchlorid, Styrol, Acrylnitril genauso — nur mit anderer Doppelbindung.',
+        viz3d: {
+          atoms: [
+            // Wachsendes Kettenende (Radikal-C·) links
+            { element: 'C', position: [-2.5, 0.4, 0] }, // 0: -CH2- der wachsenden Kette
+            { element: 'C', position: [-1.3, -0.4, 0] }, // 1: Radikal-C· (elektronen-arm)
+            { element: 'H', position: [-3.2, 1.0, 0] },
+            { element: 'H', position: [-3.0, -0.4, 0] },
+            { element: 'H', position: [-1.3, -1.4, 0] },
+            { element: 'H', position: [-0.6, -1.0, 0] },
+            // Ethen-Monomer rechts
+            { element: 'C', position: [0.5, 0.5, 0] }, // 6
+            { element: 'C', position: [1.9, 0.5, 0] }, // 7
+            { element: 'H', position: [-0.1, 1.4, 0] },
+            { element: 'H', position: [0.5, -0.5, 0] },
+            { element: 'H', position: [2.5, 1.4, 0] },
+            { element: 'H', position: [2.5, -0.4, 0] },
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 },
+            { from: 0, to: 2, order: 1 },
+            { from: 0, to: 3, order: 1 },
+            { from: 1, to: 4, order: 1 },
+            { from: 1, to: 5, order: 1 },
+            { from: 6, to: 7, order: 2 }, // C=C
+            { from: 6, to: 8, order: 1 },
+            { from: 6, to: 9, order: 1 },
+            { from: 7, to: 10, order: 1 },
+            { from: 7, to: 11, order: 1 },
+            { from: 1, to: 6, order: 1, style: 'dashed' }, // neue C-C werdend
+          ],
+          arrows: [
+            // Halbpfeil vom Radikal-C zum Ethen-C (fish-hook)
+            { from: [-1.1, -0.1, 0], to: [0.4, 0.3, 0], curvature: 0.35, fullArrow: false },
+            // Halbpfeil aus der C=C π-Bindung zum anderen C (das neue Radikal wird)
+            { from: [1.2, 0.7, 0], to: [1.9, 0.7, 0], curvature: 0.3, fullArrow: false },
+          ],
+        },
       },
       {
         titleDE: 'Terminierung (Rekombination)',

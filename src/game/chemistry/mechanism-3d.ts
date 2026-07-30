@@ -236,7 +236,6 @@ function addCurlyArrow(host: Group, arrow: MechanismArrow3d): void {
   const arbitrary = Math.abs(dir.y) > 0.85 ? new Vector3(0, 0, 1) : new Vector3(0, 1, 0);
   const perp = new Vector3().crossVectors(dir, arbitrary).normalize();
   const cross2 = new Vector3().crossVectors(perp, dir).normalize();
-  // Mische beide Richtungen für einen "curly" Effekt.
   const offset = cross2.multiplyScalar((arrow.curvature ?? 0.7) * dist);
   const c1 = from.clone().lerp(mid, 0.35).add(offset);
   const c2 = to.clone().lerp(mid, 0.35).add(offset);
@@ -246,10 +245,13 @@ function addCurlyArrow(host: Group, arrow: MechanismArrow3d): void {
   const tube = new TubeGeometry(curve, 40, 0.035, 8, false);
   host.add(new Mesh(tube, tubeMat));
 
-  // Pfeilspitze am Ende
+  // Pfeilspitze am Ende — Vollpfeil (Elektronenpaar) oder Halbpfeil (Radikal, fish-hook).
+  // Halbpfeil = Kegel + Ausschneiden einer Halbebene, hier vereinfacht als
+  // asymmetrischer, halbierter Kegel via Skalierung + Rotation.
   const tangent = curve.getTangent(1).normalize();
+  const fullArrow = arrow.fullArrow !== false;
   const cone = new Mesh(
-    new ConeGeometry(0.09, 0.22, 12),
+    new ConeGeometry(fullArrow ? 0.09 : 0.07, 0.22, 12, 1, false, fullArrow ? 0 : 0, fullArrow ? Math.PI * 2 : Math.PI),
     new MeshBasicMaterial({ color }),
   );
   cone.position.copy(to);
