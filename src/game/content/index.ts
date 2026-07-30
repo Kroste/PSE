@@ -19,9 +19,51 @@ export const particles: readonly ParticleEntity[] = particlesRaw as unknown as P
 export const hadrons: readonly HadronEntity[] = hadronsRaw as unknown as HadronEntity[];
 export const nuclei: readonly NucleusEntity[] = nucleiRaw as unknown as NucleusEntity[];
 export const elements: readonly ElementEntity[] = elementsRaw as unknown as ElementEntity[];
-export const molecules: readonly MoleculeEntity[] = moleculesRaw as unknown as MoleculeEntity[];
+
+const baseMolecules: readonly MoleculeEntity[] = moleculesRaw as unknown as MoleculeEntity[];
+
+// Custom-Moleküle aus LocalStorage (Nutzer-Eingaben)
+const CUSTOM_MOL_KEY = 'pse.custom.molecules';
+function loadCustomMolecules(): MoleculeEntity[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_MOL_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as MoleculeEntity[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((m) => ({ ...m, kind: 'molecule' as const }));
+  } catch {
+    return [];
+  }
+}
+export function saveCustomMolecules(list: MoleculeEntity[]): void {
+  try {
+    localStorage.setItem(CUSTOM_MOL_KEY, JSON.stringify(list));
+  } catch {
+    // ignorieren
+  }
+}
+export function getCustomMolecules(): MoleculeEntity[] {
+  return loadCustomMolecules();
+}
+export const molecules: readonly MoleculeEntity[] = [...baseMolecules, ...loadCustomMolecules()];
 
 const staticRecipes: readonly Recipe[] = recipesRaw as unknown as Recipe[];
+
+/** Auto-generiertes Rezept pro Custom-Molekül im chem-lab (mode: both). */
+function generateCustomMoleculeRecipes(): Recipe[] {
+  return loadCustomMolecules().map((mol) => ({
+    id: `custom-${mol.id}`,
+    kind: 'chemical' as const,
+    reactor: 'chem-lab' as const,
+    mode: 'both' as const,
+    inputs: mol.atomCounts,
+    outputs: { [mol.id]: 1 },
+    scienceNoteDE: `Nutzer-definiertes Rezept: ${Object.entries(mol.atomCounts)
+      .map(([id, n]) => `${n}·${id}`)
+      .join(' + ')} → ${mol.symbol ?? mol.id}.`,
+    source: 'Custom (Nutzer-Katalog)',
+  }));
+}
 
 /**
  * Generiert Simple-Rezepte "N·p + N·n + Z·e⁻ → Element" für alle Elemente
@@ -51,7 +93,11 @@ function generateSimpleElementRecipes(): Recipe[] {
   return generated;
 }
 
-export const recipes: readonly Recipe[] = [...staticRecipes, ...generateSimpleElementRecipes()];
+export const recipes: readonly Recipe[] = [
+  ...staticRecipes,
+  ...generateSimpleElementRecipes(),
+  ...generateCustomMoleculeRecipes(),
+];
 
 export const allEntities: readonly Entity[] = [
   ...particles,

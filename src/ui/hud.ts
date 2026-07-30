@@ -15,7 +15,16 @@ import {
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
 import { isAudioEnabled, setAudioEnabled, sfx } from '../engine/audio';
-import { allEntities, elements, freeSupplyIds, getEntity, molecules, recipes as allRecipes } from '../game/content';
+import {
+  allEntities,
+  elements,
+  freeSupplyIds,
+  getCustomMolecules,
+  getEntity,
+  molecules,
+  recipes as allRecipes,
+  saveCustomMolecules,
+} from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
 import { isRecipeAvailableInMode } from '../game/physics/recipes';
@@ -40,6 +49,8 @@ export function mountHud(opts: HudOptions = {}): void {
   const audioBtn = document.getElementById('pse-toggle-audio');
   const kbEl = document.getElementById('pse-kb');
   const kbBtn = document.getElementById('pse-toggle-kb');
+  const editorEl = document.getElementById('pse-editor');
+  const editorBtn = document.getElementById('pse-toggle-editor');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -50,7 +61,9 @@ export function mountHud(opts: HudOptions = {}): void {
     !expertBtn ||
     !audioBtn ||
     !kbEl ||
-    !kbBtn
+    !kbBtn ||
+    !editorEl ||
+    !editorBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -167,8 +180,22 @@ export function mountHud(opts: HudOptions = {}): void {
     if (!kbEl.hidden) {
       tableEl.hidden = true;
       toggleBtn.classList.remove('pse-btn-primary');
+      editorEl.hidden = true;
+      editorBtn.classList.remove('pse-btn-primary');
     }
     rerenderKb();
+  });
+
+  editorBtn.addEventListener('click', () => {
+    editorEl.hidden = !editorEl.hidden;
+    editorBtn.classList.toggle('pse-btn-primary', !editorEl.hidden);
+    if (!editorEl.hidden) {
+      tableEl.hidden = true;
+      toggleBtn.classList.remove('pse-btn-primary');
+      kbEl.hidden = true;
+      kbBtn.classList.remove('pse-btn-primary');
+      renderCustomEditor(editorEl);
+    }
   });
 
   const syncExpertBtn = (): void => {
@@ -1215,4 +1242,290 @@ function kindMetaDescription(entity: Entity): string {
     case 'molecule':
       return `${entity.formula} · ${entity.molarMassGmol.toFixed(2)} g/mol · ${entity.categoryDE}`;
   }
+}
+
+/** ------------------- Custom-Verbindungs-Editor ------------------- */
+
+const CUSTOM_TEMPLATE = JSON.stringify(
+  {
+    id: 'mein_ethanol',
+    nameDE: 'Mein Ethanol',
+    symbol: 'MyEtOH',
+    formula: 'C2H6O',
+    atomCounts: { C: 2, H: 6, O: 1 },
+    atoms: [
+      { element: 'C', position: [-0.76, 0, 0] },
+      { element: 'C', position: [0.76, 0, 0] },
+      { element: 'O', position: [1.4, 1.3, 0] },
+      { element: 'H', position: [1.94, 1.94, 0] },
+      { element: 'H', position: [-1.13, 0.55, 0.9] },
+      { element: 'H', position: [-1.13, 0.55, -0.9] },
+      { element: 'H', position: [-1.13, -1.0, 0] },
+      { element: 'H', position: [1.13, -0.55, 0.9] },
+      { element: 'H', position: [1.13, -0.55, -0.9] },
+    ],
+    bonds: [
+      { from: 0, to: 1, order: 1 },
+      { from: 1, to: 2, order: 1 },
+      { from: 2, to: 3, order: 1 },
+      { from: 0, to: 4, order: 1 },
+      { from: 0, to: 5, order: 1 },
+      { from: 0, to: 6, order: 1 },
+      { from: 1, to: 7, order: 1 },
+      { from: 1, to: 8, order: 1 },
+    ],
+    geometry: 'tetrahedral',
+    molarMassGmol: 46.07,
+    categoryDE: 'Custom (Beispiel)',
+    color: '#88ccdd',
+    scienceNoteDE: 'Beschreibung deines Moleküls hier.',
+    source: 'Custom',
+  },
+  null,
+  2,
+);
+
+function renderCustomEditor(el: HTMLElement): void {
+  el.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.className = 'pse-editor-header';
+  header.innerHTML =
+    `<strong>Eigene Verbindungen</strong> &middot; ` +
+    `Verbindungen werden im Browser gespeichert und beim Neustart geladen. ` +
+    `Sie erscheinen im Chemielabor und in der Wissensdatenbank.`;
+  el.appendChild(header);
+
+  // Bestehende Custom-Moleküle mit Delete
+  const existing = getCustomMolecules();
+  const listSection = document.createElement('div');
+  listSection.className = 'pse-editor-list';
+  const listHeader = document.createElement('h3');
+  listHeader.className = 'pse-section';
+  listHeader.textContent = `Bestehende Custom-Verbindungen (${existing.length})`;
+  listSection.appendChild(listHeader);
+
+  if (existing.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'pse-hint';
+    empty.textContent = 'Noch keine — leg unten deine erste an.';
+    listSection.appendChild(empty);
+  } else {
+    for (const mol of existing) {
+      const row = document.createElement('div');
+      row.className = 'pse-editor-row';
+      const label = document.createElement('span');
+      label.className = 'pse-editor-label';
+      label.textContent = `${mol.symbol ?? mol.id} · ${mol.nameDE} (${mol.formula})`;
+      row.appendChild(label);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'pse-btn pse-btn-rm';
+      delBtn.type = 'button';
+      delBtn.textContent = 'Löschen';
+      delBtn.addEventListener('click', () => {
+        if (!window.confirm(`"${mol.nameDE}" wirklich löschen?`)) return;
+        const next = getCustomMolecules().filter((m) => m.id !== mol.id);
+        saveCustomMolecules(next);
+        window.location.reload();
+      });
+      row.appendChild(delBtn);
+      listSection.appendChild(row);
+    }
+  }
+  el.appendChild(listSection);
+
+  // Editor für neue Verbindung
+  const editSection = document.createElement('div');
+  editSection.className = 'pse-editor-edit';
+  const editHeader = document.createElement('h3');
+  editHeader.className = 'pse-section';
+  editHeader.textContent = 'Neue Verbindung (JSON)';
+  editSection.appendChild(editHeader);
+
+  const hint = document.createElement('p');
+  hint.className = 'pse-hint';
+  hint.innerHTML =
+    `Erforderlich: <code>id</code>, <code>nameDE</code>, <code>symbol</code>, <code>formula</code>, ` +
+    `<code>atomCounts</code>, <code>atoms</code>, <code>bonds</code>, <code>geometry</code>, ` +
+    `<code>molarMassGmol</code>, <code>categoryDE</code>, <code>color</code>, ` +
+    `<code>scienceNoteDE</code>, <code>source</code>. ` +
+    `Alle <code>atoms[].element</code> müssen gültige Element-IDs sein (H, C, N, O, Si, …).`;
+  editSection.appendChild(hint);
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'pse-editor-textarea';
+  textarea.value = CUSTOM_TEMPLATE;
+  textarea.spellcheck = false;
+  editSection.appendChild(textarea);
+
+  const feedback = document.createElement('div');
+  feedback.className = 'pse-editor-feedback';
+  editSection.appendChild(feedback);
+
+  const actions = document.createElement('div');
+  actions.className = 'pse-editor-actions';
+
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'pse-btn';
+  resetBtn.type = 'button';
+  resetBtn.textContent = 'Vorlage zurücksetzen';
+  resetBtn.addEventListener('click', () => {
+    textarea.value = CUSTOM_TEMPLATE;
+    feedback.textContent = '';
+  });
+  actions.appendChild(resetBtn);
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'pse-btn pse-btn-primary';
+  saveBtn.type = 'button';
+  saveBtn.textContent = 'Speichern & neu laden';
+  saveBtn.addEventListener('click', () => {
+    const result = validateCustomMolecule(textarea.value);
+    if (!result.ok) {
+      feedback.textContent = `✖ ${result.error}`;
+      feedback.dataset.kind = 'err';
+      return;
+    }
+    const next = [...getCustomMolecules(), result.molecule];
+    saveCustomMolecules(next);
+    feedback.textContent = '✔ Gespeichert — App wird neu geladen …';
+    feedback.dataset.kind = 'ok';
+    setTimeout(() => window.location.reload(), 500);
+  });
+  actions.appendChild(saveBtn);
+
+  editSection.appendChild(actions);
+  el.appendChild(editSection);
+}
+
+type ValidationResult =
+  | { ok: true; molecule: MoleculeEntity }
+  | { ok: false; error: string };
+
+const REQUIRED_MOL_FIELDS = [
+  'id',
+  'nameDE',
+  'symbol',
+  'formula',
+  'atomCounts',
+  'atoms',
+  'bonds',
+  'geometry',
+  'molarMassGmol',
+  'categoryDE',
+  'color',
+  'scienceNoteDE',
+  'source',
+] as const;
+
+const VALID_GEOMETRIES = [
+  'linear',
+  'bent',
+  'trigonal-planar',
+  'trigonal-pyramidal',
+  'tetrahedral',
+  'octahedral',
+];
+
+function validateCustomMolecule(input: string): ValidationResult {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input);
+  } catch (e) {
+    return { ok: false, error: `JSON ist nicht parsebar: ${(e as Error).message}` };
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return { ok: false, error: 'JSON muss ein Objekt sein.' };
+  }
+  const obj = parsed as Record<string, unknown>;
+
+  for (const f of REQUIRED_MOL_FIELDS) {
+    if (!(f in obj)) return { ok: false, error: `Feld "${f}" fehlt.` };
+  }
+
+  const id = obj.id as string;
+  if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+    return { ok: false, error: 'id muss alphanumerisch sein (nur a-z, A-Z, 0-9, _, -).' };
+  }
+  if (getEntity(id)) {
+    return { ok: false, error: `ID "${id}" existiert schon im Katalog.` };
+  }
+  const existing = getCustomMolecules();
+  if (existing.some((m) => m.id === id)) {
+    return { ok: false, error: `ID "${id}" existiert schon in deinen Custom-Verbindungen.` };
+  }
+
+  const atoms = obj.atoms;
+  if (!Array.isArray(atoms) || atoms.length === 0) {
+    return { ok: false, error: 'atoms muss ein nicht-leeres Array sein.' };
+  }
+  const atomCounts = obj.atomCounts as Record<string, number>;
+  if (typeof atomCounts !== 'object' || atomCounts === null) {
+    return { ok: false, error: 'atomCounts muss ein Objekt sein.' };
+  }
+
+  // Prüfe atomCounts vs. atoms
+  const counted: Record<string, number> = {};
+  for (const [i, a] of atoms.entries()) {
+    if (typeof a !== 'object' || a === null) {
+      return { ok: false, error: `atoms[${i}] ist kein Objekt.` };
+    }
+    const atom = a as { element?: unknown; position?: unknown };
+    if (typeof atom.element !== 'string') {
+      return { ok: false, error: `atoms[${i}].element muss ein String sein.` };
+    }
+    const el = getEntity(atom.element);
+    if (!el || el.kind !== 'element') {
+      return { ok: false, error: `atoms[${i}].element "${atom.element}" ist kein gültiges Element.` };
+    }
+    if (!Array.isArray(atom.position) || atom.position.length !== 3) {
+      return { ok: false, error: `atoms[${i}].position muss ein Array mit 3 Zahlen sein.` };
+    }
+    if (atom.position.some((n) => typeof n !== 'number')) {
+      return { ok: false, error: `atoms[${i}].position enthält Nicht-Zahlen.` };
+    }
+    counted[atom.element] = (counted[atom.element] ?? 0) + 1;
+  }
+  for (const [k, v] of Object.entries(atomCounts)) {
+    if (counted[k] !== v) {
+      return {
+        ok: false,
+        error: `atomCounts[${k}]=${v} passt nicht zur atoms-Liste (dort: ${counted[k] ?? 0}).`,
+      };
+    }
+  }
+
+  const bonds = obj.bonds;
+  if (!Array.isArray(bonds)) {
+    return { ok: false, error: 'bonds muss ein Array sein.' };
+  }
+  for (const [i, b] of bonds.entries()) {
+    if (typeof b !== 'object' || b === null) {
+      return { ok: false, error: `bonds[${i}] ist kein Objekt.` };
+    }
+    const bond = b as { from?: unknown; to?: unknown; order?: unknown };
+    if (
+      typeof bond.from !== 'number' ||
+      bond.from < 0 ||
+      bond.from >= atoms.length ||
+      typeof bond.to !== 'number' ||
+      bond.to < 0 ||
+      bond.to >= atoms.length
+    ) {
+      return { ok: false, error: `bonds[${i}]: from/to außerhalb atoms-Range.` };
+    }
+    if (bond.order !== 1 && bond.order !== 2 && bond.order !== 3) {
+      return { ok: false, error: `bonds[${i}].order muss 1, 2 oder 3 sein.` };
+    }
+  }
+
+  const geometry = obj.geometry as string;
+  if (!VALID_GEOMETRIES.includes(geometry)) {
+    return {
+      ok: false,
+      error: `geometry muss einer von ${VALID_GEOMETRIES.join(', ')} sein.`,
+    };
+  }
+
+  return { ok: true, molecule: { ...obj, kind: 'molecule' } as MoleculeEntity };
 }
