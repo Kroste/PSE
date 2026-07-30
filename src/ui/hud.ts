@@ -35,6 +35,7 @@ import { ACHIEVEMENTS, countAchieved, totalAchievements } from '../game/achievem
 import { computeMolarMass, guessGeometry, hillFormula } from '../game/chemistry/formula';
 import { layoutMolecule3D } from '../game/chemistry/layout';
 import { parseSmiles } from '../game/chemistry/smiles';
+import { parseMolFile } from '../game/chemistry/mol';
 
 let feedbackTimer: number | undefined;
 
@@ -1375,6 +1376,13 @@ type StructureDraft = {
   source: string;
   atoms: string[];
   bonds: { from: number; to: number; order: number }[];
+  /**
+   * Optional: 3D-Positionen aus MOL-Import. Wenn gesetzt, wird der
+   * Force-directed Layout beim Speichern übersprungen und diese
+   * Koordinaten übernommen (PubChem/ChemDraw liefern sie besser als
+   * unser Auto-Layout es könnte).
+   */
+  atomPositions: [number, number, number][] | null;
 };
 
 const structureDraft: StructureDraft = {
@@ -1387,6 +1395,7 @@ const structureDraft: StructureDraft = {
   source: 'Custom',
   atoms: [],
   bonds: [],
+  atomPositions: null,
 };
 
 function resetStructureDraft(): void {
@@ -1399,6 +1408,7 @@ function resetStructureDraft(): void {
   structureDraft.source = 'Custom';
   structureDraft.atoms = [];
   structureDraft.bonds = [];
+  structureDraft.atomPositions = null;
 }
 
 function renderCustomEditor(el: HTMLElement): void {
@@ -1561,6 +1571,7 @@ function renderStructureEditor(el: HTMLElement, rerender: () => void): void {
       const parsed = parseSmiles(smilesInput.value);
       structureDraft.atoms = parsed.atoms;
       structureDraft.bonds = parsed.bonds;
+      structureDraft.atomPositions = null; // SMILES → per Force-directed Layout
       smilesFeedback.textContent = `✔ ${parsed.atoms.length} Atome, ${parsed.bonds.length} Bindungen`;
       smilesFeedback.dataset.kind = 'ok';
       rerender();
@@ -1571,6 +1582,88 @@ function renderStructureEditor(el: HTMLElement, rerender: () => void): void {
   });
   smilesSection.appendChild(smilesRow);
   el.appendChild(smilesSection);
+
+  // MOL/SDF-Import (aus PubChem, ChemDraw etc.)
+  const molSection = document.createElement('div');
+  molSection.className = 'pse-struct-smiles';
+  const molHeader = document.createElement('h3');
+  molHeader.className = 'pse-section';
+  molHeader.textContent = '📄 MOL/SDF-Import (aus PubChem, ChemDraw …)';
+  molSection.appendChild(molHeader);
+  const molHint = document.createElement('p');
+  molHint.className = 'pse-hint';
+  molHint.innerHTML =
+    'Standard-Format der Cheminformatik (V2000). Lade eine <code>.mol</code>- oder ' +
+    '<code>.sdf</code>-Datei hoch oder füge den Text ein. Die 3D-Koordinaten aus der ' +
+    'Datei werden übernommen — kein Auto-Layout nötig. Beispiel: bei PubChem ' +
+    '„Get 3D Coordinates" → SDF-Download.';
+  molSection.appendChild(molHint);
+
+  const molRow = document.createElement('div');
+  molRow.className = 'pse-struct-smiles-row';
+  const molFileInput = document.createElement('input');
+  molFileInput.type = 'file';
+  molFileInput.accept = '.mol,.sdf,.txt,text/plain,chemical/x-mdl-molfile,chemical/x-mdl-sdfile';
+  molFileInput.className = 'pse-struct-input';
+  molRow.appendChild(molFileInput);
+  const molFeedback = document.createElement('span');
+  molFeedback.className = 'pse-struct-smiles-feedback';
+  molRow.appendChild(molFeedback);
+  molSection.appendChild(molRow);
+
+  const molTextarea = document.createElement('textarea');
+  molTextarea.className = 'pse-struct-input';
+  molTextarea.placeholder = '… oder MOL-Text hier einfügen und "Text einlesen" klicken';
+  molTextarea.rows = 3;
+  molTextarea.style.marginTop = '6px';
+  molSection.appendChild(molTextarea);
+
+  const molTextBtn = document.createElement('button');
+  molTextBtn.className = 'pse-btn';
+  molTextBtn.type = 'button';
+  molTextBtn.textContent = 'Text einlesen';
+  molTextBtn.style.marginTop = '4px';
+  molSection.appendChild(molTextBtn);
+
+  const applyMol = (text: string): void => {
+    try {
+      const parsed = parseMolFile(text);
+      structureDraft.atoms = parsed.atoms.map((a) => a.element);
+      structureDraft.bonds = parsed.bonds;
+      structureDraft.atomPositions = parsed.atoms.map((a) => a.position);
+      // Titel als Namen übernehmen, wenn Feld leer
+      if (!structureDraft.nameDE && parsed.title) structureDraft.nameDE = parsed.title;
+      molFeedback.textContent = `✔ ${parsed.atoms.length} Atome, ${parsed.bonds.length} Bindungen — 3D übernommen`;
+      molFeedback.dataset.kind = 'ok';
+      rerender();
+    } catch (e) {
+      molFeedback.textContent = `✖ ${(e as Error).message}`;
+      molFeedback.dataset.kind = 'err';
+    }
+  };
+
+  molFileInput.addEventListener('change', () => {
+    const file = molFileInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => applyMol(String(reader.result ?? ''));
+    reader.onerror = () => {
+      molFeedback.textContent = '✖ Datei konnte nicht gelesen werden.';
+      molFeedback.dataset.kind = 'err';
+    };
+    reader.readAsText(file);
+  });
+
+  molTextBtn.addEventListener('click', () => {
+    if (molTextarea.value.trim().length === 0) {
+      molFeedback.textContent = '✖ Textfeld ist leer.';
+      molFeedback.dataset.kind = 'err';
+      return;
+    }
+    applyMol(molTextarea.value);
+  });
+
+  el.appendChild(molSection);
 
   // Atome
   const atomsSection = document.createElement('div');
@@ -1607,6 +1700,7 @@ function renderStructureEditor(el: HTMLElement, rerender: () => void): void {
           to: b.to > i ? b.to - 1 : b.to,
           order: b.order,
         }));
+      structureDraft.atomPositions = null;
       rerender();
     });
     chip.appendChild(rm);
@@ -1632,6 +1726,7 @@ function renderStructureEditor(el: HTMLElement, rerender: () => void): void {
   addAtomBtn.textContent = '＋ Atom hinzufügen';
   addAtomBtn.addEventListener('click', () => {
     structureDraft.atoms.push(elementSelect.value);
+    structureDraft.atomPositions = null;
     rerender();
   });
   addAtomRow.appendChild(addAtomBtn);
@@ -1801,7 +1896,10 @@ function buildAndSaveStructureMolecule(): string | null {
   const counts: Record<string, number> = {};
   for (const a of d.atoms) counts[a] = (counts[a] ?? 0) + 1;
 
-  const positions = layoutMolecule3D(d.atoms.length, d.bonds);
+  const positions =
+    d.atomPositions && d.atomPositions.length === d.atoms.length
+      ? d.atomPositions
+      : layoutMolecule3D(d.atoms.length, d.bonds);
   const molecule = {
     id: d.id,
     kind: 'molecule' as const,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { hillFormula, computeMolarMass, guessGeometry } from '../src/game/chemistry/formula';
 import { parseSmiles, countAtoms } from '../src/game/chemistry/smiles';
 import { layoutMolecule3D } from '../src/game/chemistry/layout';
+import { parseMolFile } from '../src/game/chemistry/mol';
 
 describe('hillFormula', () => {
   it('gibt C zuerst, dann H, dann Rest alphabetisch aus', () => {
@@ -174,5 +175,96 @@ describe('layoutMolecule3D', () => {
     const d = Math.hypot(dx, dy, dz);
     expect(d).toBeGreaterThan(1.2);
     expect(d).toBeLessThan(1.8);
+  });
+});
+
+describe('parseMolFile', () => {
+  // Echte Ethanol-MOL-Datei (V2000) im PubChem-Format
+  const ETHANOL_MOL = `Ethanol
+  Marvin  01011600002D
+
+  9  8  0  0  0  0            999 V2000
+   -0.6250    0.3750    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0895    0.7875    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.8040    0.3750    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5185    0.7875    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.3395    0.7875    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.6250   -0.4500    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.6250    0.3750    0.8250 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0895    1.6125    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0895    0.7875   -0.8250 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  2  3  1  0  0  0  0
+  3  4  1  0  0  0  0
+  1  5  1  0  0  0  0
+  1  6  1  0  0  0  0
+  1  7  1  0  0  0  0
+  2  8  1  0  0  0  0
+  2  9  1  0  0  0  0
+M  END`;
+
+  it('parst Titel + Atome + Bindungen aus Ethanol-MOL', () => {
+    const mol = parseMolFile(ETHANOL_MOL);
+    expect(mol.title).toBe('Ethanol');
+    expect(mol.atoms).toHaveLength(9);
+    expect(mol.bonds).toHaveLength(8);
+    // C-C-O-H-Rückgrat + 6 H
+    const symCounts: Record<string, number> = {};
+    for (const a of mol.atoms) symCounts[a.element] = (symCounts[a.element] ?? 0) + 1;
+    expect(symCounts).toEqual({ C: 2, O: 1, H: 6 });
+  });
+
+  it('konvertiert 1-basierte Bindungs-Indizes zu 0-basiert', () => {
+    const mol = parseMolFile(ETHANOL_MOL);
+    // Erste Bindung: MOL sagt "1 2 1" → 0-basiert from=0, to=1
+    expect(mol.bonds[0]).toEqual({ from: 0, to: 1, order: 1 });
+  });
+
+  it('liest 3D-Koordinaten korrekt', () => {
+    const mol = parseMolFile(ETHANOL_MOL);
+    expect(mol.atoms[0]!.position[0]).toBeCloseTo(-0.625, 3);
+    expect(mol.atoms[0]!.position[1]).toBeCloseTo(0.375, 3);
+    expect(mol.atoms[2]!.element).toBe('O');
+  });
+
+  it('behandelt SDF-Datei (mehrere Moleküle) und nimmt das erste', () => {
+    const sdf = ETHANOL_MOL + '\n$$$$\n' + ETHANOL_MOL;
+    const mol = parseMolFile(sdf);
+    expect(mol.title).toBe('Ethanol');
+    expect(mol.atoms).toHaveLength(9);
+  });
+
+  it('mappt aromatische Bindungen (Ordnung 4) auf Einfachbindung', () => {
+    const benzenePartial = `benzene
+  test
+
+  2  1  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  4  0  0  0  0
+M  END`;
+    const mol = parseMolFile(benzenePartial);
+    expect(mol.bonds[0]!.order).toBe(1);
+  });
+
+  it('wirft bei zu kurzer Datei', () => {
+    expect(() => parseMolFile('nur\nzwei\nzeilen')).toThrow(/zu kurz/);
+  });
+
+  it('wirft bei unlesbarer Counts-Zeile', () => {
+    const bad = `title\nprog\ncomment\ngarbage-line\n`;
+    expect(() => parseMolFile(bad)).toThrow(/Counts-Zeile/);
+  });
+
+  it('wirft bei Bindungs-Index außerhalb des Atom-Bereichs', () => {
+    const bad = `test
+  x
+
+  2  1  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+  1  5  1  0  0  0  0
+M  END`;
+    expect(() => parseMolFile(bad)).toThrow(/außerhalb/);
   });
 });
