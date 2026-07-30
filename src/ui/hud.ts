@@ -208,7 +208,7 @@ export function mountHud(opts: HudOptions = {}): void {
   };
 
   const closeAllOverlays = (
-    except: 'table' | 'kb' | 'editor' | 'achievements' | 'mechanisms' | 'challenges',
+    except?: 'table' | 'kb' | 'editor' | 'achievements' | 'mechanisms' | 'challenges',
   ): void => {
     if (except !== 'table') {
       tableEl.hidden = true;
@@ -429,6 +429,16 @@ export function mountHud(opts: HudOptions = {}): void {
           : 'Keine passende Reaktion für diese Zutaten im aktiven Reaktor.';
       showFeedback(`✖ ${msg}`, 'err');
       if (event.reason === 'no-match') sfx.decay();
+    }
+  });
+
+  // Klick auf einen Overlay-Close-X (in jedem Overlay via initOverlay
+  // eingehängt) schließt alle Overlays. Nutzt Event-Delegation, weil
+  // die Buttons bei jedem Rerender neu erzeugt werden.
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.classList.contains('pse-overlay-close-x')) {
+      closeAllOverlays();
     }
   });
 
@@ -1402,7 +1412,7 @@ function renderPeriodicTable(el: HTMLElement, opts: TableOptions): void {
   const discovered = new Set(state.discovered);
   const elementById = new Map<string, ElementEntity>(elements.map((e) => [e.id, e]));
 
-  el.innerHTML = '';
+  initOverlay(el);
 
   const totalDiscovered = elements.filter((e) => discovered.has(e.id)).length;
   el.appendChild(
@@ -1557,7 +1567,7 @@ function renderKnowledgeBase(el: HTMLElement, state: KbFilterState, opts: KbOpti
       : null;
 
   const discovered = new Set(getState().discovered);
-  el.innerHTML = '';
+  initOverlay(el);
 
   el.appendChild(
     overlayHeader(
@@ -1777,7 +1787,7 @@ function resetStructureDraft(): void {
 }
 
 function renderCustomEditor(el: HTMLElement): void {
-  el.innerHTML = '';
+  initOverlay(el);
 
   el.appendChild(
     overlayHeader(
@@ -2479,7 +2489,7 @@ function validateCustomMolecule(input: string): ValidationResult {
 function renderAchievements(el: HTMLElement): void {
   const state = getState();
   const discovered = new Set(state.discovered);
-  el.innerHTML = '';
+  initOverlay(el);
 
   const achieved = countAchieved(state);
   const total = totalAchievements();
@@ -2598,7 +2608,7 @@ function renderMechanisms(
   viz: Mechanism3dPreview,
   opts: MechanismsUiOptions,
 ): void {
-  el.innerHTML = '';
+  initOverlay(el);
 
   if (state.selectedId === null) {
     viz.showStep(null);
@@ -2776,6 +2786,23 @@ function escapeHtml(s: string): string {
 }
 
 /**
+ * Setup pro Overlay-Rerender: leert den Container und hängt einen
+ * absolut positionierten Schließen-X-Button oben rechts rein. Der
+ * globale Click-Handler in mountHud (Event-Delegation auf
+ * .pse-overlay-close-x) schließt darauf alle Overlays.
+ */
+function initOverlay(el: HTMLElement): void {
+  el.innerHTML = '';
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'pse-overlay-close-x';
+  closeBtn.textContent = '✕';
+  closeBtn.title = 'Schließen (Esc)';
+  closeBtn.setAttribute('aria-label', 'Overlay schließen');
+  el.appendChild(closeBtn);
+}
+
+/**
  * Einheitlicher Overlay-Header: grüner Akzent-Bar links, uppercase Titel,
  * optionale Sub-Zeile, optional rechts eine Stat-Angabe ("42 / 118" o.ä.).
  * Löst die früher pro Overlay unterschiedlichen Header-Klassen ab.
@@ -2809,7 +2836,7 @@ function overlayHeader(titleDE: string, subtitleDE?: string, statHtml?: string):
 
 function renderChallenges(el: HTMLElement): void {
   const state = getState();
-  el.innerHTML = '';
+  initOverlay(el);
 
   const done = CHALLENGES.filter((c) => c.check(state)).length;
   const total = CHALLENGES.length;

@@ -533,7 +533,7 @@ body {
 
 .pse-table-overlay {
   position: fixed;
-  inset: 60px 16px 16px 16px;
+  inset: 60px 16px 16px 76px;
   z-index: 20;
   padding: 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -696,7 +696,7 @@ body {
 
 .pse-kb-overlay {
   position: fixed;
-  inset: 60px 16px 16px 16px;
+  inset: 60px 16px 16px 76px;
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -840,7 +840,7 @@ body {
 
 .pse-editor-overlay {
   position: fixed;
-  inset: 60px 16px 16px 16px;
+  inset: 60px 16px 16px 76px;
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -941,7 +941,7 @@ body {
 
 .pse-achievements-overlay {
   position: fixed;
-  inset: 60px 16px 16px 16px;
+  inset: 60px 16px 16px 76px;
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -1316,7 +1316,7 @@ body {
 
 .pse-mechanisms-overlay {
   position: fixed;
-  inset: 60px 16px 16px 16px;
+  inset: 60px 16px 16px 76px;
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
@@ -1756,7 +1756,9 @@ body {
   left: 16px;
   bottom: 16px;
   width: 52px;
-  z-index: 12;
+  /* Muss über den Overlays (z-index 20) liegen, damit Sidebar-Buttons
+     zum Umschalten/Schließen jederzeit erreichbar bleiben. */
+  z-index: 30;
   background: rgba(6, 10, 14, 0.85);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -1902,6 +1904,37 @@ body {
   color: var(--accent);
   line-height: 1;
   margin-bottom: 2px;
+}
+
+/* Schließen-X oben rechts in jedem Overlay */
+.pse-overlay-close-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 120ms,
+    color 120ms,
+    border-color 120ms;
+}
+.pse-overlay-close-x:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.5);
 }
 
 /* Card-Wrapper für Untersektionen in Overlays */
@@ -2479,7 +2512,7 @@ body {
 
 .pse-challenges-overlay {
   position: fixed;
-  inset: 60px 16px 16px 16px;
+  inset: 60px 16px 16px 76px;
   z-index: 20;
   padding: 14px 18px;
   background: rgba(6, 10, 14, 0.96);
