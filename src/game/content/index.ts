@@ -2,6 +2,7 @@ import particlesRaw from './particles.json';
 import hadronsRaw from './hadrons.json';
 import nucleiRaw from './nuclei.json';
 import elementsRaw from './elements.json';
+import moleculesRaw from './molecules.json';
 import recipesRaw from './recipes.json';
 import type {
   Entity,
@@ -10,6 +11,7 @@ import type {
   HadronEntity,
   NucleusEntity,
   ElementEntity,
+  MoleculeEntity,
   Recipe,
 } from './types';
 
@@ -17,6 +19,7 @@ export const particles: readonly ParticleEntity[] = particlesRaw as unknown as P
 export const hadrons: readonly HadronEntity[] = hadronsRaw as unknown as HadronEntity[];
 export const nuclei: readonly NucleusEntity[] = nucleiRaw as unknown as NucleusEntity[];
 export const elements: readonly ElementEntity[] = elementsRaw as unknown as ElementEntity[];
+export const molecules: readonly MoleculeEntity[] = moleculesRaw as unknown as MoleculeEntity[];
 
 const staticRecipes: readonly Recipe[] = recipesRaw as unknown as Recipe[];
 
@@ -55,6 +58,7 @@ export const allEntities: readonly Entity[] = [
   ...hadrons,
   ...nuclei,
   ...elements,
+  ...molecules,
 ];
 
 const entityById = new Map<EntityId, Entity>(allEntities.map((e) => [e.id, e]));
@@ -119,6 +123,35 @@ export function assertContentConsistency(): void {
     }
     if (nucleus.protons !== nucleus.z) {
       throw new Error(`Nucleus "${nucleus.id}": protons(${nucleus.protons}) ≠ Z(${nucleus.z})`);
+    }
+  }
+
+  for (const mol of molecules) {
+    // atomCounts konsistent mit atoms-Liste
+    const counts = new Map<string, number>();
+    for (const a of mol.atoms) {
+      counts.set(a.element, (counts.get(a.element) ?? 0) + 1);
+      const e = entityById.get(a.element);
+      if (!e || e.kind !== 'element') {
+        throw new Error(`Molekül "${mol.id}": Atom-Referenz "${a.element}" ist kein Element`);
+      }
+    }
+    for (const [id, wanted] of Object.entries(mol.atomCounts)) {
+      const actual = counts.get(id) ?? 0;
+      if (actual !== wanted) {
+        throw new Error(
+          `Molekül "${mol.id}": atomCounts[${id}]=${wanted} passt nicht zur atoms-Liste (${actual})`,
+        );
+      }
+    }
+    // Bond-Indizes gültig
+    for (const bond of mol.bonds) {
+      if (bond.from < 0 || bond.from >= mol.atoms.length) {
+        throw new Error(`Molekül "${mol.id}": Bond.from ${bond.from} außerhalb atoms`);
+      }
+      if (bond.to < 0 || bond.to >= mol.atoms.length) {
+        throw new Error(`Molekül "${mol.id}": Bond.to ${bond.to} außerhalb atoms`);
+      }
     }
   }
 }

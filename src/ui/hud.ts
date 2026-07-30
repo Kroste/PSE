@@ -19,7 +19,7 @@ import { elements, freeSupplyIds, getEntity, recipes as allRecipes } from '../ga
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
 import { isRecipeAvailableInMode } from '../game/physics/recipes';
-import type { Entity, ElementEntity, Recipe } from '../game/content/types';
+import type { Entity, ElementEntity, MoleculeEntity, Recipe } from '../game/content/types';
 import { createOrbitalPreview, type OrbitalPreview } from '../game/atoms/orbital-preview';
 
 let feedbackTimer: number | undefined;
@@ -78,7 +78,9 @@ export function mountHud(opts: HudOptions = {}): void {
     selectedEntityId = id;
     rerenderDetail();
     const entity = getEntity(id);
-    if (entity?.kind === 'element' && opts.showAtom) opts.showAtom(id);
+    if ((entity?.kind === 'element' || entity?.kind === 'molecule') && opts.showAtom) {
+      opts.showAtom(id);
+    }
   };
 
   const rerenderDetail = (): void => {
@@ -86,7 +88,12 @@ export function mountHud(opts: HudOptions = {}): void {
     const entity = selectedEntityId ? getEntity(selectedEntityId) : null;
     if (entity?.kind === 'element') {
       previewWrap.hidden = false;
+      previewLabel.textContent = 'Quanten-Orbitale';
       preview.show(entity as ElementEntity);
+    } else if (entity?.kind === 'molecule') {
+      previewWrap.hidden = false;
+      previewLabel.textContent = 'Ball-Stick-Modell';
+      preview.show(entity as MoleculeEntity);
     } else {
       previewWrap.hidden = true;
       preview.show(null);
@@ -205,6 +212,7 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
     ['hadron', 'Hadronen'],
     ['nucleus', 'Atomkerne'],
     ['element', 'Atome & Elemente'],
+    ['molecule', 'Moleküle & Verbindungen'],
   ];
   for (const [kind, title] of kindOrder) {
     const entries = byKind[kind];
@@ -558,6 +566,13 @@ function detailAttributes(entity: Entity): HTMLElement {
     } else {
       push('Stabilität', 'stabil');
     }
+  } else if (entity.kind === 'molecule') {
+    push('Formel', entity.formula);
+    push('Geometrie', entity.geometry);
+    push('Molmasse', `${entity.molarMassGmol} g/mol`);
+    push('Atome', String(entity.atoms.length));
+    push('Bindungen', String(entity.bonds.length));
+    push('Kategorie', entity.categoryDE);
   } else {
     push('Ordnungszahl Z', String(entity.z));
     push('Atommasse', `${entity.atomicMassU} u`);

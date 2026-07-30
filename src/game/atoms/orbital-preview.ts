@@ -7,12 +7,13 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
-import type { ElementEntity } from '../content/types';
+import type { ElementEntity, MoleculeEntity } from '../content/types';
 import { buildOrbitalAtom, type AtomRig } from './atom';
+import { buildMolecule } from './molecule';
 
 export type OrbitalPreview = {
   canvas: HTMLCanvasElement;
-  show: (element: ElementEntity | null) => void;
+  show: (entity: ElementEntity | MoleculeEntity | null) => void;
   dispose: () => void;
 };
 
@@ -75,24 +76,23 @@ export function createOrbitalPreview(size = 240): OrbitalPreview {
 
   return {
     canvas,
-    show(element) {
-      if (element && element.id === currentId) {
+    show(entity) {
+      if (entity && entity.id === currentId) {
         visible = true;
         return;
       }
-      currentId = element ? element.id : null;
+      currentId = entity ? entity.id : null;
       clearAtom();
       atomHost.rotation.set(0, 0, 0);
-      if (!element) {
+      if (!entity) {
         visible = false;
         return;
       }
-      const rig = buildOrbitalAtom(element);
+      const rig =
+        entity.kind === 'molecule' ? buildMolecule(entity) : buildOrbitalAtom(entity);
       atomHost.add(rig.root);
       currentRig = rig;
       visible = true;
-      // Sofort einen Frame rendern, sonst bleibt der Canvas leer, bis der
-      // nächste requestAnimationFrame durchgeht.
       renderer.render(scene, camera);
     },
     dispose() {

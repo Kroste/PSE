@@ -61,7 +61,44 @@ export type ElementEntity = EntityBase & {
   cpkColor: string;
 };
 
-export type Entity = ParticleEntity | HadronEntity | NucleusEntity | ElementEntity;
+export type MoleculeGeometry =
+  | 'linear'
+  | 'bent'
+  | 'trigonal-planar'
+  | 'trigonal-pyramidal'
+  | 'tetrahedral'
+  | 'octahedral';
+
+/** Ein Atom im Molekül-Ball-Stick-Modell mit Position und Element-Referenz. */
+export type MoleculeAtom = {
+  element: EntityId; // z.B. "H", "O"
+  /** Position im Molekül-lokalen Koordinatensystem (Å-artig, aber unitless). */
+  position: [number, number, number];
+};
+
+export type MoleculeBond = {
+  from: number; // Index in atoms[]
+  to: number;
+  order: 1 | 2 | 3;
+};
+
+export type MoleculeEntity = EntityBase & {
+  kind: 'molecule';
+  formula: string; // z.B. "H2O"
+  atomCounts: Multiset; // z.B. { H: 2, O: 1 } — Summenformel als Multiset
+  atoms: MoleculeAtom[];
+  bonds: MoleculeBond[];
+  geometry: MoleculeGeometry;
+  molarMassGmol: number;
+  categoryDE: string; // z.B. "Anorganisch", "Organisch (klein)"
+};
+
+export type Entity =
+  | ParticleEntity
+  | HadronEntity
+  | NucleusEntity
+  | ElementEntity
+  | MoleculeEntity;
 
 export type Multiset = Readonly<Record<EntityId, number>>;
 

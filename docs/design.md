@@ -228,5 +228,10 @@ kollidieren (siehe Werkbank), benennt der Text den Kompromiss.
   + Zerfall-Animation nach Valley of Stability), Fusion-Animation, Auto-Fusion nach
   2.2 s bei Rezept-Match. Ziel-Panel im HUD ("Nächstes Element", Klick öffnet Detail).
   Sound-Cues via Web Audio (Klick, Reactor, Fusion, Zerfall, Discovery), umschaltbar.
-- **M5** — Chemielabor: Bindungen, kleine Moleküle (H₂O, CH₄, NH₃).
-- **M6+** — Polymere, Astrochemie, Endgame.
+- **M5** ✅ — Chemielabor freigeschaltet durch H-Craft, erste Molekül-Klasse
+  (MoleculeEntity mit Formel, Atomen, Bonds, Geometrie, Molmasse). Startpaket:
+  H₂, O₂, N₂ (Einfach-/Doppel-/Dreifachbindung), H₂O, NH₃, CH₄, CO₂. 3D-Ball-Stick-
+  Rendering in der Hauptbühne und als Preview im Detail-Panel. Konsistenzcheck
+  prüft, dass atomCounts zur atoms-Liste passen und Bond-Indices gültig sind.
+- **M6+** — Weitere Moleküle (Alkohole, Zucker, Aminosäuren), Polymere,
+  Astrochemie, Endgame.

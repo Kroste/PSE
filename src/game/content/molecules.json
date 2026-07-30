@@ -1,0 +1,157 @@
+[
+  {
+    "id": "H2",
+    "kind": "molecule",
+    "nameDE": "Wasserstoff",
+    "symbol": "H₂",
+    "formula": "H2",
+    "atomCounts": { "H": 2 },
+    "atoms": [
+      { "element": "H", "position": [-0.37, 0, 0] },
+      { "element": "H", "position": [0.37, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 1 }],
+    "geometry": "linear",
+    "molarMassGmol": 2.016,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#ffffff",
+    "scienceNoteDE": "Molekularer Wasserstoff, häufigstes Molekül im Universum. Farb- und geruchlos, extrem flüchtig; brennt an Luft mit blassblauer Flamme zu Wasser.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "O2",
+    "kind": "molecule",
+    "nameDE": "Sauerstoff (molekular)",
+    "symbol": "O₂",
+    "formula": "O2",
+    "atomCounts": { "O": 2 },
+    "atoms": [
+      { "element": "O", "position": [-0.6, 0, 0] },
+      { "element": "O", "position": [0.6, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 2 }],
+    "geometry": "linear",
+    "molarMassGmol": 31.998,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#ff5555",
+    "scienceNoteDE": "Doppelbindung zwischen zwei Sauerstoffatomen — paramagnetisch (Triplett-Grundzustand). Bildet 21 % der Erdatmosphäre; unverzichtbar für aerobe Atmung.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "N2",
+    "kind": "molecule",
+    "nameDE": "Stickstoff (molekular)",
+    "symbol": "N₂",
+    "formula": "N2",
+    "atomCounts": { "N": 2 },
+    "atoms": [
+      { "element": "N", "position": [-0.55, 0, 0] },
+      { "element": "N", "position": [0.55, 0, 0] }
+    ],
+    "bonds": [{ "from": 0, "to": 1, "order": 3 }],
+    "geometry": "linear",
+    "molarMassGmol": 28.014,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#5566ff",
+    "scienceNoteDE": "Dreifachbindung — extrem stabil (Bindungsenergie 945 kJ/mol). Bildet 78 % der Atmosphäre. Aktivierung braucht viel Energie (Haber-Bosch, Blitze, Nitrogenase).",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "H2O",
+    "kind": "molecule",
+    "nameDE": "Wasser",
+    "symbol": "H₂O",
+    "formula": "H2O",
+    "atomCounts": { "H": 2, "O": 1 },
+    "atoms": [
+      { "element": "O", "position": [0, 0, 0] },
+      { "element": "H", "position": [0.76, 0.59, 0] },
+      { "element": "H", "position": [-0.76, 0.59, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 }
+    ],
+    "geometry": "bent",
+    "molarMassGmol": 18.015,
+    "categoryDE": "Anorganisch (Flüssigkeit)",
+    "color": "#66aaff",
+    "scienceNoteDE": "Gewinkelte Struktur (~104,5°) durch die zwei freien Elektronenpaare am Sauerstoff. Polar — starkes Wasserstoffbrücken-Netzwerk erklärt die hohe Verdampfungswärme und Basis allen Lebens.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "NH3",
+    "kind": "molecule",
+    "nameDE": "Ammoniak",
+    "symbol": "NH₃",
+    "formula": "NH3",
+    "atomCounts": { "N": 1, "H": 3 },
+    "atoms": [
+      { "element": "N", "position": [0, 0.11, 0] },
+      { "element": "H", "position": [0.94, -0.26, 0] },
+      { "element": "H", "position": [-0.47, -0.26, 0.81] },
+      { "element": "H", "position": [-0.47, -0.26, -0.81] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 }
+    ],
+    "geometry": "trigonal-pyramidal",
+    "molarMassGmol": 17.031,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#88aaff",
+    "scienceNoteDE": "Trigonal-pyramidal — freies Elektronenpaar am Stickstoff verdrängt die H-Bindungen leicht. Grundbaustein von Düngemittel-Chemie (Haber-Bosch); reizt Schleimhäute stark.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "CH4",
+    "kind": "molecule",
+    "nameDE": "Methan",
+    "symbol": "CH₄",
+    "formula": "CH4",
+    "atomCounts": { "C": 1, "H": 4 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "H", "position": [0.63, 0.63, 0.63] },
+      { "element": "H", "position": [-0.63, -0.63, 0.63] },
+      { "element": "H", "position": [-0.63, 0.63, -0.63] },
+      { "element": "H", "position": [0.63, -0.63, -0.63] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 1 },
+      { "from": 0, "to": 2, "order": 1 },
+      { "from": 0, "to": 3, "order": 1 },
+      { "from": 0, "to": 4, "order": 1 }
+    ],
+    "geometry": "tetrahedral",
+    "molarMassGmol": 16.043,
+    "categoryDE": "Organisch (Alkan)",
+    "color": "#aaddaa",
+    "scienceNoteDE": "Einfachstes Alkan — perfektes Tetraeder (109,47°-Winkel). Hauptbestandteil von Erdgas, stark potentes Treibhausgas (~28× CO₂ über 100 Jahre).",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "CO2",
+    "kind": "molecule",
+    "nameDE": "Kohlenstoffdioxid",
+    "symbol": "CO₂",
+    "formula": "CO2",
+    "atomCounts": { "C": 1, "O": 2 },
+    "atoms": [
+      { "element": "C", "position": [0, 0, 0] },
+      { "element": "O", "position": [-1.16, 0, 0] },
+      { "element": "O", "position": [1.16, 0, 0] }
+    ],
+    "bonds": [
+      { "from": 0, "to": 1, "order": 2 },
+      { "from": 0, "to": 2, "order": 2 }
+    ],
+    "geometry": "linear",
+    "molarMassGmol": 44.009,
+    "categoryDE": "Anorganisch (Gas)",
+    "color": "#cc7755",
+    "scienceNoteDE": "Linear (O=C=O). Endprodukt der Zellatmung und der Verbrennung fossiler Brennstoffe; klimarelevantestes Treibhausgas des anthropogenen Ausstoßes.",
+    "source": "NIST WebBook"
+  }
+]

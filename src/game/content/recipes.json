@@ -26,9 +26,9 @@
     "inputs": { "proton": 1, "e-": 1 },
     "outputs": { "H": 1 },
     "energyMeV": -13.6,
-    "scienceNoteDE": "Ein Proton fängt ein Elektron im 1s-Orbital ein — Bindungsenergie 13,6 eV. Damit ist das leichteste Atom komplett. Der Sternkern wird als Reaktionsort freigeschaltet.",
+    "scienceNoteDE": "Ein Proton fängt ein Elektron im 1s-Orbital ein — Bindungsenergie 13,6 eV. Damit ist das leichteste Atom komplett. Der Sternkern und das Chemielabor werden als Reaktionsorte freigeschaltet.",
     "source": "NIST Physical Constants (Rydberg energy)",
-    "unlocksReactors": ["stellar-core"]
+    "unlocksReactors": ["stellar-core", "chem-lab"]
   },
 
   {
@@ -418,5 +418,69 @@
     "outputs": { "U": 1 },
     "scienceNoteDE": "²³⁸U-Kern bindet 92 Elektronen zum häufigsten Uran-Isotop. Nicht direkt spaltbar, aber fertil — kann via Neutronen-Einfang und β⁻ zu ²³⁹Pu werden.",
     "source": "NIST Atomic Weights (IUPAC 2021)"
+  },
+
+  {
+    "id": "bond-h2",
+    "kind": "bond",
+    "reactor": "chem-lab",
+    "inputs": { "H": 2 },
+    "outputs": { "H2": 1 },
+    "scienceNoteDE": "Zwei H-Atome bilden das H₂-Molekül. σ-Bindung mit ~436 kJ/mol Dissoziationsenergie.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "bond-o2",
+    "kind": "bond",
+    "reactor": "chem-lab",
+    "inputs": { "O": 2 },
+    "outputs": { "O2": 1 },
+    "scienceNoteDE": "Zwei O-Atome bilden O₂ mit Doppelbindung (~498 kJ/mol). Paramagnetisch — freie Elektronen im antibindenden π*-Orbital.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "bond-n2",
+    "kind": "bond",
+    "reactor": "chem-lab",
+    "inputs": { "N": 2 },
+    "outputs": { "N2": 1 },
+    "scienceNoteDE": "Zwei N-Atome bilden N₂ mit Dreifachbindung (~945 kJ/mol) — eine der stärksten chemischen Bindungen. Deshalb ist Stickstoff-Fixierung so energieaufwändig.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-water",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "H": 2, "O": 1 },
+    "outputs": { "H2O": 1 },
+    "scienceNoteDE": "Zwei H-Atome + ein O-Atom bilden Wasser (bent, ~104,5°). Stark polar durch die zwei freien Elektronenpaare am O — Basis aller Wasserstoffbrücken-Chemie.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-ammonia",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "N": 1, "H": 3 },
+    "outputs": { "NH3": 1 },
+    "scienceNoteDE": "N + 3 H → NH₃ (trigonal-pyramidal). Industriell via Haber-Bosch-Prozess bei ~450 °C und 300 bar — verantwortlich für die Ernährung von ~50 % der Weltbevölkerung.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-methane",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "C": 1, "H": 4 },
+    "outputs": { "CH4": 1 },
+    "scienceNoteDE": "C + 4 H → CH₄ (perfektes Tetraeder). Einfachstes Alkan, Hauptbestandteil von Erdgas; entsteht auch biogen in Sümpfen und im Rinderpansen.",
+    "source": "NIST WebBook"
+  },
+  {
+    "id": "synth-co2",
+    "kind": "chemical",
+    "reactor": "chem-lab",
+    "inputs": { "C": 1, "O": 2 },
+    "outputs": { "CO2": 1 },
+    "scienceNoteDE": "C + 2 O → CO₂ (linear). Endprodukt der Zellatmung und Verbrennung; dominantes Treibhausgas aus anthropogenen Quellen.",
+    "source": "NIST WebBook"
   }
 ]

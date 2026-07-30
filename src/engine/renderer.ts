@@ -21,13 +21,14 @@ import {
 import { clearZone, craft, onCraft, subscribe } from '../game/state/store';
 import { getEntity, requireEntity } from '../game/content';
 import { matchRecipe } from '../game/physics/recipes';
-import type { ElementEntity, Multiset } from '../game/content/types';
+import type { ElementEntity, Multiset, MoleculeEntity } from '../game/content/types';
 import {
   buildBohrAtom,
   computeAtomTargets,
   packedPositions,
   type AtomRig,
 } from '../game/atoms/bohr-atom';
+import { buildMolecule } from '../game/atoms/molecule';
 
 export type SceneBundle = {
   renderer: WebGLRenderer;
@@ -133,13 +134,20 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
   let autoCraftDeadline: number | null = null;
   const AUTO_CRAFT_DELAY = 2.2;
 
-  function replaceAtom(elementId: string | null, isFlash: boolean): void {
+  function replaceAtom(entityId: string | null, isFlash: boolean): void {
     while (atomGroup.children.length > 0) atomGroup.remove(atomGroup.children[0]!);
     currentAtom = null;
-    if (!elementId) return;
-    const entity = getEntity(elementId);
-    if (!entity || entity.kind !== 'element') return;
-    const rig = buildBohrAtom(entity as ElementEntity);
+    if (!entityId) return;
+    const entity = getEntity(entityId);
+    if (!entity) return;
+    let rig: AtomRig;
+    if (entity.kind === 'element') {
+      rig = buildBohrAtom(entity as ElementEntity);
+    } else if (entity.kind === 'molecule') {
+      rig = buildMolecule(entity as MoleculeEntity);
+    } else {
+      return;
+    }
     rig.root.position.copy(ATOM_CENTER);
     atomGroup.add(rig.root);
     currentAtom = rig;
@@ -348,6 +356,23 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
 
     if (elementOutput) {
       replaceAtom(elementOutput, true);
+      atomGroup.visible = true;
+      return;
+    }
+
+    // Molekül-Output: chamber leeren, Molekül-Modell einblenden.
+    const moleculeOutput = Object.keys(event.recipe.outputs).find((id) => {
+      const e = getEntity(id);
+      return e && e.kind === 'molecule';
+    });
+    if (moleculeOutput) {
+      // Chamber-Atome sanft ausblenden (Kurz-Fusion-Style)
+      for (const p of chamberParticles) {
+        chamberGroup.remove(p.mesh);
+        disposeMesh(p.mesh);
+      }
+      chamberParticles.length = 0;
+      replaceAtom(moleculeOutput, true);
       atomGroup.visible = true;
       return;
     }
