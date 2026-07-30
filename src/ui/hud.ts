@@ -186,15 +186,39 @@ export function mountHud(opts: HudOptions = {}): void {
 
 type InventoryOptions = { onSelect: (id: string) => void };
 
+/**
+ * Welche Entity-Kinds sind pro Reaktor sinnvoll?
+ * - workbench: Elementarteilchen bis Atome (aber keine Moleküle — dafür ist chem-lab).
+ * - Sternfusion (stellar-core, agb-star, supernova, cyclotron): Nukleonen, Kerne,
+ *   Photonen. Keine ganzen Atome oder Moleküle — die entstehen woanders.
+ * - chem-lab: nur ganze Atome und Moleküle. Elementarteilchen sind hier ohne Rolle.
+ */
+const REACTOR_KINDS: Record<string, Set<string>> = {
+  workbench: new Set(['particle', 'hadron', 'nucleus', 'element']),
+  'stellar-core': new Set(['particle', 'hadron', 'nucleus']),
+  'agb-star': new Set(['particle', 'hadron', 'nucleus']),
+  supernova: new Set(['particle', 'hadron', 'nucleus']),
+  cyclotron: new Set(['particle', 'hadron', 'nucleus']),
+  'chem-lab': new Set(['element', 'molecule']),
+};
+
+function reactorAllowsKind(reactor: string, kind: string): boolean {
+  const kinds = REACTOR_KINDS[reactor];
+  return kinds ? kinds.has(kind) : true;
+}
+
 function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
   const state = getState();
   el.innerHTML = '';
 
-  el.appendChild(sectionHeader('Elementarteilchen'));
-  for (const id of freeSupplyIds) {
-    const entity = getEntity(id);
-    if (!entity) continue;
-    el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
+  // Elementarteilchen nur, wenn der aktive Reaktor Partikel-Level braucht.
+  if (reactorAllowsKind(state.activeReactor, 'particle')) {
+    el.appendChild(sectionHeader('Elementarteilchen'));
+    for (const id of freeSupplyIds) {
+      const entity = getEntity(id);
+      if (!entity) continue;
+      el.appendChild(inventoryRow(entity, Infinity, state.reactionZone[id] ?? 0, opts));
+    }
   }
 
   const freeSet = new Set<string>(freeSupplyIds);
@@ -203,7 +227,7 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
   for (const id of nonFreeIds) {
     const entity = getEntity(id);
     if (!entity) continue;
-    // Discovered non-freeSupply = dauerhaft verfügbar (∞).
+    if (!reactorAllowsKind(state.activeReactor, entity.kind)) continue;
     (byKind[entity.kind] ??= []).push([id, Infinity]);
   }
 
