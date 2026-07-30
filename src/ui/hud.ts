@@ -15,7 +15,7 @@ import {
 } from '../game/state/store';
 import { clearStorage } from '../game/state/save';
 import { isAudioEnabled, setAudioEnabled, sfx } from '../engine/audio';
-import { elements, freeSupplyIds, getEntity, molecules, recipes as allRecipes } from '../game/content';
+import { allEntities, elements, freeSupplyIds, getEntity, molecules, recipes as allRecipes } from '../game/content';
 import { reactorMeta } from '../game/content/reactors';
 import { pseLayout } from '../game/content/pse-layout';
 import { isRecipeAvailableInMode } from '../game/physics/recipes';
@@ -38,6 +38,8 @@ export function mountHud(opts: HudOptions = {}): void {
   const resetBtn = document.getElementById('pse-reset');
   const expertBtn = document.getElementById('pse-toggle-expert');
   const audioBtn = document.getElementById('pse-toggle-audio');
+  const kbEl = document.getElementById('pse-kb');
+  const kbBtn = document.getElementById('pse-toggle-kb');
   if (
     !inventoryEl ||
     !detailEl ||
@@ -46,7 +48,9 @@ export function mountHud(opts: HudOptions = {}): void {
     !toggleBtn ||
     !resetBtn ||
     !expertBtn ||
-    !audioBtn
+    !audioBtn ||
+    !kbEl ||
+    !kbBtn
   ) {
     throw new Error('HUD-Container fehlen im DOM.');
   }
@@ -133,10 +137,38 @@ export function mountHud(opts: HudOptions = {}): void {
     renderPeriodicTable(tableEl, { onSelect: selectEntity });
   };
 
+  const kbState = { kind: 'all' as string, status: 'all' as string, search: '' };
+  const rerenderKb = (): void => {
+    if (kbEl.hidden) return;
+    renderKnowledgeBase(kbEl, kbState, {
+      onSelect: (id) => {
+        selectEntity(id);
+      },
+      onFilter: (patch) => {
+        Object.assign(kbState, patch);
+        rerenderKb();
+      },
+    });
+  };
+
   toggleBtn.addEventListener('click', () => {
     tableEl.hidden = !tableEl.hidden;
     toggleBtn.classList.toggle('pse-btn-primary', !tableEl.hidden);
+    if (!tableEl.hidden) {
+      kbEl.hidden = true;
+      kbBtn.classList.remove('pse-btn-primary');
+    }
     rerenderTable();
+  });
+
+  kbBtn.addEventListener('click', () => {
+    kbEl.hidden = !kbEl.hidden;
+    kbBtn.classList.toggle('pse-btn-primary', !kbEl.hidden);
+    if (!kbEl.hidden) {
+      tableEl.hidden = true;
+      toggleBtn.classList.remove('pse-btn-primary');
+    }
+    rerenderKb();
   });
 
   const syncExpertBtn = (): void => {
@@ -181,6 +213,7 @@ export function mountHud(opts: HudOptions = {}): void {
     rerenderDetail();
     rerenderReactors();
     rerenderTable();
+    rerenderKb();
     syncExpertBtn();
   });
 
@@ -1023,4 +1056,163 @@ function showFeedback(text: string, kind: 'ok' | 'err'): void {
   feedbackTimer = window.setTimeout(() => {
     if (el.textContent === text) el.textContent = '';
   }, 4000);
+}
+
+/** ------------------- Wissensdatenbank-Overlay ------------------- */
+
+type KbFilterState = { kind: string; status: string; search: string };
+
+type KbOptions = {
+  onSelect: (id: string) => void;
+  onFilter: (patch: Partial<KbFilterState>) => void;
+};
+
+const KIND_LABELS: Record<string, string> = {
+  all: 'Alle',
+  particle: 'Elementarteilchen',
+  hadron: 'Hadronen',
+  nucleus: 'Atomkerne',
+  element: 'Elemente',
+  molecule: 'Moleküle',
+};
+
+function renderKnowledgeBase(el: HTMLElement, state: KbFilterState, opts: KbOptions): void {
+  const wasSearchFocused =
+    document.activeElement instanceof HTMLInputElement &&
+    document.activeElement.classList.contains('pse-kb-search');
+  const cursorPos =
+    wasSearchFocused && document.activeElement instanceof HTMLInputElement
+      ? document.activeElement.selectionStart
+      : null;
+
+  const discovered = new Set(getState().discovered);
+  el.innerHTML = '';
+
+  // Kopfzeile mit Statistik
+  const header = document.createElement('div');
+  header.className = 'pse-kb-header';
+  header.innerHTML =
+    `<strong>Wissensdatenbank</strong>` +
+    ` &middot; <span class="pse-stats-strong">${discovered.size}</span> von ` +
+    `<span class="pse-stats-strong">${allEntities.length}</span> Einträgen entdeckt`;
+  el.appendChild(header);
+
+  // Filter-Bar
+  const filterBar = document.createElement('div');
+  filterBar.className = 'pse-kb-filters';
+
+  // Kind-Chip-Filter
+  const kindGroup = document.createElement('div');
+  kindGroup.className = 'pse-kb-chip-group';
+  for (const [key, label] of Object.entries(KIND_LABELS)) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'pse-kb-chip';
+    chip.classList.toggle('pse-kb-chip-active', state.kind === key);
+    chip.textContent = label;
+    chip.addEventListener('click', () => opts.onFilter({ kind: key }));
+    kindGroup.appendChild(chip);
+  }
+  filterBar.appendChild(kindGroup);
+
+  // Status-Chip-Filter
+  const statusGroup = document.createElement('div');
+  statusGroup.className = 'pse-kb-chip-group';
+  const statusOptions: Array<[string, string]> = [
+    ['all', 'Alle'],
+    ['discovered', 'Nur entdeckt'],
+    ['undiscovered', 'Nur unbekannt'],
+  ];
+  for (const [key, label] of statusOptions) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'pse-kb-chip';
+    chip.classList.toggle('pse-kb-chip-active', state.status === key);
+    chip.textContent = label;
+    chip.addEventListener('click', () => opts.onFilter({ status: key }));
+    statusGroup.appendChild(chip);
+  }
+  filterBar.appendChild(statusGroup);
+
+  // Suchfeld
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'pse-kb-search';
+  searchInput.placeholder = '🔍  Suche nach Symbol, Name, Formel, Kategorie';
+  searchInput.value = state.search;
+  searchInput.addEventListener('input', () => opts.onFilter({ search: searchInput.value }));
+  filterBar.appendChild(searchInput);
+
+  el.appendChild(filterBar);
+
+  // Filter anwenden
+  let entries = allEntities.slice();
+  if (state.kind !== 'all') entries = entries.filter((e) => e.kind === state.kind);
+  if (state.status === 'discovered') entries = entries.filter((e) => discovered.has(e.id));
+  else if (state.status === 'undiscovered') entries = entries.filter((e) => !discovered.has(e.id));
+  if (state.search) {
+    const q = state.search;
+    entries = entries.filter((e) => matchesSearch(e, q));
+  }
+
+  const countLine = document.createElement('div');
+  countLine.className = 'pse-kb-count';
+  countLine.textContent = `${entries.length} Treffer`;
+  el.appendChild(countLine);
+
+  const grid = document.createElement('div');
+  grid.className = 'pse-kb-grid';
+
+  for (const entity of entries) {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'pse-kb-card';
+    if (discovered.has(entity.id)) card.classList.add('pse-kb-card-discovered');
+    else card.classList.add('pse-kb-card-unknown');
+
+    const symLine = document.createElement('div');
+    symLine.className = 'pse-kb-card-symbol';
+    symLine.textContent = entity.symbol ?? entity.id;
+    if ('color' in entity) symLine.style.color = entity.color;
+    card.appendChild(symLine);
+
+    const nameLine = document.createElement('div');
+    nameLine.className = 'pse-kb-card-name';
+    nameLine.textContent = entity.nameDE;
+    card.appendChild(nameLine);
+
+    const metaLine = document.createElement('div');
+    metaLine.className = 'pse-kb-card-meta';
+    metaLine.textContent = kindMetaDescription(entity);
+    card.appendChild(metaLine);
+
+    card.addEventListener('click', () => opts.onSelect(entity.id));
+    grid.appendChild(card);
+  }
+
+  el.appendChild(grid);
+
+  // Focus wiederherstellen
+  if (wasSearchFocused) {
+    const newInput = el.querySelector<HTMLInputElement>('.pse-kb-search');
+    if (newInput) {
+      newInput.focus();
+      if (cursorPos !== null) newInput.setSelectionRange(cursorPos, cursorPos);
+    }
+  }
+}
+
+function kindMetaDescription(entity: Entity): string {
+  switch (entity.kind) {
+    case 'particle':
+      return `${entity.category} · Ladung ${entity.charge} e`;
+    case 'hadron':
+      return `${entity.category} · ${entity.quarks.join('')} · ${entity.massMeV} MeV`;
+    case 'nucleus':
+      return `Z=${entity.z}, A=${entity.a} · ${entity.protons}p+${entity.neutrons}n`;
+    case 'element':
+      return `Z=${entity.z} · ${entity.atomicMassU} u · ${entity.elementCategory}`;
+    case 'molecule':
+      return `${entity.formula} · ${entity.molarMassGmol.toFixed(2)} g/mol · ${entity.categoryDE}`;
+  }
 }
