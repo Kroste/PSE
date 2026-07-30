@@ -84,7 +84,7 @@ const TOUR_STEPS: TourStep[] = [
     target: null,
     titleDE: 'Keyboard-Shortcuts',
     bodyDE:
-      'Ein paar Tasten sparen Klicks: [Space] = Reaktion ausführen · [C] = Zone leeren · [/] = Fokus im Suchfeld · [1]–[6] = Reaktor-Wechsel in der Reihenfolge der Toolbar · [Esc] = alle Overlays schließen.',
+      'Ein paar Tasten sparen Klicks: [Ctrl/Cmd+K] = Quick-Search-Palette (springt zu jedem Molekül oder Mechanismus) · [Space] = Reaktion ausführen · [C] = Zone leeren · [/] = Fokus im Suchfeld · [1]–[6] = Reaktor-Wechsel · [Esc] = alle Overlays schließen.',
   },
   {
     target: null,

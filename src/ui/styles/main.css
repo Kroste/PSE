@@ -1825,6 +1825,112 @@ body {
   line-height: 1.4;
 }
 
+/* ---------------- Quick-Search-Palette (Cmd/Ctrl+K) ---------------- */
+
+.pse-qs-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 15vh;
+}
+.pse-qs-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.pse-qs-modal {
+  position: relative;
+  width: min(640px, 92vw);
+  background: rgba(10, 15, 20, 0.98);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.pse-qs-input {
+  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--panel-border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  outline: none;
+}
+.pse-qs-list {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.pse-qs-item {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.pse-qs-item-active {
+  background: rgba(0, 255, 176, 0.1);
+}
+.pse-qs-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.pse-qs-badge {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(0, 255, 176, 0.3);
+  border-radius: 10px;
+  padding: 2px 8px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pse-qs-label {
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pse-qs-item-active .pse-qs-label {
+  color: var(--accent);
+}
+.pse-qs-secondary {
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pse-qs-hint {
+  padding: 8px 14px;
+  border-top: 1px solid var(--panel-border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
 .pse-detail-actions {
   margin-top: 10px;
   display: flex;

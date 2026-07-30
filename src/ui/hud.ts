@@ -37,6 +37,7 @@ import { layoutMolecule3D } from '../game/chemistry/layout';
 import { parseSmiles } from '../game/chemistry/smiles';
 import { parseMolFile } from '../game/chemistry/mol';
 import { planFor, type BuildPlan } from '../game/pathfinding';
+import { openQuickSearch } from './quick-search';
 import { writeMolFile } from '../game/chemistry/mol-writer';
 import { renderSpectraSection } from './spectra-chart';
 import {
@@ -419,6 +420,25 @@ export function mountHud(opts: HudOptions = {}): void {
     }
     // Wenn eine Tour läuft, keine Shortcuts (die Tour hat ihre eigenen).
     if (document.querySelector('.pse-tour-root')) return;
+
+    // Cmd/Ctrl+K = Quick-Search-Palette
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openQuickSearch({
+        onSelectEntity: (id) => {
+          selectEntity(id);
+        },
+        onSelectMechanism: (id) => {
+          mechanismsState.selectedId = id;
+          mechanismsState.stepIndex = 0;
+          mechanismsEl.hidden = false;
+          mechanismsBtn.classList.add('pse-btn-primary');
+          closeAllOverlays('mechanisms');
+          rerenderMechanisms();
+        },
+      });
+      return;
+    }
 
     // Esc schließt Overlays
     if (e.key === 'Escape') {
