@@ -72,6 +72,18 @@ const SHELL_COLOR = 0x88a0b0;
  * (Fibonacci-Kugelverteilung) plus Elektronen auf konzentrischen elliptischen
  * Schalenbahnen, jeweils mit unterschiedlicher Neigung.
  */
+/** Ein Elektron mit seiner Position auf der (geneigten) Schale plus Phase. */
+type ElectronRig = {
+  mesh: Mesh;
+  radius: number;
+  /** Basiswinkel auf der Bahn (Startphase). */
+  baseAngle: number;
+  /** Winkelgeschwindigkeit (rad/s), n-abhängig. */
+  angularSpeed: number;
+  /** Neigungs-Euler der Schale, wird auf jede Position angewandt. */
+  tilt: Euler;
+};
+
 export function buildBohrAtom(element: ElementEntity): AtomRig {
   const root = new Group();
 
@@ -81,16 +93,50 @@ export function buildBohrAtom(element: ElementEntity): AtomRig {
   const nucleus = buildNucleusCluster(protons, neutrons, a);
   root.add(nucleus);
 
-  type ShellRig = { group: Group; electronCount: number; speed: number };
-  const shellRigs: ShellRig[] = [];
+  const electronRigs: ElectronRig[] = [];
 
   shells.forEach((count, idx) => {
     if (count <= 0) return;
     const n = idx + 1;
     const radius = 0.55 + n * 0.32;
-    const group = buildShell(n, count, radius);
-    root.add(group);
-    shellRigs.push({ group, electronCount: count, speed: 0.9 / Math.max(1, n * 0.55) });
+    // Neigungswinkel deterministisch pro n — dieselben wie in computeAtomTargets,
+    // damit die Bahnen konsistent bleiben.
+    const tilt = new Euler((n * 0.35) % Math.PI, 0, (n * 0.45) % Math.PI, 'XYZ');
+
+    // Statischer Bahn-Ring (Sci-Fi-Look)
+    const ringGeo = new RingGeometry(radius - 0.008, radius + 0.008, 96);
+    const ringMat = new MeshBasicMaterial({
+      color: SHELL_COLOR,
+      transparent: true,
+      opacity: 0.35,
+      side: DoubleSide,
+    });
+    const ring = new Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    // Ring wird als Ganzes geneigt
+    const ringGroup = new Group();
+    ringGroup.rotation.copy(tilt);
+    ringGroup.add(ring);
+    root.add(ringGroup);
+
+    // Elektronen als individuelle Meshes im Root — Position wird pro Frame
+    // aus (baseAngle + phase) berechnet, danach Tilt angewandt. So bewegen
+    // sie sich sauber auf der geneigten Bahn, ohne Euler-Kaskade.
+    const eGeo = new SphereGeometry(0.075, 18, 14);
+    const eMat = new MeshStandardMaterial({
+      color: ELECTRON_COLOR,
+      emissive: 0x88bbff,
+      emissiveIntensity: 0.35,
+      roughness: 0.4,
+      metalness: 0.3,
+    });
+    const angularSpeed = 1.6 / Math.max(1, n * 0.55); // äußere Bahnen langsamer
+    for (let i = 0; i < count; i++) {
+      const baseAngle = (i / count) * Math.PI * 2;
+      const mesh = new Mesh(eGeo, eMat);
+      root.add(mesh);
+      electronRigs.push({ mesh, radius, baseAngle, angularSpeed, tilt });
+    }
   });
 
   // Skalierung: Zielradius für die äußerste Schale bei ~1.5
@@ -99,12 +145,16 @@ export function buildBohrAtom(element: ElementEntity): AtomRig {
   root.scale.setScalar(scale);
 
   let t = 0;
+  const localVec = new Vector3();
   return {
     root,
     update(dt) {
       t += dt;
-      for (const { group, speed } of shellRigs) {
-        group.rotation.y += dt * speed;
+      for (const rig of electronRigs) {
+        const angle = rig.baseAngle + t * rig.angularSpeed;
+        localVec.set(Math.cos(angle) * rig.radius, 0, Math.sin(angle) * rig.radius);
+        localVec.applyEuler(rig.tilt);
+        rig.mesh.position.copy(localVec);
       }
       // Kern wackelt sanft (Nukleonen "atmen")
       const wobble = 1 + Math.sin(t * 1.8) * 0.02;
@@ -175,45 +225,6 @@ export function packedPositions(count: number, spacing: number, jitterSeed: numb
     p.z += nextRand() * jitter;
   }
   return chosen;
-}
-
-function buildShell(n: number, electronCount: number, radius: number): Group {
-  const group = new Group();
-
-  // Elektronenbahn als dünner Ring
-  const ringGeo = new RingGeometry(radius - 0.008, radius + 0.008, 96);
-  const ringMat = new MeshBasicMaterial({
-    color: SHELL_COLOR,
-    transparent: true,
-    opacity: 0.35,
-    side: DoubleSide,
-  });
-  const ring = new Mesh(ringGeo, ringMat);
-  ring.rotation.x = -Math.PI / 2;
-  group.add(ring);
-
-  // Neigung leicht variieren, damit die Bahnen im Bild wie im Sci-Fi-Atom
-  // schräg zueinander stehen — pro n einen anderen Winkel.
-  group.rotation.x = (n * 0.35) % Math.PI;
-  group.rotation.z = (n * 0.45) % Math.PI;
-
-  // Elektronen auf der Bahn gleichmäßig verteilen
-  const eGeo = new SphereGeometry(0.075, 18, 14);
-  const eMat = new MeshStandardMaterial({
-    color: ELECTRON_COLOR,
-    emissive: 0x88bbff,
-    emissiveIntensity: 0.35,
-    roughness: 0.4,
-    metalness: 0.3,
-  });
-  for (let i = 0; i < electronCount; i++) {
-    const angle = (i / electronCount) * Math.PI * 2;
-    const e = new Mesh(eGeo, eMat);
-    e.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-    group.add(e);
-  }
-
-  return group;
 }
 
 function makeNucleonMaterial(color: number): MeshStandardMaterial {
