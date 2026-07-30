@@ -41,6 +41,8 @@ let feedbackTimer: number | undefined;
 export type HudOptions = {
   /** Wird bei Element-Auswahl aufgerufen. `null` = kein Atom zeigen. */
   showAtom?: (elementId: string | null) => void;
+  /** Registriert das Reaktionskammer-Status-Element beim Renderer. */
+  setStatusElement?: (el: HTMLElement | null) => void;
 };
 
 export function mountHud(opts: HudOptions = {}): void {
@@ -151,6 +153,7 @@ export function mountHud(opts: HudOptions = {}): void {
       collapsed: collapsedSections,
       onToggleSection: toggleSection,
       onSearchChange: setSearch,
+      onStatusEl: (el) => opts.setStatusElement?.(el),
     });
   };
 
@@ -322,6 +325,7 @@ type InventoryOptions = {
   collapsed?: Set<string>;
   onToggleSection?: (key: string) => void;
   onSearchChange?: (q: string) => void;
+  onStatusEl?: (el: HTMLElement) => void;
 };
 
 const COLLAPSED_STORAGE_KEY = 'pse.ui.collapsedSections';
@@ -507,7 +511,7 @@ function renderInventory(el: HTMLElement, opts: InventoryOptions): void {
     }
   }
 
-  el.appendChild(zonePanel(state.reactionZone));
+  el.appendChild(zonePanel(state.reactionZone, opts.onStatusEl));
   el.appendChild(craftControls());
   el.appendChild(feedbackBox());
   el.appendChild(goalBox(opts.onSelect));
@@ -656,7 +660,10 @@ function inventoryRow(
 
 const DND_TYPE = 'application/x-pse-entity-id';
 
-function zonePanel(zone: Record<string, number>): HTMLElement {
+function zonePanel(
+  zone: Record<string, number>,
+  onStatusEl?: (el: HTMLElement) => void,
+): HTMLElement {
   const box = document.createElement('div');
   box.className = 'pse-zone';
   box.appendChild(sectionHeader('Reaktionszone'));
@@ -684,15 +691,35 @@ function zonePanel(zone: Record<string, number>): HTMLElement {
     empty.className = 'pse-hint';
     empty.textContent = 'Leer — füge Zutaten hinzu oder zieh sie hier hinein.';
     box.appendChild(empty);
-    return box;
+  } else {
+    const line = document.createElement('div');
+    line.className = 'pse-zone-line';
+    line.textContent = entries
+      .map(([id, n]) => `${n} × ${getEntity(id)?.symbol ?? id}`)
+      .join('  +  ');
+    box.appendChild(line);
   }
 
-  const line = document.createElement('div');
-  line.className = 'pse-zone-line';
-  line.textContent = entries
-    .map(([id, n]) => `${n} × ${getEntity(id)?.symbol ?? id}`)
-    .join('  +  ');
-  box.appendChild(line);
+  // Stabilitäts-Status (füllt der Renderer per Frame)
+  const status = document.createElement('div');
+  status.className = 'pse-chamber-status';
+  status.dataset.kind = 'idle';
+  const icon = document.createElement('span');
+  icon.className = 'pse-status-icon';
+  status.appendChild(icon);
+  const text = document.createElement('span');
+  text.className = 'pse-status-text';
+  status.appendChild(text);
+  const progress = document.createElement('div');
+  progress.className = 'pse-status-progress';
+  progress.hidden = true;
+  const fill = document.createElement('div');
+  fill.className = 'pse-status-progress-fill';
+  progress.appendChild(fill);
+  status.appendChild(progress);
+  box.appendChild(status);
+  onStatusEl?.(status);
+
   return box;
 }
 

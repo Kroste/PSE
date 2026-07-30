@@ -20,7 +20,7 @@ if (persisted) {
 const scene = createRenderer(canvas);
 startLoop(scene);
 
-mountHud({ showAtom: scene.showAtom });
+mountHud({ showAtom: scene.showAtom, setStatusElement: scene.setStatusElement });
 
 const versionEl = document.getElementById('pse-version');
 if (versionEl) {

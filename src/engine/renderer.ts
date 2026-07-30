@@ -28,12 +28,32 @@ import {
 } from '../game/atoms/bohr-atom';
 import { buildMolecule } from '../game/atoms/molecule';
 
+export type ChamberStatus =
+  | { kind: 'idle' }
+  | { kind: 'stable' }
+  | { kind: 'unstable' }
+  | { kind: 'ready'; remainingS: number; totalS: number }
+  | { kind: 'fusing' }
+  | { kind: 'decaying' };
+
 export type SceneBundle = {
   renderer: WebGLRenderer;
   scene: Scene;
   camera: PerspectiveCamera;
   update: (dt: number) => void;
   showAtom: (elementId: string | null) => void;
+  /**
+   * Nimmt ein DOM-Element entgegen, das der Renderer per Frame mit dem
+   * aktuellen Reaktionskammer-Status befüllt. `null` = kein Element mehr
+   * anfassen. Erwartete DOM-Struktur:
+   *
+   *   <div class="pse-chamber-status" data-kind="idle">
+   *     <span class="pse-status-icon"></span>
+   *     <span class="pse-status-text"></span>
+   *     <div class="pse-status-progress"><div class="pse-status-progress-fill"></div></div>
+   *   </div>
+   */
+  setStatusElement: (el: HTMLElement | null) => void;
 };
 
 const PARTICLE_RADIUS = 0.16;
@@ -549,10 +569,91 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
     return true;
   }
 
+  let statusEl: HTMLElement | null = null;
+  let statusIconEl: HTMLElement | null = null;
+  let statusTextEl: HTMLElement | null = null;
+  let statusFillEl: HTMLElement | null = null;
+  let statusProgressEl: HTMLElement | null = null;
+  let lastStatusKind: string | null = null;
+  let lastStatusText: string | null = null;
+
+  function computeStatus(): ChamberStatus {
+    if (fusion) return { kind: 'fusing' };
+    if (decay) return { kind: 'decaying' };
+    if (chamberParticles.length === 0) return { kind: 'idle' };
+    if (autoCraftDeadline !== null) {
+      const remaining = Math.max(0, autoCraftDeadline - performance.now() / 1000);
+      return { kind: 'ready', remainingS: remaining, totalS: AUTO_CRAFT_DELAY };
+    }
+    if (isChamberUnstable()) return { kind: 'unstable' };
+    return { kind: 'stable' };
+  }
+
+  function updateStatusDom(): void {
+    if (!statusEl) return;
+    const st = computeStatus();
+    // Dirty-Check: nur DOM anfassen, wenn sich Text/Kind wirklich ändern.
+    let icon = '';
+    let text = '';
+    let showProgress = false;
+    let fillPercent = 0;
+    switch (st.kind) {
+      case 'idle':
+        icon = '⋯';
+        text = 'Bereit — füge Zutaten hinzu';
+        break;
+      case 'stable':
+        icon = '✓';
+        text = 'Stabile Konfiguration';
+        break;
+      case 'unstable':
+        icon = '⚠';
+        text = 'Instabil — Zerfall wahrscheinlich';
+        break;
+      case 'ready': {
+        icon = '⏳';
+        const remainingMs = Math.round(st.remainingS * 1000);
+        text = `Reaktion in ${(remainingMs / 1000).toFixed(1)} s`;
+        showProgress = true;
+        fillPercent = 100 * (1 - st.remainingS / st.totalS);
+        break;
+      }
+      case 'fusing':
+        icon = '⚛';
+        text = 'Fusion läuft …';
+        break;
+      case 'decaying':
+        icon = '💥';
+        text = 'Zerfall …';
+        break;
+    }
+    if (st.kind !== lastStatusKind) {
+      statusEl.dataset.kind = st.kind;
+      lastStatusKind = st.kind;
+    }
+    if (text !== lastStatusText) {
+      if (statusIconEl) statusIconEl.textContent = icon;
+      if (statusTextEl) statusTextEl.textContent = text;
+      lastStatusText = text;
+    }
+    if (statusProgressEl) statusProgressEl.hidden = !showProgress;
+    if (showProgress && statusFillEl) statusFillEl.style.width = `${fillPercent}%`;
+  }
+
   return {
     renderer,
     scene,
     camera,
+    setStatusElement(el) {
+      statusEl = el;
+      statusIconEl = el ? el.querySelector('.pse-status-icon') : null;
+      statusTextEl = el ? el.querySelector('.pse-status-text') : null;
+      statusProgressEl = el ? el.querySelector('.pse-status-progress') : null;
+      statusFillEl = el ? el.querySelector('.pse-status-progress-fill') : null;
+      lastStatusKind = null;
+      lastStatusText = null;
+      if (el) updateStatusDom();
+    },
     update(dt) {
       if (!fusion) {
         updateChamberPhysics(dt);
@@ -565,6 +666,8 @@ export function createRenderer(canvas: HTMLCanvasElement): SceneBundle {
           craft();
         }
       }
+
+      updateStatusDom();
 
       if (decay) {
         decay.elapsed += dt;

@@ -316,6 +316,82 @@ body {
   padding: 4px 0;
 }
 
+/* ---------------- Reaktionskammer-Status ---------------- */
+
+.pse-chamber-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-dim);
+  transition:
+    background 200ms,
+    border-color 200ms,
+    color 200ms;
+}
+.pse-chamber-status[data-kind='idle'] {
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+.pse-chamber-status[data-kind='stable'] {
+  color: var(--accent);
+  border-color: rgba(0, 255, 176, 0.35);
+  background: rgba(0, 255, 176, 0.08);
+}
+.pse-chamber-status[data-kind='unstable'] {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.1);
+  animation: pse-status-pulse 0.8s ease-in-out infinite;
+}
+.pse-chamber-status[data-kind='ready'] {
+  color: #ffdd66;
+  border-color: rgba(255, 221, 102, 0.5);
+  background: rgba(255, 221, 102, 0.1);
+}
+.pse-chamber-status[data-kind='fusing'] {
+  color: #ffdd66;
+  border-color: #ffdd66;
+  background: rgba(255, 221, 102, 0.18);
+}
+.pse-chamber-status[data-kind='decaying'] {
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.18);
+}
+@keyframes pse-status-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.pse-status-icon {
+  font-size: 14px;
+  min-width: 16px;
+  text-align: center;
+}
+.pse-status-text {
+  flex: 1;
+  min-width: 0;
+}
+.pse-status-progress {
+  width: 60px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.pse-status-progress-fill {
+  height: 100%;
+  background: currentColor;
+  transition: width 80ms linear;
+}
+
 .pse-draggable {
   cursor: grab;
 }
