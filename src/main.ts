@@ -5,6 +5,7 @@ import { loadFromStorage } from './game/state/save';
 import { assertContentConsistency } from './game/content';
 import { mountHud } from './ui/hud';
 import { maybeAutoStartTour, startTour } from './ui/onboarding';
+import { initAchievementToasts } from './ui/achievement-toast';
 
 assertContentConsistency();
 
@@ -39,6 +40,9 @@ tourBtn.textContent = '❔ Tour';
 tourBtn.title = 'Onboarding-Tour neu starten';
 tourBtn.addEventListener('click', () => startTour());
 document.body.appendChild(tourBtn);
+
+// Achievement-Toasts feuern lassen wenn Nutzer live etwas freischaltet.
+initAchievementToasts();
 
 // Beim ersten Start automatisch die Tour zeigen.
 maybeAutoStartTour();

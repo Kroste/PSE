@@ -1760,6 +1760,71 @@ body {
   opacity: 1;
 }
 
+/* ---------------- Achievement-Toast ---------------- */
+
+#pse-toast-stack {
+  position: fixed;
+  top: 60px;
+  right: 12px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.pse-toast {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  min-width: 300px;
+  max-width: 380px;
+  background: rgba(10, 15, 20, 0.98);
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono);
+  transform: translateX(120%);
+  opacity: 0;
+  transition:
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 350ms;
+  pointer-events: auto;
+}
+.pse-toast-visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+.pse-toast-icon {
+  font-size: 28px;
+  line-height: 1;
+  min-width: 32px;
+  text-align: center;
+}
+.pse-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+.pse-toast-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+.pse-toast-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.pse-toast-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
 .pse-detail-actions {
   margin-top: 10px;
   display: flex;
